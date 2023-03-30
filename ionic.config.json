@@ -1,0 +1,7 @@
+{
+  "name": "Finmars Mobile",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
