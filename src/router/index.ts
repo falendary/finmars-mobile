@@ -3,12 +3,24 @@ import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '',
-    redirect: '/folder/Inbox'
+    path: '/',
+    redirect: '/dashboard',
   },
   {
-    path: '/folder/:id',
-    component: () => import ('../views/FolderPage.vue')
+    path: '/dashboard',
+    component: () => import('@/views/Dashboard.vue'),
+  },
+  {
+    path: '/balance',
+    component: () => import('@/views/Balance.vue'),
+  },
+  {
+    path: '/pnl',
+    component: () => import('@/views/Pnl.vue'),
+  },
+  {
+    path: '/transactions',
+    component: () => import('@/views/Transactions.vue'),
   }
 ]
 

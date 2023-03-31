@@ -12,14 +12,17 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@capacitor/android": "4.7.1",
     "@capacitor/app": "4.1.1",
     "@capacitor/core": "4.7.1",
     "@capacitor/haptics": "4.1.0",
+    "@capacitor/ios": "4.7.1",
     "@capacitor/keyboard": "4.1.1",
     "@capacitor/status-bar": "4.1.1",
     "@ionic/vue": "^7.0.0",
     "@ionic/vue-router": "^7.0.0",
     "ionicons": "^7.0.0",
+    "sass": "^1.60.0",
     "vue": "^3.2.45",
     "vue-router": "^4.1.6"
   },
