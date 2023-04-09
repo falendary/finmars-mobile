@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
+    "allowJs": true,
     "target": "ESNext",
     "useDefineForClassFields": true,
     "module": "ESNext",
     "moduleResolution": "Node",
-    "strict": true,
+    "strict": false,
     "jsx": "preserve",
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -16,6 +17,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "src/main.js", "src/main.js", "src/router/index.js", "src/router/index.js"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

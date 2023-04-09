@@ -1,22 +1,17 @@
 <template>
   <ion-app>
-    <ion-content>
+    <Suspense>
       <ion-router-outlet id="main-content" />
-    </ion-content>
-
-    <TheMenuBottom />
+    </Suspense>
   </ion-app>
 </template>
 
-<script setup lang="ts">
+<script setup>
 
   import {
     IonApp,
     IonRouterOutlet, 
-    IonContent, 
-  } from '@ionic/vue';
-
-  import TheMenuBottom from '@/components/TheMenuBottom.vue'
+  } from '@ionic/vue'
 
 </script>
 

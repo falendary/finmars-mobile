@@ -1,0 +1,78 @@
+.swiper-pagination {
+	text-align: center;
+}
+.swiper-pagination-bullet {
+	display: inline-block;
+	background: #bfbfbf;
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	margin: 3px;
+	transition: 0.3s;
+}
+.swiper-pagination-bullet-active {
+	background: var(--ion-color-primary);
+}
+
+
+
+
+
+
+
+
+
+
+.dib,
+.inline-block {
+	display: inline-block;
+}
+.db,
+.block {
+	display: block;
+}
+.df,
+.flex {
+	display: flex;
+}
+.fww {
+	flex-wrap: wrap;
+}
+.fwnw {
+	flex-wrap: nowrap;
+}
+.jcc {
+	justify-content: center;
+}
+.jcfe {
+	justify-content: flex-end;
+}
+.center {
+	display: flex;
+	justify-content: center;
+}
+
+.sb,
+.space-between {
+	justify-content: space-between;
+}
+.vc,
+.aic {
+	align-items: center;
+}
+.aifs {
+	align-items: flex-start;
+}
+.aife,
+.aie {
+	align-items: flex-end;
+}
+.tac {
+	text-align: center;
+}
+.text-capitalize {
+	text-transform: capitalize !important;
+}
+.text-lowercase {
+	text-transform: lowercase !important;
+}

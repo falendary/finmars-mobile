@@ -3,33 +3,6 @@
 		<ion-toolbar color="medium">
 			<ion-buttons slot="start">
 
-				<ion-tabs>
-					<ion-router-outlet></ion-router-outlet>
-					<ion-tab-bar slot="bottom">
-						<ion-tab-button tab="balance" href="/balance">
-							<ion-icon :icon="iconTest" />
-							<ion-label>Listen now</ion-label>
-						</ion-tab-button>
-
-						<ion-tab-button tab="radio" href="/balance">
-							<ion-icon :icon="iconTest" />
-							<ion-label>Radio</ion-label>
-						</ion-tab-button>
-					</ion-tab-bar>
-					<ion-tab-bar slot="bottom">
-						<ion-tab-button tab="balance" href="/balance">
-							<ion-icon :icon="iconTest" />
-							<ion-label>Listen fnow</ion-label>
-						</ion-tab-button>
-
-						<ion-tab-button tab="radio" href="/balance">
-							<ion-icon :icon="iconTest" />
-							<ion-label>Radio3</ion-label>
-						</ion-tab-button>
-					</ion-tab-bar>
-				</ion-tabs>
-				
-				
 			</ion-buttons>
 
 			<div>
@@ -47,7 +20,7 @@
 	</ion-footer>
 </template>
 
-<script setup lang="ts">
+<script setup >
 	import {
     IonTitle,
     IonIcon,

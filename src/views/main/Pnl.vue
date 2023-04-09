@@ -1,22 +1,22 @@
 <template>
   <ion-page>
-    Balance
+    <ion-content>
+      <div class="example-content">P&l</div>
+    </ion-content>
   </ion-page>
 </template>
 
-<script setup lang="ts">
+<script setup >
 
   import {
     IonPage,
-    IonTitle,
+    IonContent,
     IonIcon,
     IonButtons,
     IonButton,
     IonFooter,
     IonToolbar,
   } from '@ionic/vue';
-
-  import { statsChart , radio, library, settingsSharp } from 'ionicons/icons';
 
 </script>
 
