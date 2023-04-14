@@ -16,7 +16,7 @@ echo PROD_WS_HOST $PROD_KEYCLOAK_CLIENT_ID
 
 
 # Replace env vars in files served by server
-for file in $ROOT_DIR/.output/**/*.mjs* $ROOT_DIR/.output/server/chunks/nitro/node-server.mjs
+for file in $ROOT_DIR/dist/**/*.js*
 do
   sed -i 's|==PROD_FRONT_URL==|'${PROD_FRONT_URL}'|g' $file
   sed -i 's|==BASE_URL==|'${BASE_URL}'|g' $file
