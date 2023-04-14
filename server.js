@@ -3,11 +3,11 @@ import * as path from 'path'
 
 var app = express()
 var port = process.env.PORT || 8080;
-var BASE_URL = process.env.BASE_URL || '/==BASE_URL==';
+var BASE_URL = process.env.BASE_URL || '/mu';
 const __dirname = path.resolve();
 
 app.use( express.static('dist') );
-app.use('*', express.static('dist'))
+app.use(BASE_URL + '/*', express.static('dist'))
 
 // app.get(BASE_URL, (request, response) => {
 //     console.log('request:', request)
