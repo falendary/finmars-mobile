@@ -1,4 +1,4 @@
-var express = require('express');
+import express from 'express'
 
 var port = process.env.PORT || 8080;
 

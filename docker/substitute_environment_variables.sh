@@ -19,7 +19,7 @@ echo PROD_WS_HOST $PROD_KEYCLOAK_CLIENT_ID
 for file in $ROOT_DIR/.output/**/*.mjs* $ROOT_DIR/.output/server/chunks/nitro/node-server.mjs
 do
   sed -i 's|==PROD_FRONT_URL==|'${PROD_FRONT_URL}'|g' $file
-  sed -i 's|==NUXT_APP_BASE_URL==|'${NUXT_APP_BASE_URL}'|g' $file
+  sed -i 's|==BASE_URL==|'${BASE_URL}'|g' $file
   sed -i 's|==PROD_API_HOST==|'${PROD_API_HOST}'|g' $file
   sed -i 's|==PROD_KEYCLOAK_URL==|'${PROD_KEYCLOAK_URL}'|g' $file
   sed -i 's|==PROD_KEYCLOAK_REALM==|'${PROD_KEYCLOAK_REALM}'|g' $file
