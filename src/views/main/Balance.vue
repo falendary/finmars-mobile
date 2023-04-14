@@ -6,14 +6,23 @@
         <div class="header_info">2023-03-16</div>
       </div>
 
-      <div class="main_chart">
-        <div class="main_chart_h">Net Asset Value (NAV) </div>
-        <div class="main_chart_price">126,342.12 USD</div>
+      <swiper :pagination="true" :modules="[Pagination]" class="balance_swiper"
+        :loop="true"
+        @slideChange="onPortfolioChange"
+      >
+				<swiper-slide v-for="(item, k) in categories">
+					<div class="main_chart">
+            <div class="main_chart_h">Net Asset Value (NAV) </div>
+            <div class="main_chart_price">126,342.12 USD</div>
 
-        <div style="height: 80px;width: calc(100% + 10px);margin: 0 0 -5px -5px;">
-          <canvas id="lineChart"><p>Chart</p></canvas>
-        </div>
-      </div>
+            <div style="height: 80px;width: calc(100% + 10px);margin: 0 0 -5px -5px;">
+              <canvas v-if="k == 0" id="lineChart"><p>Chart</p></canvas>
+              <div v-else id="lineChart"></div>
+            </div>
+          </div>
+				</swiper-slide>
+			</swiper>
+      
 
 			<Indicators 
         :items="[
@@ -26,14 +35,14 @@
 
 			<div class="header flex aic sb">
         Balance
-        <ion-checkbox labelPlacement="end">Label at the End</ion-checkbox>
+        <ion-checkbox v-model="isChartView" labelPlacement="end">Chart view</ion-checkbox>
       </div>
 
 			<swiper :pagination="true" :modules="[Pagination]" class="balance_swiper"
         :loop="true"
         @slideChange="onBalanceChange"
       >
-				<swiper-slide v-for="item in categories">
+				<swiper-slide v-for="(item, k) in categories">
 					<div class="balance_block">
             
 						<div class="bb_header_line flex sb aic">
@@ -42,31 +51,63 @@
 						</div>
 
 						<div class="flex sb">
-							<div style="width: 145px;height: 145px;">
-								<canvas id="balanceChart"><p>Chart</p></canvas>
+							<div style="width: 145px;height: 145px;" 
+                v-show="isChartView"
+              >
+								<canvas v-if="k == 0" id="balanceChart"><p>Chart</p></canvas>
+                <div v-else id="balanceChart"></div>
 							</div>
 
 							<div class="balance_labels">
-								<div class="balance_labels_item flex aic">
-									<div class="balance_labels_percent">81%</div>
-									<div class="balance_labels_text">USD</div>
-								</div>
-                <div class="balance_labels_item flex aic">
-									<div class="balance_labels_percent">81%</div>
-									<div class="balance_labels_text">big assets title</div>
+								<div class="balance_labels_item flex aic"
+                  v-for="instr in item.instruments.sort((a,b) => b.total - a.total)"
+                  :class="{active: detailSubcat == instr.name}"
+                  @click="detailSubcat = instr.name"
+                >
+									<div class="balance_labels_percent">{{ Math.round(instr.total / item.total * 100) }}%</div>
+									<div class="balance_labels_text">{{ instr.name }}</div>
 								</div>
 							</div>
+
+              <div v-show="!isChartView">
+                
+              </div>
 						</div>
 					</div>
 				</swiper-slide>
 			</swiper>
+
+      <template v-if="detailSubcat">
+        <div class="header flex aic sb">Details</div>
+        
+        <div class="balance_block">
+          <div class="bb_header_line flex sb aic">
+            <div class="bb_header">Equity</div>
+            <div class="bb_price">{{ $format(2344) }} USD</div>
+          </div>
+
+          <div class="instruments"
+            v-for="item in instrumentsByCategory"
+            :class="{active: activeInstrumentId == item.id}"
+            @click="activeInstrumentId = item.id"
+          >
+            {{ item.name }}
+          </div>
+        </div>
+      </template>
+
+      <template v-if="activeInstrumentId">
+        <div class="header flex aic sb">Transactions</div>
+        
+        <TransactionList :items="instrumentsByCategory" />
+      </template>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup>
 
-	import { onMounted } from 'vue'
+	import { onMounted, ref } from 'vue'
 
 	import dayjs from 'dayjs'
   import {
@@ -88,6 +129,7 @@
 	} from 'chart.js'
 
   import Indicators from '@/components/Indicators.vue'
+  import TransactionList from '@/components/TransactionList.vue'
 
 	import { Swiper, SwiperSlide } from 'swiper/vue';
 	import { Pagination } from 'swiper';
@@ -123,15 +165,34 @@
 			}
 		],
 	}
+  let isChartView = ref(true)
+  let detailSubcat = ref(null)
+  let activeInstrumentId = ref(null)
+
+  let instrumentsByCategory = [
+    {
+      id: 12,
+      name: 'LINGOTS OR 500 GR',
+      description: 'LINGOTS OR 500 GR',
+      pos: 124456,
+      top_info: 'Buy/Sell',
+      amount: 124456,
+    },
+    {
+      id: 13,
+      name: 'Instrument 2',
+      total: 124456
+    }
+  ]
   let categories = [
-   {
+    {
       name: 'Assets',
       total: 124456,
       instruments: [
         {name: 'usd', total: 455},
-        {name: 'eur', total: 455},
+        {name: 'eur', total: 5455},
         {name: 'chf', total: 455},
-        {name: 'UAH', total: 455},
+        {name: 'UAH', total: -5455},
       ]
     },
     {
@@ -139,19 +200,17 @@
       total: 234456,
       instruments: [
         {name: 'usd', total: 455},
-        {name: 'eur', total: 455},
+        {name: 'eur', total: 3455},
         {name: 'chf', total: 455},
-        {name: 'UAH', total: 455},
       ]
     },
     {
       name: 'Sector',
       total: 14456,
       instruments: [
-        {name: 'usd', total: 455},
+        {name: 'usd', total: 1455},
         {name: 'eur', total: 455},
-        {name: 'chf', total: 455},
-        {name: 'UAH', total: 455},
+        {name: 'UAH', total: 1455},
       ]
     },
   ]
@@ -161,16 +220,29 @@
   })
 
   function onBalanceChange(swiper) {
-    let prev = swiper.previousIndex
-    let active = swiper.activeIndex
-    let prevChart = swiper.slides[prev].querySelector('#balanceChart')
-    let nextChart = swiper.slides[active].querySelector('#balanceChart')
+    let prevChart = swiper.slidesEl.querySelector('canvas#balanceChart')
+    let prevChartParent = prevChart.parentNode
+    let nextChart = swiper.slides[swiper.activeIndex].querySelector('#balanceChart')
 
-    let newDiv = document.createElement('div')
-    newDiv.id = 'balanceChart'
-    
-    prevChart.parentNode.append(newDiv)
-    nextChart.parentNode.replaceChild(prevChart, nextChart )
+    let oldChild = nextChart.parentNode.replaceChild(prevChart, nextChart )
+    prevChartParent.append(oldChild)
+
+    let instrs = categories[swiper.realIndex].instruments
+
+    balanceChart.data = createBalanceDataset(instrs)
+    balanceChart.update()
+  }
+
+  function onPortfolioChange(swiper) {
+    let prevChart = swiper.slidesEl.querySelector('canvas#lineChart')
+    let prevChartParent = prevChart.parentNode
+    let nextChart = swiper.slides[swiper.activeIndex].querySelector('#lineChart')
+
+    let oldChild = nextChart.parentNode.replaceChild(prevChart, nextChart )
+    prevChartParent.append(oldChild)
+
+
+    lineChart.update()
   }
 
   function createChart() {
@@ -275,21 +347,55 @@
 			},
 		});
 
-    data.labels = ['test', 'test']
-    data.datasets = [
-      {
-        data: [1,2,3,4,6],
-        hoverOffset: 4
-      },
-      {
-        data: [-1, -5],
-        circumference: 12 == 0
-          ? 360
-          : Math.floor(6 / 16 * 360)
-      }
-    ]
+    balanceChart.data = createBalanceDataset(categories[0].instruments)
     balanceChart.update()
 	}
+  function createBalanceDataset(instr) {
+		instr = instr
+			.filter((item) => item.total != 0 && item.total != null)
+			.sort( (a, b) => b.total - a.total)
+
+		let plusColors = []
+		let plus = instr
+			.filter(item => item.total >= 0)
+			.map(item => {
+				// plusColors.push( dashStore.instrColors[inputs.value.category_type + item[0]] )
+				return item.total
+			})
+
+		let totalPlus = plus.length ? plus.reduce((a,b)=> a + b) : 0
+
+		let minusColors = []
+		let minus = instr
+			.filter(item => item.total < 0)
+			.map(item => {
+				// minusColors.push( dashStore.instrColors[inputs.value.category_type + item[0]] )
+				return item.total
+			})
+
+		let totalMinus = Math.abs(minus.length ? minus.reduce((a,b) => a + b) : 1)
+
+    let data = {}
+
+    data.labels = instr.map(item => item.name)
+		data.datasets = [
+			{
+				data: plus,
+				// backgroundColor: plusColors,
+				hoverOffset: 4
+			},
+			{
+				data: minus,
+				// backgroundColor: minusColors,
+				circumference: totalPlus == 0
+					? 360
+					: Math.floor(totalMinus / totalPlus * 360)
+			}
+		]
+
+    return data
+  }
+
 </script>
 
 <style lang="scss" scoped>

@@ -130,14 +130,18 @@
 
 	#tab-button-tab1 {
 		border-top-left-radius: 15px;
+		padding: 0;
 	}
-
-	#tab-button-tab5 {
-		border-top-right-radius: 15px;
+	.tab {
+		width: 20%;
+		--padding-start: 0;
+		--padding-end: 0;
+	}
+	[role="tab"] {
+		padding: 0;
 	}
 	.tab_bar {
 		contain: none;
-		--border-radius: 15px;
 	}
 	.tab.tab-selected {
 		color: var(--ion-color-primary);

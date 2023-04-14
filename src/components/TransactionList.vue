@@ -5,10 +5,17 @@
 		>
 			<div class="pi_first_line flex aic sb">
 				<div class="ti_date">{{ dayjs(item.date).format('DD MMM YYYY') }}</div>
-				<div class="ti_header">{{ item.portfolio_name }}</div>
+				<div class="ti_header">{{ item.top_info }}</div>
 			</div>
 
-			<div>{{ item.description }}</div>
+      <div class="flex sb">
+        <div>{{ item.name }}</div>
+        <div>{{ item.pos }}</div>
+      </div>
+      <div class="flex sb">
+        <div>{{ item.description }}</div>
+        <div>{{ item.amount }}</div>
+      </div>
 		</div>
 	</div>
 </template>
