@@ -6,9 +6,11 @@ WORKDIR /var/www/finmars
 COPY package*.json ./
 RUN npm i
 RUN npm install -g @ionic/cli
+RUN npm install express
 COPY . .
 
 RUN ionic build
+RUN node server.js
 
 EXPOSE 8080
 
