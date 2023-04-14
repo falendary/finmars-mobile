@@ -20,6 +20,7 @@ for file in $ROOT_DIR/dist/**/*.js* $ROOT_DIR/dist/index.html*
 do
   sed -i 's|==PROD_FRONT_URL==|'${PROD_FRONT_URL}'|g' $file
   sed -i 's|/==BASE_URL==/|'${BASE_URL}'|g' $file
+  sed -i 's|==BASE_URL==|'${BASE_URL}'|g' $file
   sed -i 's|==PROD_API_HOST==|'${PROD_API_HOST}'|g' $file
   sed -i 's|==PROD_KEYCLOAK_URL==|'${PROD_KEYCLOAK_URL}'|g' $file
   sed -i 's|==PROD_KEYCLOAK_REALM==|'${PROD_KEYCLOAK_REALM}'|g' $file
