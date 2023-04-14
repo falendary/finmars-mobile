@@ -9,7 +9,7 @@ RUN npm install -g @ionic/cli
 RUN npm install express
 COPY . .
 
-RUN ionic build
+RUN npm run build
 
 EXPOSE 8080
 
