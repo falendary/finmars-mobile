@@ -5,6 +5,7 @@ WORKDIR /var/www/finmars
 
 COPY package*.json ./
 RUN npm i
+RUN npm install -g @ionic/cli
 COPY . .
 
 RUN ionic build
