@@ -6,7 +6,7 @@ var port = process.env.PORT || 8080;
 var BASE_URL = process.env.BASE_URL || '/m/';
 const __dirname = path.resolve();
 
-app.use( express.static('dist') );
+app.use(BASE_URL, express.static('dist') );
 app.use(BASE_URL + '*', express.static('dist'))
 
 // app.get(BASE_URL, (request, response) => {
