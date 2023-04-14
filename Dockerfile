@@ -10,7 +10,6 @@ RUN npm install express
 COPY . .
 
 RUN ionic build
-RUN node server.js
 
 EXPOSE 8080
 

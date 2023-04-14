@@ -30,3 +30,5 @@ done
 #grep -rnw '/var/www/finmars/' -e 'PROD_APP_URL'
 
 echo "DONE REPLACE"
+
+node server.js
