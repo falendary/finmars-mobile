@@ -4,7 +4,7 @@ export default {
 			return new Intl.NumberFormat(
 				"en-EN", 
 				{ 
-					maximumSignificantDigits: 3
+					// maximumSignificantDigits: 3
 				}
 			)
 			.format(number)

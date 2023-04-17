@@ -10,11 +10,11 @@
 
       <div class="flex sb">
         <div>{{ item.name }}</div>
-        <div>{{ item.pos }}</div>
+        <div class="pos"><span class="plus">{{ $format(item.pos) }}</span> {{ item.pos ? 'POS' : '' }}</div>
       </div>
       <div class="flex sb">
-        <div>{{ item.description }}</div>
-        <div>{{ item.amount }}</div>
+        <div class="name">{{ item.description }}</div>
+        <div class="pos"><span class="plus">{{ $format(item.amount) }}</span> USD</div>
       </div>
 		</div>
 	</div>
@@ -60,6 +60,24 @@
     font-weight: 500;
     font-size: 14px;
     line-height: 24px;
+    color: #747474;
+  }
+  .pos {
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 24px;
+  }
+  .name {
+    font-size: 12px;
+    line-height: 24px;
+  }
+  .plus {
+    color: rgba(52, 199, 89, 1);
+  }
+  .minus {
+    color: #ff2d55;
+  }
+  .neutral {
     color: #747474;
   }
 </style>

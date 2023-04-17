@@ -80,10 +80,15 @@
       <template v-if="detailSubcat">
         <div class="header flex aic sb">Details</div>
         
-        <div class="balance_block">
-          <div class="bb_header_line flex sb aic">
+        <div class="balance_block instr_block">
+          <div class="bb_header_line instr_block_header flex sb aic">
             <div class="bb_header">Equity</div>
             <div class="bb_price">{{ $format(2344) }} USD</div>
+          </div>
+
+          <div class="instr_block_change flex jcfe">
+            <div class="instr_change_percent instr_first minus">{{ $format(1254) }}</div>
+            <div class="instr_change_percent instr_second plus">YTD</div>
           </div>
 
           <div class="instruments"
@@ -91,7 +96,22 @@
             :class="{active: activeInstrumentId == item.id}"
             @click="activeInstrumentId = item.id"
           >
-            {{ item.name }}
+            <div class="flex sb aic">
+              <div>{{ item.name }}</div>
+              <div class="flex">
+                <div class="instr_market_value instr_first">{{ $format(item.market_value) }}</div>
+                <div class="instr_change_percent instr_second">{{ item.change.percent }}%</div>
+                
+              </div>
+            </div>
+            <div class="flex sb">
+              <div class="instr_pos">{{ $format(item.position) }}</div>
+
+              <div class="flex">
+                <div class="instr_change_percent instr_first minus">{{ $format(item.change.value) }}</div>
+                <div class="instr_change_percent instr_second plus">YTD</div>
+              </div>
+            </div>
           </div>
         </div>
       </template>
@@ -99,7 +119,7 @@
       <template v-if="activeInstrumentId">
         <div class="header flex aic sb">Transactions</div>
         
-        <TransactionList :items="instrumentsByCategory" />
+        <TransactionList :items="transactionsByInstrument" />
       </template>
     </ion-content>
   </ion-page>
@@ -173,15 +193,40 @@
     {
       id: 12,
       name: 'LINGOTS OR 500 GR',
-      description: 'LINGOTS OR 500 GR',
-      pos: 124456,
-      top_info: 'Buy/Sell',
-      amount: 124456,
+      position: 124456,
+      market_value: 8000,
+      change: {
+        value: 8079,
+        percent: 35
+      },
     },
     {
       id: 13,
       name: 'Instrument 2',
-      total: 124456
+      market_value: 7000,
+      position: 124456,
+      change: {
+        value: 8079,
+        percent: 35
+      },
+    }
+  ]
+  let transactionsByInstrument = [
+    {
+      id: 12,
+      description: 'LINGOTS OR 500 GR',
+      date: '15 MAR 2022',
+      pos: 124456,
+      amount: 8000,
+      top_info: 'Buy/Sell'
+    },
+    {
+      id: 12,
+      description: 'LINGOTS OR 500 GR',
+      date: '15 MAR 2022',
+      pos: 124456,
+      amount: 8000,
+      top_info: 'Buy/Sell'
     }
   ]
   let categories = [
@@ -461,8 +506,11 @@
     margin-bottom: 15px;
   }
   .balance_labels_item {
-    & + & {
-      margin-top: 15px;
+    padding: 8px 12px;
+    padding-right: 4px;
+    transition: 0.3s;
+    &.active {
+      background: rgba(255, 138, 0, 0.2);
     }
   }
   .balance_labels_percent {
@@ -476,5 +524,58 @@
     font-size: 16px;
     line-height: 24px;
     color: #747474;
+  }
+  .instr_block {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .instr_block_header {
+    padding-left: 13px;
+    padding-right: 13px;
+    margin-bottom: 0;
+  }
+  .instr_block_change {
+    padding-right: 13px;
+  }
+  .instruments {
+    padding: 5px 13px;
+    transition: 0.3s;
+    &.active {
+      background: rgba(255, 138, 0, 0.2);
+    }
+  }
+  .instr_first {
+    text-align: right;
+    width: 85px;
+  }
+  .instr_second {
+    text-align: right;
+    width: 40px;
+  }
+  .instr_pos {
+    color: #747474;
+    font-size: 14px;
+    line-height: 24px;
+  }
+  .instr_market_value {
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+  }
+  .instr_change_percent {
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 24px;
+    color: #747474;
+
+    &.plus {
+			color: rgba(52, 199, 89, 1);
+		}
+		&.minus {
+			color: #ff2d55;
+		}
+		&.neutral {
+			color: #747474;
+		}
   }
 </style>
