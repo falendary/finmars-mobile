@@ -13,6 +13,13 @@
 .swiper-pagination-bullet-active {
 	background: var(--ion-color-primary);
 }
+.swiper-pagination {
+	line-height: 0;
+	margin-bottom: -3px;
+}
+.swiper-wrapper {
+	align-items: center;
+}
 
 
 

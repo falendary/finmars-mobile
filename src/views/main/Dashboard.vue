@@ -143,9 +143,9 @@
     //   }))
     transactions.value = [
       {id: 1, name: 'Any transaction', portfolio_name: 'IS9543PORT-AP', description: 'description', date: '2022-11-11'},
-      {id: 1, name: 'Any transaction', portfolio_name: 'IS9543PORT-AP', description: 'description', date: '2022-11-11'},
-      {id: 1, name: 'Any transaction', portfolio_name: 'IS9543PORT-AP', description: 'description', date: '2022-11-11'},
-      {id: 1, name: 'Any transaction', portfolio_name: 'IS9543PORT-AP', description: 'description', date: '2022-11-11'},
+      {id: 2, name: 'Any transaction', portfolio_name: 'IS9543PORT-AP', description: 'description', date: '2022-11-11'},
+      {id: 3, name: 'Any transaction', portfolio_name: 'IS9543PORT-AP', description: 'description', date: '2022-11-11'},
+      {id: 4, name: 'Any transaction', portfolio_name: 'IS9543PORT-AP', description: 'description', date: '2022-11-11'},
     ]
   }
 

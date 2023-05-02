@@ -1,20 +1,34 @@
 <template>
 	<div class="transactions">
-		<div class="transactions_item"
+		<div
 			v-for="item in items"
+      :key="item.id"
 		>
-			<div class="pi_first_line flex aic sb">
-				<div class="ti_date">{{ dayjs(item.date).format('DD MMM YYYY') }}</div>
-				<div class="ti_header">{{ item.top_info }}</div>
-			</div>
+      <div
+        class="transactions_item"
+        :class="{active: openDescId == item.id}"
+        @click="openDescId = item.id == openDescId ? null : item.id"
+      >
+        <div class="pi_first_line flex aic sb">
+          <div class="ti_date">{{ dayjs(item.date).format('DD MMM YYYY') }}</div>
+          <div class="ti_header">{{ item.top_info }}</div>
+        </div>
 
-      <div class="flex sb">
-        <div>{{ item.name }}</div>
-        <div class="pos"><span class="plus">{{ $format(item.pos) }}</span> {{ item.pos ? 'POS' : '' }}</div>
+        <div class="flex sb">
+          <div>{{ item.name }}</div>
+          <div class="pos" v-if="item.pos"><span class="plus">{{ $format(item.pos) }}</span> POS</div>
+        </div>
+        <div class="flex sb">
+          <div class="name">{{ item.description }}</div>
+          <div class="pos" v-if="item.amount"><span class="plus">{{ $format(item.amount) }}</span> USD</div>
+        </div>
       </div>
-      <div class="flex sb">
-        <div class="name">{{ item.description }}</div>
-        <div class="pos"><span class="plus">{{ $format(item.amount) }}</span> USD</div>
+
+      <div class="transactions_desc_block" v-if="openDescId == item.id">
+        <div class="tdb_row flex sb">
+          <div class="tdb_prop">Purpose:</div>
+          <div class="tdb_value">Coupon</div>
+        </div>
       </div>
 		</div>
 	</div>
@@ -28,6 +42,8 @@
 	const props = defineProps({
 		items: Array
 	})
+
+  let openDescId = ref(null)
 
 	onMounted(() => {
 		
@@ -45,10 +61,19 @@
   .transactions_item {
     padding: 7px 13px;
     background: #fff;
-
+    transition: 0.3s;
+    &.active {
+      background: rgba(255, 138, 0, 0.2);
+    }
     & + & {
       border-top: 1px solid rgba(224, 224, 224, 1);
     }
+  }
+  .transactions_desc_block {
+    padding: 15px 13px;
+    background: #fff;
+    border-top: 1px solid rgba(224, 224, 224, 1);
+    border-bottom: 1px solid rgba(224, 224, 224, 1);
   }
 	.ti_header {
     font-weight: 500;
@@ -79,5 +104,18 @@
   }
   .neutral {
     color: #747474;
+  }
+  .tdb_row + .tdb_row {
+    margin-top: 4px;
+  }
+  .tdb_prop {
+    font-size: 14px;
+    line-height: 16px;
+    color: #747474;
+  }
+  .tdb_value {
+    font-size: 14px;
+    line-height: 16px;
+    text-align: right;
   }
 </style>

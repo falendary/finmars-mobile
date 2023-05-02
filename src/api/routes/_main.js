@@ -8,6 +8,9 @@ export default {
 	complexTransaction: {
 		get: prefix + '/transactions/complex-transaction-light/',
 	},
+	balanceReport: {
+		post: prefix + '/reports/balance-report/',
+	},
 	
 	// Надо отделить
 
