@@ -25,7 +25,9 @@
 								margin: 0 0 -5px -5px;
 							"
 						>
-							<canvas v-if="k == 0" id="lineChart"><p>Chart</p></canvas>
+							<canvas v-if="'asset_types' == k" id="lineChart"
+								><p>Chart</p></canvas
+							>
 							<div v-else id="lineChart"></div>
 						</div>
 					</div>
@@ -86,28 +88,43 @@
 					<div class="balance_block">
 						<div class="bb_header_line flex sb aic">
 							<div class="bb_header">{{ item.name }}</div>
-							<div class="bb_price">{{ $format(item.total) }} USD</div>
+							<div class="bb_price">
+								{{ $format(Math.floor(item.agr_market_value)) }} USD
+							</div>
 						</div>
 
 						<div class="flex sb">
-							<div style="width: 145px; height: 145px" v-show="isChartView">
-								<canvas v-if="k == 0" id="balanceChart"><p>Chart</p></canvas>
+							<div
+								class="balance_chart_wrap"
+								style="width: 145px; height: 145px"
+								v-show="isChartView"
+							>
+								<canvas v-if="'asset_types' == k" id="balanceChart"
+									><p>Chart</p></canvas
+								>
 								<div v-else id="balanceChart"></div>
 							</div>
 
 							<div class="balance_labels">
 								<div
 									class="balance_labels_item flex aic"
-									v-for="instr in item.instruments.sort(
-										(a, b) => b.total - a.total
-									)"
-									:class="{ active: detailSubcat == instr.name }"
-									@click="detailSubcat = instr.name"
+									v-for="subcat in item.items"
+									:class="{ active: detailSubcat.name == subcat.name }"
+									@click="detailSubcat = JSON.parse(JSON.stringify(subcat))"
 								>
-									<div class="balance_labels_percent">
-										{{ Math.round((instr.total / item.total) * 100) }}%
+									<div
+										class="balance_labels_percent"
+										:style="{ backgroundColor: colorByCat(subcat.name) }"
+									>
+										{{
+											Math.round(
+												(subcat.agr_market_value /
+													Math.abs(item.agr_market_value)) *
+													100
+											)
+										}}%
 									</div>
-									<div class="balance_labels_text">{{ instr.name }}</div>
+									<div class="balance_labels_text">{{ subcat.name }}</div>
 								</div>
 							</div>
 
@@ -117,30 +134,39 @@
 				</swiper-slide>
 			</swiper>
 
-			<template v-if="detailSubcat">
+			<template v-if="detailSubcat.name">
 				<div class="header flex aic sb">Details</div>
 
 				<div class="balance_block instr_block">
-					<div class="bb_header_line instr_block_header flex sb aic">
-						<div class="bb_header">Equity</div>
-						<div class="bb_price">{{ $format(2344) }} USD</div>
-					</div>
-
-					<div class="instr_block_change flex jcfe">
-						<div class="instr_change_percent instr_first minus">
-							{{ $format(1254) }}
+					<div class="bb_header_line instr_block_header flex sb aifs">
+						<div class="bb_header">{{ detailSubcat.name }}</div>
+						<div>
+							<div class="bb_price">
+								{{ $format(detailSubcat.agr_market_value) }} USD
+							</div>
+							<div class="instr_block_change flex jcfe">
+								<div class="instr_change_percent instr_first minus">
+									{{ $format(1254) }}
+								</div>
+								<div class="instr_change_percent instr_second plus">YTD</div>
+							</div>
 						</div>
-						<div class="instr_change_percent instr_second plus">YTD</div>
 					</div>
 
 					<div
 						class="instruments"
-						v-for="item in instrumentsByCategory"
-						:class="{ active: activeInstrumentId == item.id }"
-						@click="activeInstrumentId = item.id"
+						v-for="item in detailSubcat.items"
+						:class="{ active: activeInstrumentUserCode == item.user_code }"
+						@click="activeInstrumentUserCode = item.user_code"
 					>
-						<div class="flex sb aic">
-							<div>{{ item.name }}</div>
+						<div class="flex sb jcfe">
+							<div class="instr_name">
+								{{
+									item.name.length > 20
+										? item.name.slice(0, 20) + '...'
+										: item.name
+								}}
+							</div>
 							<div class="flex">
 								<div class="instr_market_value instr_first">
 									{{ $format(item.market_value) }}
@@ -151,30 +177,44 @@
 							</div>
 						</div>
 						<div class="flex sb">
-							<div class="instr_pos">{{ $format(item.position) }}</div>
+							<div class="instr_pos">{{ $format(item.position_size) }}</div>
 
 							<div class="flex">
-								<div class="instr_change_percent instr_first minus">
+								<div
+									class="instr_change_percent instr_first"
+									:class="[item.change.value > 0 ? 'plus' : 'minus']"
+								>
 									{{ $format(item.change.value) }}
 								</div>
-								<div class="instr_change_percent instr_second plus">YTD</div>
+								<div
+									class="instr_change_percent instr_second"
+									:class="[item.change.value > 0 ? 'plus' : 'minus']"
+								>
+									YTD
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</template>
 
-			<template v-if="activeInstrumentId">
+			<template v-if="activeInstrumentUserCode">
 				<div class="header flex aic sb">Transactions</div>
 
-				<TransactionList :items="transactionsByInstrument" />
+				<TransactionList
+					:options="{
+						end_date: '2022-09-19',
+						begin_date: '0001-01-01',
+						filter_entry_user_code: [activeInstrumentUserCode],
+					}"
+				/>
 			</template>
 		</ion-content>
 	</ion-page>
 </template>
 
 <script setup>
-	import { onMounted, ref } from 'vue'
+	import { onMounted, ref, reactive } from 'vue'
 
 	import dayjs from 'dayjs'
 	import { IonCheckbox } from '@ionic/vue'
@@ -232,83 +272,212 @@
 		],
 	}
 	let isChartView = ref(true)
-	let detailSubcat = ref(null)
-	let activeInstrumentId = ref(null)
+	let detailSubcat = ref({})
+	let activeInstrumentUserCode = ref(null)
 
-	let instrumentsByCategory = [
-		{
-			id: 12,
-			name: 'LINGOTS OR 500 GR',
-			position: 124456,
-			market_value: 8000,
-			change: {
-				value: 8079,
-				percent: 35,
-			},
+	let categories = reactive({
+		asset_types: {
+			name: 'Asset type',
+			agr_market_value: 0,
+			items: [],
 		},
-		{
-			id: 13,
-			name: 'Instrument 2',
-			market_value: 7000,
-			position: 124456,
-			change: {
-				value: 8079,
-				percent: 35,
-			},
-		},
-	]
-	let transactionsByInstrument = [
-		{
-			id: 12,
-			description: 'LINGOTS OR 500 GR',
-			date: '15 MAR 2022',
-			pos: 124456,
-			amount: 8000,
-			top_info: 'Buy/Sell',
-		},
-		{
-			id: 12,
-			description: 'LINGOTS OR 500 GR',
-			date: '15 MAR 2022',
-			pos: 124456,
-			amount: 8000,
-			top_info: 'Buy/Sell',
-		},
-	]
-	let categories = [
-		{
-			name: 'Assets',
-			total: 124456,
-			instruments: [
-				{ name: 'usd', total: 455 },
-				{ name: 'eur', total: 5455 },
-				{ name: 'chf', total: 455 },
-				{ name: 'UAH', total: -5455 },
-			],
-		},
-		{
+		currency: {
 			name: 'Currency',
-			total: 234456,
-			instruments: [
-				{ name: 'usd', total: 455 },
-				{ name: 'eur', total: 3455 },
-				{ name: 'chf', total: 455 },
-			],
+			agr_market_value: 0,
+			items: [],
 		},
-		{
-			name: 'Sector',
-			total: 14456,
-			instruments: [
-				{ name: 'usd', total: 1455 },
-				{ name: 'eur', total: 455 },
-				{ name: 'UAH', total: 1455 },
-			],
-		},
+	})
+	let colors = [
+		'#577590CC',
+		'#43AA8BCC',
+		'#F9AB4B',
+		'#FA6769',
+		'#F9C74F',
+		'#979BFF',
+		'#D9ED92',
+		'#C8D7F9',
+		'#96B5B4',
+		'#AB7967',
+		'#577590CC',
+		'#43AA8BCC',
+		'#F9AB4B',
+		'#FA6769',
+		'#F9C74F',
+		'#979BFF',
+		'#D9ED92',
+		'#C8D7F9',
+		'#96B5B4',
+		'#AB7967',
+		'#577590CC',
+		'#43AA8BCC',
+		'#F9AB4B',
+		'#FA6769',
+		'#F9C74F',
+		'#979BFF',
+		'#D9ED92',
+		'#C8D7F9',
+		'#96B5B4',
+		'#AB7967',
+		'#577590CC',
+		'#43AA8BCC',
+		'#F9AB4B',
+		'#FA6769',
+		'#F9C74F',
+		'#979BFF',
+		'#D9ED92',
+		'#C8D7F9',
+		'#96B5B4',
+		'#AB7967',
 	]
+	let colorsCat = {}
+	let histNav = []
 
 	onMounted(async () => {
-		createChart()
+		histNav = await useApi('widgetsHistory.get', {
+			params: {
+				type: 'nav',
+			},
+			provider: null,
+			filters: {
+				portfolio: 2,
+				date_to: '2022-09-19',
+				date_from: '2020-09-19',
+			},
+		})
+		console.log('histNav:', histNav)
 
+		let [report, reportYTD] = await Promise.all([
+			fetchReport({ date: '2022-09-19' }),
+			fetchReport({ date: '2022-01-01' }),
+		])
+
+		let _cats = {
+			asset_types: {
+				agr_market_value: 0,
+				name: 'Asset type',
+				items: {},
+			},
+			currency: {
+				agr_market_value: 0,
+				name: 'Currency',
+				items: {},
+			},
+		}
+		let calcValueYTD = (instrId) => {
+			let instr = reportYTD.items.find((o) => o.id == instrId)
+
+			if (!instr) return 0
+			if (instr.market_value === null) return '-'
+
+			return instr.market_value
+		}
+		let calcChangeObj = (instr) => {
+			let market_value_ytd = calcValueYTD(instr.id)
+
+			let change_val = '-'
+			let percent = '-'
+
+			if (instr.market_value != '-' && market_value_ytd != '-') {
+				change_val = instr.market_value - market_value_ytd
+				percent = Math.round((change_val / Math.abs(instr.market_value)) * 100)
+			}
+
+			return {
+				value: change_val,
+				percent: percent,
+			}
+		}
+		report.items.forEach((item, key) => {
+			// Currency
+			_cats.currency.agr_market_value += item.market_value
+
+			let newItem = {
+				id: item.id,
+				name: item.name,
+				user_code: item.user_code,
+				market_value: item.market_value === null ? '-' : item.market_value,
+				position_size: item.position_size,
+				change: calcChangeObj(item),
+			}
+
+			if (item.item_type == 2) {
+				let key = report.item_currencies.find(
+					(o) => o.id == item.currency
+				)?.short_name
+
+				if (!_cats.currency.items[key]) {
+					_cats.currency.items[key] = {
+						items: [],
+						agr_market_value: 0,
+					}
+				}
+
+				_cats.currency.items[key].agr_market_value += item.market_value
+				_cats.currency.items[key].items.push(newItem)
+			}
+
+			if (item.item_type == 1) {
+				let instr_obj = report.item_instruments.find(
+					(o) => o.id == item.instrument
+				)
+
+				let key = report.item_currencies.find(
+					(o) => o.id == instr_obj.pricing_currency
+				)?.short_name
+
+				if (!_cats.currency.items[key]) {
+					_cats.currency.items[key] = {
+						items: [],
+						agr_market_value: 0,
+					}
+				}
+
+				_cats.currency.items[key].agr_market_value += item.market_value
+				_cats.currency.items[key].items.push(newItem)
+			}
+			// Asset types
+			_cats.asset_types.agr_market_value += item.market_value
+
+			if (!_cats.asset_types.items[item.custom_fields[0].value]) {
+				_cats.asset_types.items[item.custom_fields[0].value] = {
+					items: [],
+					agr_market_value: 0,
+				}
+			}
+
+			_cats.asset_types.items[item.custom_fields[0].value].agr_market_value +=
+				item.market_value
+
+			_cats.asset_types.items[item.custom_fields[0].value].items.push(newItem)
+		})
+
+		for (let prop in _cats) {
+			let colorKey = 0
+
+			categories[prop].agr_market_value = _cats[prop].agr_market_value
+
+			for (let instr in _cats[prop].items) {
+				categories[prop].items.push({
+					..._cats[prop].items[instr],
+					name: instr,
+					items: _cats[prop].items[instr].items.sort((a, b) => {
+						if (b.change.percent == '-') return -1
+						return b.change.percent - a.change.percent
+					}),
+				})
+
+				colorsCat[instr] = colors[colorKey]
+				++colorKey
+			}
+			categories[prop].items = categories[prop].items
+				.filter((o) => o.agr_market_value != 0)
+				.sort((a, b) => b.agr_market_value - a.agr_market_value)
+		}
+
+		createChart()
+	})
+
+	async function fetchReport(opts) {
 		let res = await useApi('balanceReport.post', {
 			body: {
 				account_mode: 1,
@@ -319,133 +488,43 @@
 				accounts_position: [],
 				accounts_position_object: [],
 				allocation_detailing: true,
+				allocation_mode: 0,
 				approach_multiplier: 0.5,
+				calculate_pl: true,
 				calculationGroup: 'portfolio',
 				complex_transaction_statuses_filter: 'booked',
 				cost_method: 1,
 				cost_method_object: {
-					description: 'AVCO',
 					id: 1,
-					name: 'AVCO',
 					user_code: 'AVCO',
+					name: 'AVCO',
+					description: 'AVCO',
 				},
-				custom_fields_to_calculate: 'Sector',
+				custom_fields_to_calculate: 'Asset Types',
 				date_field: 'transaction_date',
-				pl_first_date: null,
-				pl_include_zero: false,
-				portfolio_mode: 1,
-				portfolios: [],
-				portfolios_object: [],
-				pricing_policy: 1,
-				pricing_policy_object: {
-					deleted_user_code: null,
-					expr: '(ask+bid)/2',
-					id: 1,
-					name: '-',
-					notes: null,
-					short_name: '-',
-					user_code: '-',
-				},
-				report_currency: 2,
-				report_currency_object: {
-					deleted_user_code: null,
-					id: 2,
-					name: 'USD - United States Dollar',
-					short_name: 'USD',
-					user_code: 'USD',
-				},
-				report_date: '2022-09-19',
-				report_type: 1,
-				show_balance_exposure_details: false,
-				show_transaction_details: false,
-				strategies1: [],
-				strategies1_object: [],
-				strategies2: [],
-				strategies2_object: [],
-				strategies3: [],
-				strategies3_object: [],
-				strategy1_mode: 0,
-				strategy2_mode: 0,
-				strategy3_mode: 0,
-				table_font_size: 'small',
-				transaction_classes: [],
-				transaction_classes_object: [],
+				depth_level: 'base_transaction',
+				expression_iterations_count: 1,
 				filters: [
 					{
 						content_type: 'portfolios.portfolio',
 						filtersListIndex: 0,
-						key: 'portfolio.short_name',
-						name: 'Portfolio. Short name',
+						key: 'portfolio.user_code',
+						name: 'Portfolio. User code',
 						options: {
 							enabled: true,
 							exclude_empty_cells: false,
-							filter_type: 'contains',
-							filter_values: [],
+							filter_type: 'equal',
+							filter_values: ['Model'],
 							use_from_above: {
 								attrs_entity_type: 'balance-report',
-								key: 'portfolio.short_name',
+								key: 'portfolio.user_code',
 							},
 						},
 						value_type: 10,
-					},
-					{
-						content_type: 'currencies.currency',
-						filtersListIndex: 1,
-						key: 'exposure_currency.short_name',
-						layout_name: 'Exposure CCY',
-						name: 'Balance.  Exposure Currency. Short name',
-						options: {
-							enabled: true,
-							exclude_empty_cells: false,
-							filter_type: 'contains',
-							filter_values: [],
-							use_from_above: {
-								attrs_entity_type: 'balance-report',
-								key: 'exposure_currency.short_name',
-							},
-						},
-						value_type: 10,
-					},
-					{
-						attribute_type: {
-							can_recalculate: false,
-							deleted_user_code: null,
-							expr: '""',
-							favorites: null,
-							id: 1,
-							is_hidden: false,
-							kind: 1,
-							name: 'Depository',
-							notes: null,
-							order: 0,
-							prefix: null,
-							public_name: null,
-							short_name: 'Currency (U)',
-							tooltip: 'Depository',
-							user_code: 'Depository',
-							value_type: 30,
-						},
-						content_type: 'accounts.account',
-						filtersListIndex: 2,
-						key: 'account.attributes.Depository',
-						layout_name: 'Depository',
-						name: 'Account. Depository',
-						options: {
-							enabled: true,
-							exclude_empty_cells: false,
-							filter_type: 'contains',
-							filter_values: [],
-							use_from_above: {
-								attrs_entity_type: 'balance-report',
-								key: 'account.attributes.Depository',
-							},
-						},
-						value_type: 30,
 					},
 					{
 						custom_field: {
 							expr: "iff(item_type_name=='Currency', 'Cash and equivalents', instrument.attributes.asset_types)",
-							id: 1,
 							name: 'Asset Types',
 							notes: '',
 							user_code: 'asset_types',
@@ -453,7 +532,6 @@
 						},
 						expr: "iff(item_type_name=='Currency', 'Cash and equivalents', instrument.attributes.asset_types)",
 						filtersListIndex: 3,
-						id: 1,
 						key: 'custom_fields.asset_types',
 						layout_name: 'Asset Types',
 						name: 'Custom Field. Asset Types',
@@ -471,151 +549,75 @@
 						user_code: 'asset_types',
 						value_type: 10,
 					},
-					{
-						allow_null: true,
-						content_type: 'instruments.instrumenttype',
-						filtersListIndex: 4,
-						key: 'instrument.instrument_type.short_name',
-						name: 'Instrument. Instrument type. Short name',
-						options: {
-							enabled: true,
-							exclude_empty_cells: false,
-							filter_type: 'contains',
-							filter_values: [],
-							use_from_above: {
-								attrs_entity_type: 'balance-report',
-								key: 'instrument.instrument_type.short_name',
-							},
-						},
-						value_type: 10,
-					},
-					{
-						attribute_type: {
-							can_recalculate: false,
-							classifiers: [],
-							classifiers_flat: [],
-							deleted_user_code: null,
-							expr: '""',
-							favorites: null,
-							id: 19,
-							is_hidden: false,
-							kind: 1,
-							name: 'Sector',
-							notes: null,
-							order: 0,
-							prefix: null,
-							public_name: null,
-							short_name: 'Sector',
-							tooltip: 'sector',
-							user_code: 'sector',
-							value_type: 10,
-						},
-						content_type: 'instruments.instrument',
-						filtersListIndex: 5,
-						key: 'instrument.attributes.sector',
-						name: 'Instrument. Sector',
-						options: {
-							enabled: true,
-							exclude_empty_cells: false,
-							filter_type: 'contains',
-							filter_values: [],
-							use_from_above: {
-								attrs_entity_type: 'balance-report',
-								key: 'instrument.attributes.sector',
-							},
-						},
-						value_type: 10,
-					},
-					{
-						attribute_type: {
-							can_recalculate: false,
-							classifiers: [],
-							classifiers_flat: [],
-							deleted_user_code: null,
-							expr: '""',
-							favorites: null,
-							id: 20,
-							is_hidden: false,
-							kind: 1,
-							name: 'Sector Type',
-							notes: null,
-							order: 0,
-							prefix: null,
-							public_name: null,
-							short_name: 'Sector Type',
-							tooltip: 'sector_type',
-							user_code: 'sector_type',
-							value_type: 10,
-						},
-						content_type: 'instruments.instrument',
-						filtersListIndex: 6,
-						key: 'instrument.attributes.sector_type',
-						name: 'Instrument. Sector Type',
-						options: {
-							enabled: true,
-							exclude_empty_cells: false,
-							filter_type: 'contains',
-							filter_values: [],
-							use_from_above: {
-								attrs_entity_type: 'balance-report',
-								key: 'instrument.attributes.sector_type',
-							},
-						},
-						value_type: 10,
-					},
-					{
-						content_type: 'instruments.country',
-						filtersListIndex: 7,
-						key: 'instrument.country.region',
-						name: 'Instrument. Country. Region',
-						options: {
-							enabled: true,
-							exclude_empty_cells: false,
-							filter_type: 'contains',
-							filter_values: [],
-							use_from_above: {
-								attrs_entity_type: 'balance-report',
-								key: 'instrument.country.region',
-							},
-						},
-						value_type: 10,
-					},
-					{
-						content_type: 'instruments.country',
-						filtersListIndex: 8,
-						key: 'instrument.country.sub_region',
-						name: 'Instrument. Country. Sub Region',
-						options: {
-							enabled: true,
-							exclude_empty_cells: false,
-							filter_type: 'contains',
-							filter_values: [],
-							use_from_above: {
-								attrs_entity_type: 'balance-report',
-								key: 'instrument.country.sub_region',
-							},
-						},
-						value_type: 10,
-					},
 				],
+				pl_include_zero: false,
+				portfolio_mode: 1,
+				portfolios: [],
+				portfolios_object: [],
+				pricing_policy: 1,
+				pricing_policy_object: {
+					id: 1,
+					user_code: '-',
+					name: '-',
+					short_name: '-',
+					notes: null,
+					expr: '(ask+bid)/2',
+					deleted_user_code: null,
+					meta: {
+						content_type: 'instruments.pricingpolicy',
+						app_label: 'instruments',
+						model_name: 'pricingpolicy',
+						space_code: 'space0crgw',
+					},
+				},
+				report_currency: 2,
+				report_currency_object: {
+					id: 2,
+					user_code: 'USD',
+					name: 'USD - United States Dollar',
+					short_name: 'USD',
+					deleted_user_code: null,
+					meta: {
+						content_type: 'currencies.currency',
+						app_label: 'currencies',
+						model_name: 'currency',
+						space_code: 'space0crgw',
+					},
+				},
+				report_date: opts.date,
+				report_type: 1,
+				show_balance_exposure_details: false,
+				show_transaction_details: true,
+				strategies1: [],
+				strategies1_object: [],
+				strategies2: [],
+				strategies2_object: [],
+				strategies3: [],
+				strategies3_object: [],
+				strategy1_mode: 0,
+				strategy2_mode: 0,
+				strategy3_mode: 0,
+				table_font_size: 'small',
+				transaction_classes: [],
+				transaction_classes_object: [],
+				pl_first_date: null,
 				task_id: null,
 			},
 		})
-		console.log('res:', res)
-	})
+
+		return res
+	}
 
 	function onBalanceChange(swiper) {
 		let prevChart = swiper.slidesEl.querySelector('canvas#balanceChart')
 		let prevChartParent = prevChart.parentNode
 		let nextChart =
 			swiper.slides[swiper.activeIndex].querySelector('#balanceChart')
-
 		let oldChild = nextChart.parentNode.replaceChild(prevChart, nextChart)
 		prevChartParent.append(oldChild)
 
-		let instrs = categories[swiper.realIndex].instruments
-
-		balanceChart.data = createBalanceDataset(instrs)
+		let cat = categories[Object.keys(categories)[swiper.realIndex]]
+		balanceChart.data = createBalanceDataset(cat)
 		balanceChart.update()
 	}
 
@@ -624,10 +626,8 @@
 		let prevChartParent = prevChart.parentNode
 		let nextChart =
 			swiper.slides[swiper.activeIndex].querySelector('#lineChart')
-
 		let oldChild = nextChart.parentNode.replaceChild(prevChart, nextChart)
 		prevChartParent.append(oldChild)
-
 		lineChart.update()
 	}
 
@@ -669,22 +669,11 @@
 		lineChart = new Chart('lineChart', {
 			type: 'line',
 			data: {
-				labels: [
-					'test',
-					'test2',
-					'test2',
-					'test2',
-					'test2',
-					'test',
-					'test2',
-					'test2',
-					'test2',
-					'test2',
-				],
+				labels: histNav.items.map((o, k) => k),
 				datasets: [
 					{
 						label: 'Dataset 1',
-						data: [23, 35, 38, 140, 12, 7, 13, 15, 20, 30],
+						data: histNav.items.map((o) => o.nav),
 						borderColor: '#F05A22',
 						borderWidth: 1,
 						pointBackgroundColor: 'transparent',
@@ -753,46 +742,48 @@
 			},
 		})
 
-		balanceChart.data = createBalanceDataset(categories[0].instruments)
+		balanceChart.data = createBalanceDataset(categories.asset_types)
 		balanceChart.update()
+		lineChart.update()
 	}
-	function createBalanceDataset(instr) {
-		instr = instr
-			.filter((item) => item.total != 0 && item.total != null)
-			.sort((a, b) => b.total - a.total)
 
+	function colorByCat(item) {
+		return colorsCat[item]
+	}
+	function createBalanceDataset(cat) {
 		let plusColors = []
-		let plus = instr
-			.filter((item) => item.total >= 0)
-			.map((item) => {
-				// plusColors.push( dashStore.instrColors[inputs.value.category_type + item[0]] )
-				return item.total
+		let plus = cat.items
+			.filter((item) => item.agr_market_value >= 0)
+			.map((item, k) => {
+				plusColors.push(colorByCat(item.name))
+				return item.agr_market_value
 			})
 
 		let totalPlus = plus.length ? plus.reduce((a, b) => a + b) : 0
 
 		let minusColors = []
-		let minus = instr
-			.filter((item) => item.total < 0)
-			.map((item) => {
-				// minusColors.push( dashStore.instrColors[inputs.value.category_type + item[0]] )
-				return item.total
+		let minus = cat.items
+			.filter((item) => item.agr_market_value < 0)
+			.map((item, k) => {
+				minusColors.push(colorByCat(item.name))
+
+				return item.agr_market_value
 			})
 
 		let totalMinus = Math.abs(minus.length ? minus.reduce((a, b) => a + b) : 1)
 
 		let data = {}
 
-		data.labels = instr.map((item) => item.name)
+		data.labels = cat.items.map((item) => item.name)
 		data.datasets = [
 			{
 				data: plus,
-				// backgroundColor: plusColors,
+				backgroundColor: plusColors,
 				hoverOffset: 4,
 			},
 			{
 				data: minus,
-				// backgroundColor: minusColors,
+				backgroundColor: minusColors,
 				circumference:
 					totalPlus == 0 ? 360 : Math.floor((totalMinus / totalPlus) * 360),
 			},
@@ -848,6 +839,9 @@
 	.balance_swiper {
 		padding-bottom: 10px;
 	}
+	.balance_chart_wrap {
+		flex-shrink: 0;
+	}
 	.balance_block {
 		margin: 0 15px;
 		padding: 15px 13px;
@@ -856,20 +850,26 @@
 		margin-bottom: 10px;
 	}
 	.bb_header {
-		font-size: 20px;
-		line-height: 24px;
+		font-size: 18px;
+		line-height: 22px;
 		color: #747474;
+		width: 50%;
 	}
 	.bb_price {
 		font-weight: 600;
-		font-size: 20px;
-		line-height: 24px;
+		font-size: 18px;
+		line-height: 22px;
+		text-align: right;
 	}
 	.bb_header_line {
 		margin-bottom: 25px;
 	}
+	.balance_labels {
+		margin-left: 10px;
+		width: 100%;
+	}
 	.balance_labels_item {
-		padding: 8px 12px;
+		padding: 6px 8px;
 		padding-right: 4px;
 		transition: 0.3s;
 		&.active {
@@ -877,15 +877,19 @@
 		}
 	}
 	.balance_labels_percent {
-		padding: 3px 9px;
+		padding: 3px 0;
 		background: #747474;
+		flex-shrink: 0;
 		color: #fff;
+		font-size: 14px;
+		width: 50px;
+		text-align: center;
 		border-radius: 5px;
 		margin-right: 6px;
 	}
 	.balance_labels_text {
-		font-size: 16px;
-		line-height: 24px;
+		font-size: 14px;
+		line-height: 16px;
 		color: #747474;
 	}
 	.instr_block {
@@ -895,10 +899,9 @@
 	.instr_block_header {
 		padding-left: 13px;
 		padding-right: 13px;
-		margin-bottom: 0;
+		margin-bottom: 10px;
 	}
 	.instr_block_change {
-		padding-right: 13px;
 	}
 	.instruments {
 		padding: 5px 13px;
@@ -906,6 +909,9 @@
 		&.active {
 			background: rgba(255, 138, 0, 0.2);
 		}
+	}
+	.instr_name {
+		line-height: 20px;
 	}
 	.instr_first {
 		text-align: right;
@@ -923,12 +929,12 @@
 	.instr_market_value {
 		font-weight: 500;
 		font-size: 16px;
-		line-height: 24px;
+		line-height: 20px;
 	}
 	.instr_change_percent {
 		font-weight: 600;
 		font-size: 12px;
-		line-height: 24px;
+		line-height: 20px;
 		color: #747474;
 
 		&.plus {
