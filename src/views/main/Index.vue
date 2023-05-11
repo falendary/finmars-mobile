@@ -51,16 +51,11 @@
 
 		<ion-modal
 			:is-open="isOpen"
-			:initial-breakpoint="0.75"
+			:initial-breakpoint="0.3"
+			:breakpoints="[0, 0.3, 0.75]"
 			@ionModalDidDismiss="isOpen = false"
 		>
 			<ion-toolbar>
-				<ion-buttons slot="start">
-					<ion-button>
-						<ion-icon slot="icon-only" :icon="iconTest"></ion-icon>
-					</ion-button>
-				</ion-buttons>
-
 				<ion-title>Settings</ion-title>
 
 				<ion-buttons slot="end">
@@ -70,24 +65,99 @@
 				</ion-buttons>
 			</ion-toolbar>
 
-			<ion-content class="ion-padding">
-				<ion-input
-					v-model="date"
-					label="Date"
-					label-placement="floating"
-					fill="outline"
-					placeholder="Enter text"
-				/>
+			<ion-content>
+				<ion-list lines="full">
+					<ion-item v-if="store.settings[tab].date">
+						<ion-label>Date</ion-label>
+
+						<ion-datetime-button datetime="datetime_date" />
+						<ion-modal :keep-contents-mounted="true">
+							<ion-datetime
+								style="color: #000"
+								id="datetime_date"
+								v-model="store.settings[tab].date"
+								:prefer-wheel="true"
+								presentation="date"
+								show-default-buttons
+								mode="ios"
+							/>
+						</ion-modal>
+					</ion-item>
+
+					<ion-item v-if="store.settings[tab].date_from">
+						<ion-label>Date from</ion-label>
+
+						<ion-datetime-button datetime="datetime_date_from" />
+						<ion-modal :keep-contents-mounted="true">
+							<ion-datetime
+								style="color: #000"
+								id="datetime_date_from"
+								v-model="store.settings[tab].date_from"
+								:prefer-wheel="true"
+								presentation="date"
+								show-default-buttons
+								mode="ios"
+							/>
+						</ion-modal>
+					</ion-item>
+
+					<ion-item v-if="store.settings[tab].date_to">
+						<ion-label>Date to</ion-label>
+
+						<ion-modal :keep-contents-mounted="true">
+							<ion-datetime
+								style="color: #000"
+								id="datetime_date_to"
+								v-model="store.settings[tab].date_to"
+								:prefer-wheel="true"
+								presentation="date"
+								show-default-buttons
+							/>
+						</ion-modal>
+						<ion-datetime-button datetime="datetime_date_to" />
+					</ion-item>
+
+					<ion-item v-if="store.settings[tab].currency">
+						<ion-select
+							v-model="store.settings[tab].currency"
+							label="Reporting currency"
+							placeholder="Currency"
+						>
+							<ion-select-option value="USD">USD</ion-select-option>
+							<ion-select-option value="EUR">EUR</ion-select-option>
+							<ion-select-option value="RUB">RUB</ion-select-option>
+						</ion-select>
+					</ion-item>
+
+					<ion-item v-if="store.settings[tab].portfolios">
+						<ion-select
+							v-model="store.settings[tab].portfolios"
+							label="Portfolios"
+							placeholder="Portfolios"
+							:multiple="true"
+						>
+							<ion-select-option
+								v-for="item in store.portfolioList"
+								:value="item.user_code"
+								>{{ item.name }}</ion-select-option
+							>
+						</ion-select>
+					</ion-item>
+				</ion-list>
+
 				<br />
-				<ion-select
-					v-model="currency"
-					label="Default label"
-					placeholder="Favorite Fruit"
+
+				<ion-button class="ion-margin-horizontal" fill="outline" expand="block">
+					CHANGE WORKSPACE
+				</ion-button>
+
+				<ion-button
+					class="ion-margin-horizontal logout"
+					fill="outline"
+					expand="block"
 				>
-					<ion-select-option value="apple">Apple</ion-select-option>
-					<ion-select-option value="banana">Banana</ion-select-option>
-					<ion-select-option value="orange">Orange</ion-select-option>
-				</ion-select>
+					LOGOUT
+				</ion-button>
 			</ion-content>
 		</ion-modal>
 	</ion-page>
@@ -103,9 +173,12 @@
 		IonIcon,
 		IonModal,
 		IonContent,
-		IonInput,
+		IonList,
+		IonItem,
 		IonSelect,
 		IonSelectOption,
+		IonDatetime,
+		IonDatetimeButton,
 		IonHeader,
 		IonToolbar,
 		IonButtons,
@@ -113,10 +186,42 @@
 		IonTitle,
 	} from '@ionic/vue'
 	import { settingsSharp, close } from 'ionicons/icons'
-	import { ref, inject } from 'vue'
+	import { ref, inject, computed } from 'vue'
+	import { useRoute } from 'vue-router'
 	import { Preferences } from '@capacitor/preferences'
+	import useMiniStore from '@/composables/useMiniStore'
+	import useApi from '@/composables/useApi'
 
 	const keycloak = inject('keycloak')
+	const store = useMiniStore()
+	const route = useRoute()
+
+	fetchPortfolios()
+
+	async function fetchPortfolios() {
+		let res = await useApi('portfolioLight.get')
+
+		if (res && !res.error) {
+			store.portfolioList = res.results.map((o, k) => {
+				return {
+					id: o.id,
+					name: o.name,
+					user_code: o.user_code,
+					price: '-',
+					change: {
+						price: '-',
+						percent: '-',
+					},
+				}
+			})
+		} else {
+			store.portfolioList = []
+		}
+	}
+
+	const tab = computed(() => {
+		return route.path.replace('/main/', '')
+	})
 
 	let tokens = (await Preferences.get({ key: 'kcTokens' })).value
 	let kcOpts = {
@@ -140,8 +245,6 @@
 </defs>
 </svg>`
 
-	let date = ref('2023-03-16')
-	let currency = ref('Apple')
 	let isOpen = ref(false)
 </script>
 
@@ -182,5 +285,8 @@
 		.logo_btn {
 			fill: var(--ion-color-primary);
 		}
+	}
+	.logout {
+		margin-top: 10px;
 	}
 </style>

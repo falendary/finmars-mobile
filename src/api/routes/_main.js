@@ -25,7 +25,9 @@ export default {
 	},
 
 	// Надо отделить
-
+	reportsSummary: {
+		get: prefix + '/reports/summary/',
+	},
 	widgetsHistory: {
 		get: prefix + '/widgets/history/{type}/',
 	},

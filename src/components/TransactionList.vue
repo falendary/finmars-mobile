@@ -1,6 +1,6 @@
 <template>
 	<div class="transactions">
-		<div v-for="item in transactions" :key="item.id">
+		<div class="transactions_wrap" v-for="item in transactions" :key="item.id">
 			<div
 				class="transactions_item"
 				:class="{ active: openDescId == item.id }"
@@ -12,25 +12,45 @@
 					</div>
 					<div class="ti_header">
 						{{
-							transaction_classes.find((o) => o.id == item.transaction_class)
-								?.name
+							displayMode != 'compact'
+								? transaction_classes.find(
+										(o) => o.id == item.transaction_class
+								  )?.name
+								: transaction_portfolios.find((o) => o.id == item.portfolio)
+										?.name
 						}}
 					</div>
 				</div>
 
-				<div class="flex sb">
-					<div>{{ item.transaction_item_name }}</div>
-					<div class="pos">
-						<span class="plus">{{ $format(item.entry_amount) }}</span>
+				<div class="flex aic sb">
+					<div class="name">
+						{{
+							item.transaction_item_name.slice(
+								0,
+								displayMode != 'compact' ? 24 : 35
+							)
+						}}
+					</div>
+					<div class="pos" v-if="displayMode != 'compact'">
+						<span :class="[item.entry_amount > 0 ? 'plus' : 'minus']">{{
+							$format(item.entry_amount)
+						}}</span>
 						POS
 					</div>
 				</div>
 				<div class="flex sb">
-					<div class="name">
-						{{ item['complex_transaction.text'].slice(0, 30) }}
+					<div class="desc">
+						{{
+							item['complex_transaction.text'].slice(
+								0,
+								displayMode != 'compact' ? 30 : 40
+							)
+						}}
 					</div>
-					<div class="pos">
-						<span class="plus">{{ $format(item.cash_consideration) }}</span>
+					<div class="pos" v-if="displayMode != 'compact'">
+						<span :class="[item.cash_consideration > 0 ? 'plus' : 'minus']">{{
+							$format(item.cash_consideration)
+						}}</span>
 						{{
 							item_currencies.find((o) => o.id == item.settlement_currency)
 								?.short_name
@@ -53,33 +73,101 @@
 				</template>
 			</div>
 		</div>
+
+		<template v-if="transactions === null">
+			<div class="transactions_wrap" v-for="item in [1, 1]">
+				<div class="transactions_item">
+					<div class="pi_first_line flex aic sb">
+						<div class="ti_date">
+							<IonSkeletonText
+								:animated="true"
+								style="width: 80px; height: 24px"
+							/>
+						</div>
+						<div class="ti_header" style="width: 25%">
+							<IonSkeletonText :animated="true" style="height: 24px" />
+						</div>
+					</div>
+
+					<div class="flex aic sb">
+						<div class="name" style="width: 35%">
+							<IonSkeletonText :animated="true" style="height: 24px" />
+						</div>
+						<div class="pos" style="width: 15%" v-if="displayMode != 'compact'">
+							<IonSkeletonText :animated="true" style="height: 24px" />
+						</div>
+					</div>
+					<div class="flex sb">
+						<div class="desc" style="width: 50%">
+							<IonSkeletonText :animated="true" style="height: 24px" />
+						</div>
+						<div class="pos" style="width: 25%" v-if="displayMode != 'compact'">
+							<IonSkeletonText :animated="true" style="height: 24px" />
+						</div>
+					</div>
+				</div>
+			</div>
+		</template>
+
+		<div
+			class="transactions_wrap transactions_item"
+			v-if="transactions?.length === 0"
+		>
+			No transactions
+		</div>
 	</div>
 </template>
 
 <script setup>
 	import dayjs from 'dayjs'
-	import { onMounted, ref, reactive } from 'vue'
+	import { onMounted, ref, reactive, watch } from 'vue'
 	import useApi from '@/composables/useApi'
+	import { IonSkeletonText } from '@ionic/vue'
 
 	const props = defineProps({
+		displayMode: String,
 		options: Object,
 	})
 
 	let openDescId = ref(null)
-	let res = await fetchReport()
-	console.log('res:', res)
 
-	let transaction_classes = res.item_transaction_classes
-	let item_currencies = res.item_currencies
+	let transactions = ref(null)
+	let userFieldsMap = ref(null)
 
-	let transactions = reactive(
-		res.items.sort((a, b) => b.transaction_date - a.transaction_date)
-	)
+	let transaction_classes = []
+	let transaction_portfolios = []
+	let item_currencies = []
+
+	init()
+
+	watch(props.options, (newval) => {
+		console.log('[Transaction list] newval:', newval)
+		init()
+	})
+
+	async function init() {
+		transactions.value = null
+		let res = await fetchReport()
+
+		transaction_classes = res.item_transaction_classes
+		transaction_portfolios = res.item_portfolios
+		item_currencies = res.item_currencies
+
+		transactions.value = res.items.sort(
+			(a, b) =>
+				new Date(b.transaction_date).getTime() -
+				new Date(a.transaction_date).getTime()
+		)
+
+		res = await useApi('transactionUserField.get')
+
+		userFieldsMap.value = res.results.filter((o) => o.is_active)
+	}
 
 	async function fetchReport() {
 		let res = await useApi('transactionReport.post', {
 			body: {
-				account_mode: 0,
+				account_mode: 1,
 				accounts: [],
 				accounts_cash: [],
 				accounts_cash_object: [],
@@ -98,22 +186,21 @@
 				expression_iterations_count: 1,
 				filters: [
 					{
-						content_type: 'reports.transactionreport',
-						filtersListIndex: 0,
 						key: 'entry_item_user_code',
+						groups: false,
+						columns: true,
+						filters: true,
 						name: 'Transaction. Entry Item User Code',
-						options: {
-							enabled: true,
-							exclude_empty_cells: false,
-							filter_type: 'equal',
-							filter_values: props.options.filter_entry_user_code,
-							use_from_above: {
-								attrs_entity_type: 'balance-report',
-								key: 'user_code',
-							},
-						},
 						value_type: 10,
+						options: {
+							filter_type: 'equal',
+							filter_values: [props.options.filter_entry_user_code],
+							exclude_empty_cells: false,
+							enabled: true,
+							use_from_above: {},
+						},
 					},
+
 					{
 						content_type: 'portfolios.portfolio',
 						filtersListIndex: 1,
@@ -123,27 +210,10 @@
 							enabled: true,
 							exclude_empty_cells: false,
 							filter_type: 'equal',
-							filter_values: ['Model'],
+							filter_values: props.options.portfolios,
 							use_from_above: {
 								attrs_entity_type: 'balance-report',
 								key: 'portfolio.user_code',
-							},
-						},
-						value_type: 10,
-					},
-					{
-						content_type: 'accounts.account',
-						filtersListIndex: 2,
-						key: 'entry_account.user_code',
-						name: 'Transaction. Entry Account. User code',
-						options: {
-							enabled: true,
-							exclude_empty_cells: false,
-							filter_type: 'equal',
-							filter_values: [],
-							use_from_above: {
-								attrs_entity_type: 'balance-report',
-								key: 'account.user_code',
 							},
 						},
 						value_type: 10,
@@ -168,14 +238,6 @@
 
 		return res
 	}
-
-	let userFieldsMap = ref(null)
-
-	onMounted(async () => {
-		let res = await useApi('transactionUserField.get')
-
-		userFieldsMap.value = res.results
-	})
 </script>
 
 <style lang="scss" scoped>
@@ -199,7 +261,6 @@
 		padding: 15px 13px;
 		background: #fff;
 		border-top: 1px solid rgba(224, 224, 224, 1);
-		border-bottom: 1px solid rgba(224, 224, 224, 1);
 	}
 	.ti_header {
 		font-weight: 500;
@@ -218,8 +279,12 @@
 		font-size: 12px;
 		line-height: 24px;
 	}
+	.desc {
+		font-size: 14px;
+		line-height: 24px;
+	}
 	.name {
-		font-size: 12px;
+		font-size: 16px;
 		line-height: 24px;
 	}
 	.plus {
@@ -246,5 +311,8 @@
 	}
 	.tdb_row + .tdb_row {
 		margin-top: 10px;
+	}
+	.transactions_wrap + .transactions_wrap {
+		border-top: 1px solid rgba(224, 224, 224, 1);
 	}
 </style>

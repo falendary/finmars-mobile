@@ -2,69 +2,28 @@
 	<ion-page>
 		<ion-content>
 			<div class="header flex sb aic">
-				<div>All Portfolios</div>
-				<div class="header_info">2023-03-16</div>
+				<div v-if="activePortfolioName">{{ activePortfolioName }}</div>
+				<IonSkeletonText
+					v-else
+					:animated="true"
+					style="height: 24px; width: 80px"
+				/>
+
+				<div class="header_info">
+					{{ dayjs(store.settings.balance.date).format('DD MMM YYYY') }}
+				</div>
 			</div>
 
-			<swiper
-				:pagination="true"
-				:modules="[Pagination]"
-				class="balance_swiper"
-				:loop="true"
-				@slideChange="onPortfolioChange"
-			>
-				<swiper-slide v-for="(item, k) in categories">
-					<div class="main_chart">
-						<div class="main_chart_h">Net Asset Value (NAV)</div>
-						<div class="main_chart_price">126,342.12 USD</div>
-
-						<div
-							style="
-								height: 80px;
-								width: calc(100% + 10px);
-								margin: 0 0 -5px -5px;
-							"
-						>
-							<canvas v-if="'asset_types' == k" id="lineChart"
-								><p>Chart</p></canvas
-							>
-							<div v-else id="lineChart"></div>
-						</div>
-					</div>
-				</swiper-slide>
-			</swiper>
+			<HistoryChart
+				:date_to="store.settings.balance.date"
+				:currency="store.settings.balance.currency"
+				@portfolioChange="init()"
+			/>
 
 			<Indicators
-				:items="[
-					{
-						id: 1,
-						name: 'Daily p/l',
-						price: 1234,
-						currency: 'USD',
-						percent: -1.56,
-					},
-					{
-						id: 2,
-						name: 'Month to date (MTD) P\L',
-						price: 456,
-						currency: 'USD',
-						percent: 99.88,
-					},
-					{
-						id: 3,
-						name: 'Daily p/l',
-						price: 1234,
-						currency: 'USD',
-						percent: 0,
-					},
-					{
-						id: 4,
-						name: 'Daily p/l',
-						price: 1234,
-						currency: 'USD',
-						percent: 2.56,
-					},
-				]"
+				:portfolio_id="activePortfolio"
+				:currency="store.settings.balance.currency"
+				:date="store.settings.balance.date"
 			/>
 
 			<div class="header flex aic sb">
@@ -110,7 +69,7 @@
 									class="balance_labels_item flex aic"
 									v-for="subcat in item.items"
 									:class="{ active: detailSubcat.name == subcat.name }"
-									@click="detailSubcat = JSON.parse(JSON.stringify(subcat))"
+									@click="detailSubcat = subcat"
 								>
 									<div
 										class="balance_labels_percent"
@@ -142,22 +101,25 @@
 						<div class="bb_header">{{ detailSubcat.name }}</div>
 						<div>
 							<div class="bb_price">
-								{{ $format(detailSubcat.agr_market_value) }} USD
+								{{ $format(detailSubcat.agr_market_value) }}
+								{{ store.settings.balance.currency }}
 							</div>
-							<div class="instr_block_change flex jcfe">
+							<!-- <div class="instr_block_change flex jcfe">
 								<div class="instr_change_percent instr_first minus">
 									{{ $format(1254) }}
 								</div>
 								<div class="instr_change_percent instr_second plus">YTD</div>
-							</div>
+							</div> -->
 						</div>
 					</div>
 
 					<div
 						class="instruments"
 						v-for="item in detailSubcat.items"
-						:class="{ active: activeInstrumentUserCode == item.user_code }"
-						@click="activeInstrumentUserCode = item.user_code"
+						:class="{
+							active: transactionsOpts.filter_entry_user_code == item.user_code,
+						}"
+						@click="transactionsOpts.filter_entry_user_code = item.user_code"
 					>
 						<div class="flex sb jcfe">
 							<div class="instr_name">
@@ -167,30 +129,22 @@
 										: item.name
 								}}
 							</div>
-							<div class="flex">
-								<div class="instr_market_value instr_first">
-									{{ $format(item.market_value) }}
-								</div>
-								<div class="instr_change_percent instr_second">
-									{{ item.change.percent }}%
-								</div>
+							<div class="instr_market_value instr_first">
+								{{ $format(item.market_value) }}
 							</div>
 						</div>
 						<div class="flex sb">
 							<div class="instr_pos">{{ $format(item.position_size) }}</div>
 
 							<div class="flex">
-								<div
-									class="instr_change_percent instr_first"
-									:class="[item.change.value > 0 ? 'plus' : 'minus']"
-								>
+								<div class="instr_change_percent instr_first">
 									{{ $format(item.change.value) }}
 								</div>
 								<div
 									class="instr_change_percent instr_second"
-									:class="[item.change.value > 0 ? 'plus' : 'minus']"
+									:class="[item.change.percent > 0 ? 'plus' : 'minus']"
 								>
-									YTD
+									{{ item.change.percent }}%
 								</div>
 							</div>
 						</div>
@@ -198,26 +152,20 @@
 				</div>
 			</template>
 
-			<template v-if="activeInstrumentUserCode">
+			<template v-if="transactionsOpts.filter_entry_user_code">
 				<div class="header flex aic sb">Transactions</div>
 
-				<TransactionList
-					:options="{
-						end_date: '2022-09-19',
-						begin_date: '0001-01-01',
-						filter_entry_user_code: [activeInstrumentUserCode],
-					}"
-				/>
+				<TransactionList :options="transactionsOpts" />
 			</template>
 		</ion-content>
 	</ion-page>
 </template>
 
 <script setup>
-	import { onMounted, ref, reactive } from 'vue'
+	import { onMounted, ref, reactive, watch, computed } from 'vue'
 
 	import dayjs from 'dayjs'
-	import { IonCheckbox } from '@ionic/vue'
+	import { IonCheckbox, IonSkeletonText } from '@ionic/vue'
 	import {
 		Chart,
 		PointElement,
@@ -234,11 +182,15 @@
 	} from 'chart.js'
 
 	import Indicators from '@/components/Indicators.vue'
+	import HistoryChart from '@/components/HistoryChart.vue'
 	import TransactionList from '@/components/TransactionList.vue'
 
 	import { Swiper, SwiperSlide } from 'swiper/vue'
 	import { Pagination } from 'swiper'
+	import { useRoute, useRouter } from 'vue-router'
+
 	import useApi from '@/composables/useApi'
+	import useMiniStore from '@/composables/useMiniStore'
 
 	Chart.register(
 		LineElement,
@@ -254,9 +206,49 @@
 		Tooltip
 	)
 
-	let lineChart
+	const store = useMiniStore()
+	const router = useRouter()
+	const route = useRoute()
+
+	const activePortfolio = computed(() => {
+		return route.query.tab
+	})
+	const activePortfolioName = computed(() => {
+		return store.portfolioList.find((o) => o.user_code == activePortfolio.value)
+			?.name
+	})
+	const transactionsOpts = reactive({
+		end_date: store.settings.balance.date,
+		begin_date: '0001-01-01',
+		portfolios: activePortfolio.value,
+		filter_entry_user_code: null,
+	})
+
+	if (store.portfolioList.length && !activePortfolio.value)
+		router.push({
+			query: {
+				tab: store.portfolioList[0]?.user_code,
+			},
+		})
+	else if (!activePortfolio.value) {
+		watch(
+			() => store.portfolioList,
+			(n, o, unwatch) => {
+				router.push({
+					query: {
+						tab: store.portfolioList[0]?.user_code,
+					},
+				})
+
+				unwatch()
+			}
+		)
+	}
+	watch(store.settings.balance, () => {
+		init()
+	})
+
 	let balanceChart
-	let width, height, gradient
 
 	let data = {
 		labels: [],
@@ -273,7 +265,6 @@
 	}
 	let isChartView = ref(true)
 	let detailSubcat = ref({})
-	let activeInstrumentUserCode = ref(null)
 
 	let categories = reactive({
 		asset_types: {
@@ -330,26 +321,13 @@
 		'#AB7967',
 	]
 	let colorsCat = {}
-	let histNav = []
 
-	onMounted(async () => {
-		histNav = await useApi('widgetsHistory.get', {
-			params: {
-				type: 'nav',
-			},
-			provider: null,
-			filters: {
-				portfolio: 2,
-				date_to: '2022-09-19',
-				date_from: '2020-09-19',
-			},
-		})
-		console.log('histNav:', histNav)
+	init()
 
-		let [report, reportYTD] = await Promise.all([
-			fetchReport({ date: '2022-09-19' }),
-			fetchReport({ date: '2022-01-01' }),
-		])
+	async function init() {
+		transactionsOpts.filter_entry_user_code = null
+
+		let report = await fetchReport({ date: store.settings.balance.date })
 
 		let _cats = {
 			asset_types: {
@@ -363,30 +341,7 @@
 				items: {},
 			},
 		}
-		let calcValueYTD = (instrId) => {
-			let instr = reportYTD.items.find((o) => o.id == instrId)
 
-			if (!instr) return 0
-			if (instr.market_value === null) return '-'
-
-			return instr.market_value
-		}
-		let calcChangeObj = (instr) => {
-			let market_value_ytd = calcValueYTD(instr.id)
-
-			let change_val = '-'
-			let percent = '-'
-
-			if (instr.market_value != '-' && market_value_ytd != '-') {
-				change_val = instr.market_value - market_value_ytd
-				percent = Math.round((change_val / Math.abs(instr.market_value)) * 100)
-			}
-
-			return {
-				value: change_val,
-				percent: percent,
-			}
-		}
 		report.items.forEach((item, key) => {
 			// Currency
 			_cats.currency.agr_market_value += item.market_value
@@ -395,9 +350,12 @@
 				id: item.id,
 				name: item.name,
 				user_code: item.user_code,
-				market_value: item.market_value === null ? '-' : item.market_value,
+				market_value: item.market_value,
 				position_size: item.position_size,
-				change: calcChangeObj(item),
+				change: {
+					value: item.gross_cost_price,
+					percent: Math.round(item.daily_price_change * 10000) / 100,
+				},
 			}
 
 			if (item.item_type == 2) {
@@ -455,14 +413,14 @@
 			let colorKey = 0
 
 			categories[prop].agr_market_value = _cats[prop].agr_market_value
+			categories[prop].items = []
 
 			for (let instr in _cats[prop].items) {
 				categories[prop].items.push({
 					..._cats[prop].items[instr],
 					name: instr,
 					items: _cats[prop].items[instr].items.sort((a, b) => {
-						if (b.change.percent == '-') return -1
-						return b.change.percent - a.change.percent
+						return b.market_value - a.market_value
 					}),
 				})
 
@@ -474,13 +432,20 @@
 				.sort((a, b) => b.agr_market_value - a.agr_market_value)
 		}
 
+		if (balanceChart) {
+			balanceChart.data = createBalanceDataset(categories.asset_types)
+			balanceChart.update()
+		}
+	}
+
+	onMounted(() => {
 		createChart()
 	})
 
 	async function fetchReport(opts) {
 		let res = await useApi('balanceReport.post', {
 			body: {
-				account_mode: 1,
+				account_mode: 0,
 				accounts: [],
 				accounts_cash: [],
 				accounts_cash_object: [],
@@ -552,7 +517,7 @@
 				],
 				pl_include_zero: false,
 				portfolio_mode: 1,
-				portfolios: [],
+				portfolios: [2],
 				portfolios_object: [],
 				pricing_policy: 1,
 				pricing_policy_object: {
@@ -621,16 +586,6 @@
 		balanceChart.update()
 	}
 
-	function onPortfolioChange(swiper) {
-		let prevChart = swiper.slidesEl.querySelector('canvas#lineChart')
-		let prevChartParent = prevChart.parentNode
-		let nextChart =
-			swiper.slides[swiper.activeIndex].querySelector('#lineChart')
-		let oldChild = nextChart.parentNode.replaceChild(prevChart, nextChart)
-		prevChartParent.append(oldChild)
-		lineChart.update()
-	}
-
 	function createChart() {
 		balanceChart = new Chart('balanceChart', {
 			type: 'doughnut',
@@ -666,85 +621,8 @@
 			},
 		})
 
-		lineChart = new Chart('lineChart', {
-			type: 'line',
-			data: {
-				labels: histNav.items.map((o, k) => k),
-				datasets: [
-					{
-						label: 'Dataset 1',
-						data: histNav.items.map((o) => o.nav),
-						borderColor: '#F05A22',
-						borderWidth: 1,
-						pointBackgroundColor: 'transparent',
-						pointBorderColor: 'transparent',
-						backgroundColor: function (context) {
-							const chart = context.chart
-							const { ctx, chartArea } = chart
-
-							if (!chartArea) {
-								// This case happens on initial chart load
-								return
-							}
-
-							const chartWidth = chartArea.right - chartArea.left
-							const chartHeight = chartArea.bottom - chartArea.top
-							if (!gradient || width !== chartWidth || height !== chartHeight) {
-								// Create the gradient because this is either the first render
-								// or the size of the chart has changed
-								width = chartWidth
-								height = chartHeight
-								gradient = ctx.createLinearGradient(
-									0,
-									chartArea.bottom,
-									0,
-									chartArea.top
-								)
-								gradient.addColorStop(0, 'rgba(255, 178, 108, 0)')
-								gradient.addColorStop(1, 'rgba(240, 90, 34, 0.48)')
-							}
-							return gradient
-						},
-						fill: true,
-					},
-					{
-						label: 'Dataset 1',
-						data: [20, 30, 35, 40, 20, 35, 20, 10, 13, 30],
-						borderColor: 'rgba(30, 30, 30, 0.2)',
-						borderWidth: 1,
-						pointBackgroundColor: 'transparent',
-						pointBorderColor: 'transparent',
-						stepped: true,
-					},
-				],
-			},
-			options: {
-				layout: {},
-				maintainAspectRatio: false,
-				elements: {
-					line: {
-						tension: 0.5,
-					},
-				},
-				scales: {
-					x: {
-						display: false,
-					},
-					y: {
-						display: false,
-					},
-				},
-				plugins: {
-					legend: {
-						display: false,
-					},
-				},
-			},
-		})
-
 		balanceChart.data = createBalanceDataset(categories.asset_types)
 		balanceChart.update()
-		lineChart.update()
 	}
 
 	function colorByCat(item) {
@@ -807,30 +685,7 @@
 	.header_info {
 		font-size: 16px;
 	}
-	.main_chart {
-		background: #fff;
-		margin: 0 15px;
-		padding-top: 9px;
-		border-radius: 5px;
-		overflow: hidden;
-		box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.05);
-		margin-bottom: 10px;
 
-		&_h {
-			padding: 0 14px;
-			padding-bottom: 4px;
-			font-size: 14px;
-			line-height: 24px;
-			color: #747474;
-		}
-		&_price {
-			padding: 0 14px;
-			padding-bottom: 50px;
-			font-weight: 600;
-			font-size: 20px;
-			line-height: 24px;
-		}
-	}
 	ion-content {
 		--padding-top: 10px;
 		--padding-bottom: 10px;
@@ -919,7 +774,7 @@
 	}
 	.instr_second {
 		text-align: right;
-		width: 40px;
+		width: 47px;
 	}
 	.instr_pos {
 		color: #747474;

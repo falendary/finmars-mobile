@@ -1,90 +1,136 @@
 <template>
 	<ion-page>
 		<ion-content class="content">
+			<ion-refresher slot="fixed" @ionRefresh="refresh($event)">
+				<ion-refresher-content />
+			</ion-refresher>
+
 			<div class="header flex sb aic">
 				<div>All Portfolios</div>
-				<div class="header_info">2023-03-16</div>
+				<div class="header_info">
+					{{ dayjs(store.settings.dashboard.date).format('DD MMM YYYY') }}
+				</div>
 			</div>
 
 			<div class="main_chart">
 				<div class="main_chart_h">Net Asset Value (NAV)</div>
-				<div class="main_chart_price">126,342.12 USD</div>
+				<div class="main_chart_price">
+					- {{ store.settings.dashboard.currency }}
+				</div>
 
 				<div
+					v-show="isReadyChart"
 					style="height: 80px; width: calc(100% + 10px); margin: 0 0 -5px -5px"
 				>
 					<canvas id="myChart"><p>Chart</p></canvas>
 				</div>
+				<div
+					v-show="!isReadyChart"
+					class="center aic"
+					style="height: 80px; margin: 0 0 -5px -5px"
+				>
+					<IonSpinner style="width: 100px" color="primary" name="bubbles" />
+				</div>
 			</div>
 
 			<Indicators
-				:items="[
-					{
-						id: 1,
-						name: 'Daily p/l',
-						price: 1234,
-						currency: 'USD',
-						percent: -1.56,
-					},
-					{
-						id: 2,
-						name: 'Month to date (MTD) P\L',
-						price: 456,
-						currency: 'USD',
-						percent: 99.88,
-					},
-					{
-						id: 3,
-						name: 'Daily p/l',
-						price: 1234,
-						currency: 'USD',
-						percent: 0,
-					},
-					{
-						id: 4,
-						name: 'Daily p/l',
-						price: 1234,
-						currency: 'USD',
-						percent: 2.56,
-					},
-				]"
+				:currency="store.settings.dashboard.currency"
+				:date="store.settings.dashboard.date"
 			/>
 
 			<div class="header">Portfolios</div>
 
-			<div class="portfolios">
-				<div class="portfolios_item" v-for="item in portfolios">
+			<div class="portfolios" v-if="portfolios?.length">
+				<div
+					class="portfolios_item"
+					v-for="item in portfolios"
+					@click="$router.push('/main/balance?tab=' + item.user_code)"
+				>
 					<div class="pi_first_line flex aic sb">
 						<div class="pi_header">{{ item.name }}</div>
-						<div class="pi_price_change">{{ $format(item.change.price) }}</div>
+						<div class="pi_price_change">
+							<IonSkeletonText
+								v-if="item.change.price == '-'"
+								:animated="true"
+								style="width: 60px; height: 24px"
+							/>
+							<template v-else>{{ $format(item.change.price) }}</template>
+						</div>
 					</div>
 					<div class="flex aic sb">
-						<div class="pi_price">{{ $format(item.price) }} USD</div>
-						<ChangePrice :percent="item.change.percent" />
+						<div class="pi_price">
+							<IonSkeletonText
+								v-if="item.price == '-'"
+								:animated="true"
+								style="width: 100px; height: 24px"
+							/>
+							<template v-else
+								>{{ $format(item.price) }}
+								{{ store.settings.dashboard.currency }}</template
+							>
+						</div>
+
+						<IonSkeletonText
+							v-if="item.change.percent == '-'"
+							:animated="true"
+							style="width: 80px; height: 25px"
+						/>
+						<ChangePrice v-else :percent="item.change.percent" />
 					</div>
 				</div>
 			</div>
 
-			<div class="header">Last transactions</div>
+			<div class="portfolios" v-if="portfolios === null">
+				<div class="portfolios_item" v-for="item in [1, 1, 1]">
+					<div class="pi_first_line flex aic sb">
+						<div class="pi_header">
+							<IonSkeletonText
+								:animated="true"
+								style="width: 130px; height: 24px"
+							/>
+						</div>
+						<div class="pi_price_change">
+							<IonSkeletonText
+								:animated="true"
+								style="width: 60px; height: 24px"
+							/>
+						</div>
+					</div>
+					<div class="flex aic sb">
+						<div class="pi_price">
+							<IonSkeletonText
+								:animated="true"
+								style="width: 100px; height: 24px"
+							/>
+						</div>
+						<IonSkeletonText
+							:animated="true"
+							style="width: 80px; height: 25px"
+						/>
+					</div>
+				</div>
+			</div>
 
-			<TransactionList
-				:options="{
-					end_date: '2022-09-19',
-					begin_date: '2020-03-19',
-					filter_entry_user_code: [],
-				}"
-			/>
+			<div class="portfolios" v-if="portfolios?.length === 0">
+				No portfolios
+			</div>
+
+			<div class="header">Last transactions for 3 Month</div>
+
+			<TransactionList displayMode="compact" :options="transactionsOpts" />
 		</ion-content>
 	</ion-page>
 </template>
 
 <script setup>
+	import dayjs from 'dayjs'
 	import {
-		IonTitle,
-		IonIcon,
-		IonButtons,
+		IonSkeletonText,
+		IonRefresher,
+		IonRefresherContent,
 		IonButton,
 		IonToolbar,
+		IonSpinner,
 	} from '@ionic/vue'
 
 	import Indicators from '@/components/Indicators.vue'
@@ -104,8 +150,9 @@
 		Decimation,
 		Filler,
 	} from 'chart.js'
-	import { onMounted, ref } from 'vue'
+	import { onMounted, ref, reactive, watch } from 'vue'
 	import useApi from '@/composables/useApi.js'
+	import useMiniStore from '@/composables/useMiniStore'
 	// Stores the controller so that the chart initialization routine can look it up
 	Chart.register(
 		LineElement,
@@ -121,102 +168,120 @@
 	let allPorfoliosChart
 	let width, height, gradient
 
-	const portfolios = ref([])
-	const transactions = ref([])
+	const portfolios = ref(null)
+	const store = useMiniStore()
 
-	fetchPortfolios()
-	fetchTransactions()
+	const transactionsOpts = reactive({
+		end_date: store.settings.dashboard.date,
+		begin_date: dayjs(store.settings.dashboard.date)
+			.add(-3, 'month')
+			.format('YYYY-MM-DD'),
+		portfolios: [],
+		filter_entry_user_code: null,
+	})
+
+	let isReadyChart = ref(false)
+	let historyNav = null
+
+	init()
+
+	watch(store.settings.dashboard, () => {
+		transactionsOpts.end_date = store.settings.dashboard.date
+		transactionsOpts.begin_date = dayjs(store.settings.dashboard.date)
+			.add(-3, 'month')
+			.format('YYYY-MM-DD')
+
+		refresh()
+	})
+
+	async function init() {
+		await Promise.all([fetchPortfolios(), fetchHistoryNav()])
+	}
+
+	async function refresh(event) {
+		await init()
+
+		if (event) event.target.complete()
+	}
 
 	onMounted(() => {
-		allPorfoliosChart = createChart()
+		createChart()
 	})
 
 	async function fetchPortfolios() {
 		let res = await useApi('portfolioLight.get')
 
-		let percents = [-2.1, 20.54, 0, -1]
-		if (res)
-			portfolios.value = res.results.map((o, k) => ({
-				id: o.id,
-				name: o.name,
-				price: Math.floor(Math.random() * 100000),
-				change: {
-					price: Math.floor(Math.random() * 10000),
-					percent: percents[k] || 1.53,
-				},
-			}))
+		if (res && !res.error) {
+			portfolios.value = res.results.map((o, k) => {
+				useApi('reportsSummary.get', {
+					filters: {
+						portfolios: o.user_code,
+						currency: store.settings.dashboard.currency,
+						date_to: store.settings.dashboard.date,
+					},
+				}).then((stats) => {
+					if (stats.error) {
+						portfolios.value[k].price = '--'
+						portfolios.value[k].change.price = '--'
+						portfolios.value[k].change.percent = '--'
+					}
+
+					portfolios.value[k].price = stats.total.nav
+					portfolios.value[k].change.price = stats.total.pl_daily
+					portfolios.value[k].change.percent =
+						Math.round(stats.total.pl_daily_percent * 100) / 100
+				})
+
+				return {
+					id: o.id,
+					name: o.name,
+					user_code: o.user_code,
+					price: '-',
+					change: {
+						price: '-',
+						percent: '-',
+					},
+				}
+			})
+		} else {
+			portfolios.value = []
+		}
+	}
+	async function fetchHistoryNav() {
+		historyNav = await useApi('widgetsHistory.get', {
+			params: {
+				type: 'nav',
+			},
+			provider: null,
+			filters: {
+				portfolio: 2, // Need all
+				date_to: store.settings.dashboard.date,
+			},
+		})
+
+		if (!historyNav || historyNav.error) return false
+
+		if (allPorfoliosChart) {
+			allPorfoliosChart.data.labels = historyNav.items.map((o) => o.date)
+			allPorfoliosChart.data.datasets[0].data = historyNav.items.map(
+				(o) => o.nav
+			)
+
+			isReadyChart.value = true
+
+			allPorfoliosChart.update()
+		}
 	}
 
-	async function fetchTransactions() {
-		// let res = await useApi('complexTransaction.get', {
-		//   filters: {
-		//     page_size: 10
-		//   }
-		// })
-		// console.log('res:', res)
-
-		// if ( res )
-		//   transactions.value = res.results.map((o, k) => ({
-		//     id: o.id,
-		//     name: o.name,
-		//     price: Math.floor(Math.random() * 100000),
-		//     change: {
-		//       price: Math.floor(Math.random() * 10000),
-		//       percent: percents[k] || 1.53
-		//     }
-		//   }))
-		transactions.value = [
-			{
-				id: 1,
-				name: 'Any transaction',
-				portfolio_name: 'IS9543PORT-AP',
-				description: 'description',
-				date: '2022-11-11',
-			},
-			{
-				id: 2,
-				name: 'Any transaction',
-				portfolio_name: 'IS9543PORT-AP',
-				description: 'description',
-				date: '2022-11-11',
-			},
-			{
-				id: 3,
-				name: 'Any transaction',
-				portfolio_name: 'IS9543PORT-AP',
-				description: 'description',
-				date: '2022-11-11',
-			},
-			{
-				id: 4,
-				name: 'Any transaction',
-				portfolio_name: 'IS9543PORT-AP',
-				description: 'description',
-				date: '2022-11-11',
-			},
-		]
-	}
-
-	function createChart() {
-		return new Chart('myChart', {
+	async function createChart() {
+		allPorfoliosChart = new Chart('myChart', {
 			type: 'line',
 			data: {
-				labels: [
-					'test',
-					'test2',
-					'test2',
-					'test2',
-					'test2',
-					'test',
-					'test2',
-					'test2',
-					'test2',
-					'test2',
-				],
+				labels: [],
 				datasets: [
 					{
 						label: 'Dataset 1',
-						data: [23, 35, 38, 40, 12, 7, 13, 15, 20, 30],
+						data: [],
 						borderColor: '#F05A22',
 						borderWidth: 1,
 						pointBackgroundColor: 'transparent',
@@ -249,16 +314,24 @@
 							return gradient
 						},
 						fill: true,
+						animation: {
+							x: {
+								from: false,
+							},
+							y: {
+								from: 200,
+							},
+						},
 					},
-					{
-						label: 'Dataset 1',
-						data: [20, 30, 35, 40, 20, 35, 20, 10, 13, 30],
-						borderColor: 'rgba(30, 30, 30, 0.2)',
-						borderWidth: 1,
-						pointBackgroundColor: 'transparent',
-						pointBorderColor: 'transparent',
-						stepped: true,
-					},
+					// {
+					// 	label: 'Dataset 1',
+					// 	data: [20, 30, 35, 40, 20, 35, 20, 10, 13, 30],
+					// 	borderColor: 'rgba(30, 30, 30, 0.2)',
+					// 	borderWidth: 1,
+					// 	pointBackgroundColor: 'transparent',
+					// 	pointBorderColor: 'transparent',
+					// 	stepped: true,
+					// },
 				],
 			},
 			options: {
@@ -283,6 +356,35 @@
 					},
 				},
 			},
+			plugins: [
+				{
+					id: 'custom_canvas_background_color',
+					afterDatasetDraw: (chart, args, options) => {
+						let metas = chart.getSortedVisibleDatasetMetas()
+
+						const { ctx } = chart
+
+						ctx.save()
+						ctx.globalCompositeOperation = 'destination-over'
+						ctx.fillStyle = options.nonActiveColor
+
+						metas[0].data.forEach((coll, key) => {
+							if (chart.data.datasets[0].data[key] === null) {
+								ctx.fillRect(
+									coll.x,
+									chart.chartArea.top,
+									2,
+									chart.chartArea.height
+								)
+							}
+						})
+						ctx.restore()
+					},
+					defaults: {
+						nonActiveColor: 'rgb(203, 203, 203, 0.4)',
+					},
+				},
+			],
 		})
 	}
 </script>
@@ -290,8 +392,11 @@
 <style lang="scss" scoped>
 	ion-content {
 		--padding-top: 10px;
-		--padding-bottom: 10px;
+		--padding-bottom: 25px;
 		--background: #fafafa;
+	}
+	ion-skeleton-text {
+		margin: 0;
 	}
 	.header {
 		padding: 0 15px;
@@ -320,7 +425,7 @@
 		}
 		&_price {
 			padding: 0 14px;
-			padding-bottom: 50px;
+			padding-bottom: 30px;
 			font-weight: 600;
 			font-size: 20px;
 			line-height: 24px;

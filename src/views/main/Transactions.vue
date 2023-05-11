@@ -3,18 +3,15 @@
 		<ion-content>
 			<div class="header flex sb aic">
 				<div>Transactions</div>
-				<div class="header_info">2023-03-16</div>
+				<div class="header_info">
+					{{ store.settings.transactions.date_from }} ->
+					{{ store.settings.transactions.date_to }}
+				</div>
 			</div>
 
-			<ion-searchbar animated="true" placeholder="Search..." />
+			<!-- <ion-searchbar animated="true" placeholder="Search..." /> -->
 
-			<TransactionList
-				:options="{
-					end_date: '2022-09-19',
-					begin_date: '2020-01-01',
-					filter_entry_user_code: [],
-				}"
-			/>
+			<TransactionList displayMode="compact" :options="transactionsOpts" />
 		</ion-content>
 	</ion-page>
 </template>
@@ -31,8 +28,24 @@
 		IonFooter,
 	} from '@ionic/vue'
 
-	import { ref } from 'vue'
+	import { reactive, watch } from 'vue'
 	import TransactionList from '@/components/TransactionList.vue'
+	import useMiniStore from '@/composables/useMiniStore'
+
+	const store = useMiniStore()
+
+	const transactionsOpts = reactive({
+		end_date: store.settings.transactions.date_to,
+		begin_date: store.settings.transactions.date_from,
+		portfolios: store.settings.transactions.portfolios,
+		filter_entry_user_code: null,
+	})
+
+	watch(store.settings.transactions, () => {
+		transactionsOpts.end_date = store.settings.transactions.date_to
+		transactionsOpts.begin_date = store.settings.transactions.date_from
+		transactionsOpts.portfolios = store.settings.transactions.portfolios
+	})
 </script>
 
 <style lang="scss" scoped>
