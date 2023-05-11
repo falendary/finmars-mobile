@@ -1,6 +1,9 @@
 <template>
 	<ion-page>
 		<ion-content>
+			<ion-refresher slot="fixed" @ionRefresh="refresh($event)">
+				<ion-refresher-content />
+			</ion-refresher>
 			<div class="header flex sb aic">
 				<div v-if="activePortfolioName">{{ activePortfolioName }}</div>
 				<IonSkeletonText
@@ -17,7 +20,7 @@
 			<HistoryChart
 				:date_to="store.settings.balance.date"
 				:currency="store.settings.balance.currency"
-				@portfolioChange="init()"
+				@portfolioChange="init($event)"
 			/>
 
 			<Indicators
@@ -48,7 +51,8 @@
 						<div class="bb_header_line flex sb aic">
 							<div class="bb_header">{{ item.name }}</div>
 							<div class="bb_price">
-								{{ $format(Math.floor(item.agr_market_value)) }} USD
+								{{ $format(Math.floor(item.agr_market_value)) }}
+								{{ store.settings.balance.currency }}
 							</div>
 						</div>
 
@@ -165,7 +169,12 @@
 	import { onMounted, ref, reactive, watch, computed } from 'vue'
 
 	import dayjs from 'dayjs'
-	import { IonCheckbox, IonSkeletonText } from '@ionic/vue'
+	import {
+		IonCheckbox,
+		IonSkeletonText,
+		IonRefresher,
+		IonRefresherContent,
+	} from '@ionic/vue'
 	import {
 		Chart,
 		PointElement,
@@ -210,6 +219,7 @@
 	const router = useRouter()
 	const route = useRoute()
 
+	let portfolioUserCode = route.query.tab
 	const activePortfolio = computed(() => {
 		return route.query.tab
 	})
@@ -220,9 +230,15 @@
 	const transactionsOpts = reactive({
 		end_date: store.settings.balance.date,
 		begin_date: '0001-01-01',
-		portfolios: activePortfolio.value,
+		portfolios: portfolioUserCode,
 		filter_entry_user_code: null,
 	})
+
+	async function refresh(event) {
+		await init()
+
+		if (event) event.target.complete()
+	}
 
 	if (store.portfolioList.length && !activePortfolio.value)
 		router.push({
@@ -324,10 +340,17 @@
 
 	init()
 
-	async function init() {
+	async function init(tab) {
+		if (tab == portfolioUserCode) return false
+		if (tab) portfolioUserCode = tab
+
+		detailSubcat.value = {}
+		transactionsOpts.end_date = store.settings.balance.date
+		transactionsOpts.portfolios = portfolioUserCode
 		transactionsOpts.filter_entry_user_code = null
 
-		let report = await fetchReport({ date: store.settings.balance.date })
+		let report = await fetchReport()
+		console.log('report:', report)
 
 		let _cats = {
 			asset_types: {
@@ -442,7 +465,7 @@
 		createChart()
 	})
 
-	async function fetchReport(opts) {
+	async function fetchReport() {
 		let res = await useApi('balanceReport.post', {
 			body: {
 				account_mode: 0,
@@ -470,23 +493,6 @@
 				depth_level: 'base_transaction',
 				expression_iterations_count: 1,
 				filters: [
-					{
-						content_type: 'portfolios.portfolio',
-						filtersListIndex: 0,
-						key: 'portfolio.user_code',
-						name: 'Portfolio. User code',
-						options: {
-							enabled: true,
-							exclude_empty_cells: false,
-							filter_type: 'equal',
-							filter_values: ['Model'],
-							use_from_above: {
-								attrs_entity_type: 'balance-report',
-								key: 'portfolio.user_code',
-							},
-						},
-						value_type: 10,
-					},
 					{
 						custom_field: {
 							expr: "iff(item_type_name=='Currency', 'Cash and equivalents', instrument.attributes.asset_types)",
@@ -517,7 +523,7 @@
 				],
 				pl_include_zero: false,
 				portfolio_mode: 1,
-				portfolios: [2],
+				portfolios: [portfolioUserCode],
 				portfolios_object: [],
 				pricing_policy: 1,
 				pricing_policy_object: {
@@ -535,21 +541,8 @@
 						space_code: 'space0crgw',
 					},
 				},
-				report_currency: 2,
-				report_currency_object: {
-					id: 2,
-					user_code: 'USD',
-					name: 'USD - United States Dollar',
-					short_name: 'USD',
-					deleted_user_code: null,
-					meta: {
-						content_type: 'currencies.currency',
-						app_label: 'currencies',
-						model_name: 'currency',
-						space_code: 'space0crgw',
-					},
-				},
-				report_date: opts.date,
+				report_currency: store.settings.balance.currency,
+				report_date: store.settings.balance.date,
 				report_type: 1,
 				show_balance_exposure_details: false,
 				show_transaction_details: true,

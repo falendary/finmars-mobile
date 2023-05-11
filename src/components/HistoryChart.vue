@@ -17,6 +17,7 @@
 
 				<div
 					style="height: 80px; width: calc(100% + 10px); margin: 0 0 -5px -5px"
+					v-show="!error"
 				>
 					<canvas v-if="k == 0" id="lineChart" ref="chartCanvas"
 						><p>Chart</p></canvas
@@ -24,6 +25,13 @@
 					<div v-else id="lineChart" class="center aic" style="height: 100%">
 						<IonSpinner style="width: 100px" color="primary" name="bubbles" />
 					</div>
+				</div>
+				<div
+					class="center aic"
+					style="height: 80px; width: calc(100% + 10px); margin: 0 0 -5px -5px"
+					v-show="error"
+				>
+					{{ error }}
 				</div>
 			</div>
 		</swiper-slide>
@@ -94,6 +102,7 @@
 		Tooltip
 	)
 
+	const emits = defineEmits(['portfolioChange'])
 	const props = defineProps({
 		portfolio: String,
 		date_to: String,
@@ -107,7 +116,7 @@
 	const store = useMiniStore()
 	const router = useRouter()
 	const route = useRoute()
-
+	let error = ref('')
 	const onSwiper = (swiper) => {
 		let slideIndex = store.portfolioList.findIndex(
 			(o) => o.user_code == activePortfolio.value
@@ -122,6 +131,7 @@
 	const activePortfolio = computed(() => {
 		return route.query.tab
 	})
+	let portfolioUserCode = route.query.tab
 
 	let chartCanvas = ref(null)
 	let histNav = null
@@ -154,9 +164,10 @@
 
 	async function fetchHistory() {
 		let filters = {
-			portfolio: activePortfolio.value,
+			portfolio: portfolioUserCode,
 			date_to: props.date_to,
 		}
+		error.value = ''
 
 		if (props.date_from) filters.date_from = props.date_from
 
@@ -168,7 +179,10 @@
 			filters,
 		})
 
-		if (!histNav || histNav.error) return false
+		if (!histNav || histNav.error) {
+			error.value = 'No data'
+			return false
+		}
 
 		if (lineChart) {
 			lineChart.data.labels = histNav.items.map((o) => o.date)
@@ -291,11 +305,15 @@
 			swiper.slides[swiper.activeIndex].querySelector('#lineChart')
 		console.log('swiper.activeIndex:', swiper.activeIndex)
 
+		portfolioUserCode = store.portfolioList[swiper.activeIndex]?.user_code
+		emits('portfolioChange', portfolioUserCode)
+
 		router.push({
 			query: {
-				tab: store.portfolioList[swiper.activeIndex]?.user_code,
+				tab: portfolioUserCode,
 			},
 		})
+
 		await fetchHistory()
 
 		let oldChild = nextChart.parentNode.replaceChild(prevChart, nextChart)
