@@ -4,6 +4,7 @@
 			<ion-refresher slot="fixed" @ionRefresh="refresh($event)">
 				<ion-refresher-content />
 			</ion-refresher>
+
 			<div class="header flex sb aic">
 				<div v-if="activePortfolioName">{{ activePortfolioName }}</div>
 				<IonSkeletonText
@@ -17,13 +18,13 @@
 				</div>
 			</div>
 
-			<HistoryChart
+			<HistoryChartComp
 				:date_to="store.settings.balance.date"
 				:currency="store.settings.balance.currency"
 				@portfolioChange="init($event)"
 			/>
 
-			<Indicators
+			<IndicatorsComp
 				:portfolio_id="activePortfolio"
 				:currency="store.settings.balance.currency"
 				:date="store.settings.balance.date"
@@ -40,6 +41,7 @@
 			</div>
 
 			<swiper
+				v-if="categories.asset_types"
 				:pagination="true"
 				:modules="[Pagination]"
 				class="balance_swiper aic"
@@ -51,7 +53,7 @@
 						<div class="bb_header_line flex sb aic">
 							<div class="bb_header">{{ item.name }}</div>
 							<div class="bb_price">
-								{{ $format(Math.floor(item.agr_market_value)) }}
+								{{ $format(Math.floor(item.market_value)) }}
 								{{ store.settings.balance.currency }}
 							</div>
 						</div>
@@ -84,8 +86,7 @@
 									>
 										{{
 											Math.round(
-												(subcat.agr_market_value /
-													Math.abs(item.agr_market_value)) *
+												(subcat.market_value / Math.abs(item.market_value)) *
 													100
 											)
 										}}%
@@ -162,14 +163,14 @@
 			<template v-if="transactionsOpts.filter_entry_user_code">
 				<div class="header flex aic sb">Transactions</div>
 
-				<TransactionList :options="transactionsOpts" />
+				<TransactionListComp :options="transactionsOpts" />
 			</template>
 		</ion-content>
 	</ion-page>
 </template>
 
 <script setup>
-	import { onMounted, ref, reactive, watch, computed } from 'vue'
+	import { onMounted, ref, reactive, watch, computed, nextTick } from 'vue'
 
 	import dayjs from 'dayjs'
 	import {
@@ -193,9 +194,9 @@
 		Tooltip,
 	} from 'chart.js'
 
-	import Indicators from '@/components/Indicators.vue'
-	import HistoryChart from '@/components/HistoryChart.vue'
-	import TransactionList from '@/components/TransactionList.vue'
+	import IndicatorsComp from '@/components/Indicators.vue'
+	import HistoryChartComp from '@/components/HistoryChart.vue'
+	import TransactionListComp from '@/components/TransactionList.vue'
 
 	import { Swiper, SwiperSlide } from 'swiper/vue'
 	import { Pagination } from 'swiper'
@@ -203,6 +204,7 @@
 
 	import useApi from '@/composables/useApi'
 	import useMiniStore from '@/composables/useMiniStore'
+	import { reportGroup } from '@/data-utils/reportAggs'
 
 	Chart.register(
 		LineElement,
@@ -267,7 +269,7 @@
 		init()
 	})
 
-	let balanceChart
+	let balanceChartObj
 
 	let data = {
 		labels: [],
@@ -285,60 +287,8 @@
 	let isChartView = ref(true)
 	let detailSubcat = ref({})
 
-	let categories = reactive({
-		asset_types: {
-			name: 'Asset type',
-			agr_market_value: 0,
-			items: [],
-		},
-		currency: {
-			name: 'Currency',
-			agr_market_value: 0,
-			items: [],
-		},
-	})
-	let colors = [
-		'#577590CC',
-		'#43AA8BCC',
-		'#F9AB4B',
-		'#FA6769',
-		'#F9C74F',
-		'#979BFF',
-		'#D9ED92',
-		'#C8D7F9',
-		'#96B5B4',
-		'#AB7967',
-		'#577590CC',
-		'#43AA8BCC',
-		'#F9AB4B',
-		'#FA6769',
-		'#F9C74F',
-		'#979BFF',
-		'#D9ED92',
-		'#C8D7F9',
-		'#96B5B4',
-		'#AB7967',
-		'#577590CC',
-		'#43AA8BCC',
-		'#F9AB4B',
-		'#FA6769',
-		'#F9C74F',
-		'#979BFF',
-		'#D9ED92',
-		'#C8D7F9',
-		'#96B5B4',
-		'#AB7967',
-		'#577590CC',
-		'#43AA8BCC',
-		'#F9AB4B',
-		'#FA6769',
-		'#F9C74F',
-		'#979BFF',
-		'#D9ED92',
-		'#C8D7F9',
-		'#96B5B4',
-		'#AB7967',
-	]
+	let categories = ref({})
+
 	let colorsCat = {}
 
 	init()
@@ -354,119 +304,19 @@
 
 		let report = await fetchReport()
 		console.log('report:', report)
-
-		let _cats = {
-			asset_types: {
-				agr_market_value: 0,
-				name: 'Asset type',
-				items: {},
-			},
-			currency: {
-				agr_market_value: 0,
-				name: 'Currency',
-				items: {},
-			},
-		}
-
-		report.items.forEach((item, key) => {
-			// Currency
-			_cats.currency.agr_market_value += item.market_value
-
-			let newItem = {
-				id: item.id,
-				name: item.name,
-				user_code: item.user_code,
-				market_value: item.market_value,
-				position_size: item.position_size,
-				change: {
-					value: item.gross_cost_price,
-					percent: Math.round(item.daily_price_change * 10000) / 100,
-				},
-			}
-
-			if (item.item_type == 2) {
-				let key = report.item_currencies.find(
-					(o) => o.id == item.currency
-				)?.short_name
-
-				if (!_cats.currency.items[key]) {
-					_cats.currency.items[key] = {
-						items: [],
-						agr_market_value: 0,
-					}
-				}
-
-				_cats.currency.items[key].agr_market_value += item.market_value
-				_cats.currency.items[key].items.push(newItem)
-			}
-
-			if (item.item_type == 1) {
-				let instr_obj = report.item_instruments.find(
-					(o) => o.id == item.instrument
-				)
-
-				let key = report.item_currencies.find(
-					(o) => o.id == instr_obj.pricing_currency
-				)?.short_name
-
-				if (!_cats.currency.items[key]) {
-					_cats.currency.items[key] = {
-						items: [],
-						agr_market_value: 0,
-					}
-				}
-
-				_cats.currency.items[key].agr_market_value += item.market_value
-				_cats.currency.items[key].items.push(newItem)
-			}
-			// Asset types
-			_cats.asset_types.agr_market_value += item.market_value
-
-			if (!_cats.asset_types.items[item.custom_fields[0].value]) {
-				_cats.asset_types.items[item.custom_fields[0].value] = {
-					items: [],
-					agr_market_value: 0,
-				}
-			}
-
-			_cats.asset_types.items[item.custom_fields[0].value].agr_market_value +=
-				item.market_value
-
-			_cats.asset_types.items[item.custom_fields[0].value].items.push(newItem)
+		categories.value = reportGroup({
+			report,
+			sum_field: 'market_value',
+			colorsCat,
 		})
+		await nextTick()
+		if (!balanceChartObj) createChart()
 
-		for (let prop in _cats) {
-			let colorKey = 0
-
-			categories[prop].agr_market_value = _cats[prop].agr_market_value
-			categories[prop].items = []
-
-			for (let instr in _cats[prop].items) {
-				categories[prop].items.push({
-					..._cats[prop].items[instr],
-					name: instr,
-					items: _cats[prop].items[instr].items.sort((a, b) => {
-						return b.market_value - a.market_value
-					}),
-				})
-
-				colorsCat[instr] = colors[colorKey]
-				++colorKey
-			}
-			categories[prop].items = categories[prop].items
-				.filter((o) => o.agr_market_value != 0)
-				.sort((a, b) => b.agr_market_value - a.agr_market_value)
-		}
-
-		if (balanceChart) {
-			balanceChart.data = createBalanceDataset(categories.asset_types)
-			balanceChart.update()
-		}
+		balanceChartObj.data = createBalanceDataset(categories.value.asset_types)
+		balanceChartObj.update()
 	}
 
-	onMounted(() => {
-		createChart()
-	})
+	onMounted(() => {})
 
 	async function fetchReport() {
 		let res = await useApi('balanceReport.post', {
@@ -577,13 +427,13 @@
 		let oldChild = nextChart.parentNode.replaceChild(prevChart, nextChart)
 		prevChartParent.append(oldChild)
 
-		let cat = categories[Object.keys(categories)[swiper.realIndex]]
-		balanceChart.data = createBalanceDataset(cat)
-		balanceChart.update()
+		let cat = categories.value[Object.keys(categories.value)[swiper.realIndex]]
+		balanceChartObj.data = createBalanceDataset(cat)
+		balanceChartObj.update()
 	}
 
 	function createChart() {
-		balanceChart = new Chart('balanceChart', {
+		balanceChartObj = new Chart('balanceChart', {
 			type: 'doughnut',
 			data: data,
 			options: {
@@ -616,9 +466,6 @@
 				},
 			},
 		})
-
-		balanceChart.data = createBalanceDataset(categories.asset_types)
-		balanceChart.update()
 	}
 
 	function colorByCat(item) {
@@ -627,21 +474,21 @@
 	function createBalanceDataset(cat) {
 		let plusColors = []
 		let plus = cat.items
-			.filter((item) => item.agr_market_value >= 0)
+			.filter((item) => item.market_value >= 0)
 			.map((item, k) => {
 				plusColors.push(colorByCat(item.name))
-				return item.agr_market_value
+				return item.market_value
 			})
 
 		let totalPlus = plus.length ? plus.reduce((a, b) => a + b) : 0
 
 		let minusColors = []
 		let minus = cat.items
-			.filter((item) => item.agr_market_value < 0)
+			.filter((item) => item.market_value < 0)
 			.map((item, k) => {
 				minusColors.push(colorByCat(item.name))
 
-				return item.agr_market_value
+				return item.market_value
 			})
 
 		let totalMinus = Math.abs(minus.length ? minus.reduce((a, b) => a + b) : 1)
@@ -654,12 +501,18 @@
 				data: plus,
 				backgroundColor: plusColors,
 				hoverOffset: 4,
+				circumference:
+					totalPlus >= totalMinus
+						? 360
+						: Math.floor((totalPlus / totalMinus) * 360),
 			},
 			{
 				data: minus,
 				backgroundColor: minusColors,
 				circumference:
-					totalPlus == 0 ? 360 : Math.floor((totalMinus / totalPlus) * 360),
+					totalMinus >= totalPlus
+						? 360
+						: Math.floor((totalMinus / totalPlus) * 360),
 			},
 		]
 

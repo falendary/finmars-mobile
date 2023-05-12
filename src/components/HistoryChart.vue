@@ -135,7 +135,7 @@
 
 	let chartCanvas = ref(null)
 	let histNav = null
-	let lineChart
+	let lineChartObj
 	let width, height, gradient
 
 	watch(props, () => {
@@ -183,17 +183,20 @@
 			error.value = 'No data'
 			return false
 		}
+		console.log('histNav:', histNav)
 
-		if (lineChart) {
-			lineChart.data.labels = histNav.items.map((o) => o.date)
-			lineChart.data.datasets[0].data = histNav.items.map((o) => o.nav)
+		if (lineChartObj) {
+			lineChartObj.data.labels = histNav.items.map((o) => o.date)
+			lineChartObj.data.datasets[0].data = histNav.items.map(
+				(o) => o[props.type == 'nav' ? 'nav' : 'total']
+			)
 
-			lineChart.update()
+			lineChartObj.update()
 		}
 	}
 
 	function createChart() {
-		lineChart = new Chart(chartCanvas.value, {
+		lineChartObj = new Chart(chartCanvas.value, {
 			type: 'line',
 			data: {
 				labels: [],
@@ -318,7 +321,7 @@
 
 		let oldChild = nextChart.parentNode.replaceChild(prevChart, nextChart)
 		prevChartParent.append(oldChild)
-		lineChart.update()
+		lineChartObj.update()
 	}
 </script>
 

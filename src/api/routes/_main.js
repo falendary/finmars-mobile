@@ -16,6 +16,9 @@ export default {
 	balanceReport: {
 		post: prefix + '/reports/balance-report/',
 	},
+	pnlReport: {
+		post: prefix + '/reports/pl-report/',
+	},
 	transactionReport: {
 		post: prefix + '/reports/transaction-report/',
 	},

@@ -13,7 +13,7 @@
 				/>
 			</div>
 
-			<ChangePrice v-if="item.price !== null" :percent="item.percent" />
+			<ChangePriceComp v-if="item.price !== null" :percent="item.percent" />
 			<IonSkeletonText
 				v-else
 				:animated="true"
@@ -38,7 +38,7 @@
 
 	import { Swiper, SwiperSlide } from 'swiper/vue'
 	import 'swiper/css'
-	import ChangePrice from '@/components/ChangePrice.vue'
+	import ChangePriceComp from '@/components/ChangePrice.vue'
 	import useApi from '@/composables/useApi'
 
 	const props = defineProps({
