@@ -34,12 +34,12 @@ router.beforeEach(async (to, from) => {
 	// if (!space && to.path != '/workspaces' && from.path != '/workspaces')
 	// 	return '/workspaces'
 
-	if (!keycloak) await initKeycloak()
+	if (!keycloak) await initKeycloak(region)
 
 	if (to.hash) return { path: to.path, query: to.query, hash: '' }
 })
 
-async function initKeycloak() {
+async function initKeycloak(region) {
 	let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
 
 	keycloak = new KeycloakJs(region.keycloakOpts)
