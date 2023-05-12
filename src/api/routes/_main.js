@@ -1,5 +1,4 @@
-let host = import.meta.env.VITE_API_HOST
-let prefix = host + '/{client}/api/v1'
+let prefix = '{host}/{client}/api/v1'
 
 export default {
 	portfolioLight: {

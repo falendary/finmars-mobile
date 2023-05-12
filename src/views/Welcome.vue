@@ -1,41 +1,97 @@
 <template>
-  <ion-page>
-    <ion-content class="ion-padding">
-      <ion-select v-model="active" label="Region" placeholder="Choose region">
-        <ion-select-option 
-          v-for="item in regions" 
-          :value="item.id"
-        >
-          {{ item.name }}
-        </ion-select-option>
-      </ion-select>
-    </ion-content>
-  </ion-page>
+	<ion-page>
+		<ion-content class="ion-padding">
+			<div class="center aic" style="height: 100%">
+				<div style="width: 90%">
+					<h1 class="tac">Welcome to Finmars</h1>
+
+					<ion-select
+						v-model="region"
+						label="Region"
+						placeholder="Choose region"
+					>
+						<ion-select-option v-for="item in regions" :value="item.id">
+							{{ item.name }}
+						</ion-select-option>
+					</ion-select>
+
+					<IonButton expand="full" @click="login()">LOGIN</IonButton>
+				</div>
+			</div>
+		</ion-content>
+	</ion-page>
 </template>
 
 <script setup>
+	import {
+		IonPage,
+		IonContent,
+		IonIcon,
+		IonButtons,
+		IonButton,
+		IonFooter,
+		IonSelect,
+		IonSelectOption,
+	} from '@ionic/vue'
+	import { ref, inject } from 'vue'
+	import { Preferences } from '@capacitor/preferences'
+	import KeycloakJs from 'keycloak-js'
+	import { useRouter } from 'vue-router'
 
-  import {
-    IonPage,
-    IonContent,
-    IonIcon,
-    IonButtons,
-    IonButton,
-    IonFooter,
-    IonSelect,
-    IonSelectOption,
-  } from '@ionic/vue';
-  import { ref } from 'vue'
+	const router = useRouter()
+	const regions = [
+		{
+			id: 'eu-central',
+			name: 'Europe (eu-central)',
+			domain: 'https://eu-central.finmars.com',
+			keycloakOpts: {
+				url: 'https://eu-central.finmars.com',
+				realm: 'finmars',
+				clientId: 'finmars',
+			},
+		},
+		{
+			id: 'eu2-central',
+			name: 'Switzerland (eu-central-2)',
+			domain: 'https://eu-central-2.finmars.com',
+			keycloakOpts: {
+				url: 'https://eu-central-2.finmars.com',
+				realm: 'finmars',
+				clientId: 'finmars',
+			},
+		},
+		{
+			id: 'dev',
+			name: 'Development (dev)',
+			domain: 'https://dev.finmars.com',
+			keycloakOpts: {
+				url: 'https://dev-auth.finmars.com',
+				realm: 'finmars',
+				clientId: 'finmars',
+			},
+		},
+	]
+	const region = ref('eu-central')
 
-  const regions = [
-    {id: 'eu-central', name: 'EU Central'},
-    {id: 'eu2-central', name: 'EU Not central'},
-    {id: 'dev', name: 'Development'},
-  ]
-  const active = ref('')
+	async function login() {
+		let regionObj = regions.find((o) => o.id == region.value)
 
+		Preferences.set({ key: 'region', value: JSON.stringify(regionObj) })
+		let keycloak = new KeycloakJs(regionObj.keycloakOpts)
+
+		keycloak.init()
+		keycloak.login({
+			redirectUri:
+				window.location.origin + router.options.history.base + '/workspaces',
+		})
+	}
 </script>
 
 <style lang="scss" scoped>
-
+	ion-button {
+		margin-top: 20px;
+	}
+	ion-content {
+		--background: #fafafa;
+	}
 </style>

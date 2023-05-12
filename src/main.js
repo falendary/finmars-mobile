@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import { IonicVue, IonPage, IonContent } from '@ionic/vue'
+import { Preferences } from '@capacitor/preferences'
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css'
@@ -24,14 +25,9 @@ import './theme/variables.css'
 
 import '@/assets/main.scss'
 
-import keycloak from '@/plugins/keycloak.js'
 import NumberFormat from '@/plugins/NumberFormat.js'
 
-const app = createApp(App)
-	.use(router)
-	.use(IonicVue)
-	.use(NumberFormat)
-	.use(keycloak)
+const app = createApp(App).use(router).use(IonicVue).use(NumberFormat)
 
 app.component('IonPage', IonPage).component('IonContent', IonContent)
 

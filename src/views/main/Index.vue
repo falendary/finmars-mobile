@@ -50,6 +50,7 @@
 		</ion-tabs>
 
 		<ion-modal
+			v-if="tab"
 			:is-open="isOpen"
 			:initial-breakpoint="0.3"
 			:breakpoints="[0, 0.3, 0.75]"
@@ -147,14 +148,20 @@
 
 				<br />
 
-				<ion-button class="ion-margin-horizontal" fill="outline" expand="block">
-					CHANGE WORKSPACE
+				<ion-button
+					class="ion-margin-horizontal"
+					fill="outline"
+					expand="block"
+					router-link="/workspaces"
+				>
+					CHANGE SPACE
 				</ion-button>
 
 				<ion-button
 					class="ion-margin-horizontal logout"
 					fill="outline"
 					expand="block"
+					router-link="/logout"
 				>
 					LOGOUT
 				</ion-button>
@@ -192,7 +199,6 @@
 	import useMiniStore from '@/composables/useMiniStore'
 	import useApi from '@/composables/useApi'
 
-	const keycloak = inject('keycloak')
 	const store = useMiniStore()
 	const route = useRoute()
 
@@ -220,17 +226,9 @@
 	}
 
 	const tab = computed(() => {
+		if (!route.path.includes('/main/')) return null
 		return route.path.replace('/main/', '')
 	})
-
-	let tokens = (await Preferences.get({ key: 'kcTokens' })).value
-	let kcOpts = {
-		onLoad: 'login-required',
-	}
-
-	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))
-
-	keycloak.init(kcOpts)
 
 	let iconTest = `data:image/svg+xml;utf8,<svg class='ionicon' xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.25 2.52.77-1.28-3.52-2.09V8z"/></svg>`
 

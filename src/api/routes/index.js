@@ -3,7 +3,7 @@ import main from './_main.js'
 
 export default {
 	// Auth service
-	// ...auth,
+	...auth,
 	// Main service
-	...main
-};
+	...main,
+}

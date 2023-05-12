@@ -1,47 +1,53 @@
-import routes from "@/api/routes";
-import providers from "@/api/providers/main.js";
+import routes from '@/api/routes'
+import providers from '@/api/providers/main.js'
 import { Preferences } from '@capacitor/preferences'
 
-export default async function useApi (
-		route_opt,
-		{
-			params,  // Router params
-			body,    // Body for POST PUT PATCH
-			filters, // Query object
-			headers = {},
-			provider = true // Query object
-		} = {}
-	) {
+export default async function useApi(
+	route_opt,
+	{
+		params, // Router params
+		body, // Body for POST PUT PATCH
+		filters, // Query object
+		headers = {},
+		provider = true, // Query object
+	} = {}
+) {
+	let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
+	const { value: workspace } = await Preferences.get({ key: 'workspace' })
+	let { value: region } = await Preferences.get({ key: 'region' })
 
-	let tokens = (await Preferences.get({key: 'kcTokens'})).value
+	// if no region or workspace
+	region = JSON.parse(region)
+
+	if (!tokens) return false // error
+
 	let token = JSON.parse(tokens).token
 
-	const [route, method] = route_opt.split(".");
-	let url = routes[route][method];
+	const [route, method] = route_opt.split('.')
+	let url = routes[route][method]
 
 	if (!url) {
-		console.log("Route not found:", route_opt);
-		return false;
+		console.log('Route not found:', route_opt)
+		return false
 	}
 
-	let baseApi = import.meta.env.VITE_WS
-	if ( baseApi )
-		url = url.replace('{client}', baseApi);
+	url = url.replace('{client}', workspace)
+	url = url.replace('{host}', region.domain)
 
 	let opts = {
-		method: method.toUpperCase() || "GET",
+		method: method.toUpperCase() || 'GET',
 		headers: {
-			"Content-Type": "application/json",
-			Authorization: "Token " + token,
-			...headers
-		}
-	};
+			'Content-Type': 'application/json',
+			Authorization: 'Token ' + token,
+			...headers,
+		},
+	}
 
-	if (body) opts.body = JSON.stringify(body);
+	if (body) opts.body = JSON.stringify(body)
 	if (filters) {
 		let searchPaarams = []
 
-		for ( let prop in filters ) {
+		for (let prop in filters) {
 			searchPaarams.push(`${prop}=${filters[prop]}`)
 		}
 
@@ -49,16 +55,17 @@ export default async function useApi (
 	}
 	if (params) {
 		for (let param in params) {
-			url = url.replace(`{${param}}`, params[param]);
+			url = url.replace(`{${param}}`, params[param])
 		}
 	}
 
 	try {
 		let response = await fetch(url, opts)
 		response = await response.json()
-		return method == 'get' && providers[route] && provider ? providers[route](response) : response
-
-	} catch(e) {
+		return method == 'get' && providers[route] && provider
+			? providers[route](response)
+			: response
+	} catch (e) {
 		console.log('e:', e)
 		let [code, url] = e.message.split('  ')
 
@@ -74,7 +81,6 @@ export default async function useApi (
 
 		// useNotify({ group: 'server_error', title, text, duration: 20000 })
 
-		return {error: e.data || true, code }
+		return { error: e.data || true, code }
 	}
-
 }

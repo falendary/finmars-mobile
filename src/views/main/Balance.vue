@@ -73,7 +73,10 @@
 									class="balance_labels_item flex aic"
 									v-for="subcat in item.items"
 									:class="{ active: detailSubcat.name == subcat.name }"
-									@click="detailSubcat = subcat"
+									@click="
+										;(detailSubcat = subcat),
+											(transactionsOpts.filter_entry_user_code = null)
+									"
 								>
 									<div
 										class="balance_labels_percent"
