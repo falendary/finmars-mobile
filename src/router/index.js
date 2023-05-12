@@ -5,8 +5,6 @@ import KeycloakJs from 'keycloak-js'
 import routes from './routes.js'
 
 let keycloak
-const region = await getRegion()
-const { value: space } = await Preferences.get({ key: 'space' })
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.VITE_BASE_URL),
@@ -14,6 +12,10 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from) => {
+	// refactor
+	const region = await getRegion()
+	const { value: space } = await Preferences.get({ key: 'space' })
+
 	if (to.path == '/logout') {
 		Preferences.clear()
 
@@ -29,8 +31,8 @@ router.beforeEach(async (to, from) => {
 		return true
 	}
 	if (!region) return '/'
-	if (!space && to.path != '/workspaces' && from.path != '/workspaces')
-		return '/workspaces'
+	// if (!space && to.path != '/workspaces' && from.path != '/workspaces')
+	// 	return '/workspaces'
 
 	if (!keycloak) await initKeycloak()
 

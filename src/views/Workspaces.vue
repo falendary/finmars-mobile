@@ -61,7 +61,8 @@
 			value: workspaceObj.base_api_url,
 		})
 
-		router.push('/main')
+		window.location.href =
+			window.location.origin + router.options.history.base + '/main'
 	}
 </script>
 
