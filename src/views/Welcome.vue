@@ -78,11 +78,11 @@
 
 	async function login() {
 		let regionObj = regions.find((o) => o.id == region.value)
-
 		Preferences.set({ key: 'region', value: JSON.stringify(regionObj) })
 		let keycloak = new KeycloakJs(regionObj.keycloakOpts)
 
-		keycloak.init({ adapter: createAdapter(keycloak) })
+		// keycloak.init({ adapter: createAdapter(keycloak) })
+		keycloak.init()
 		keycloak.login({
 			redirectUri:
 				window.location.origin + router.options.history.base + '/workspaces',
@@ -125,7 +125,7 @@
 				.join(',')
 		}
 
-		let cordovaRedirectUri = 'http://localhost:8100'
+		let cordovaRedirectUri = 'http://localhost'
 
 		return {
 			async login(options) {
@@ -134,19 +134,18 @@
 
 				let completed = false
 				let closed = false
-
-				await Browser.open({ url: loginUrl })
 				await Browser.addListener('browserPageLoaded', async (e) => {
-					console.log('e:', e)
-					if (e.url.indexOf(cordovaRedirectUri) == 0) {
-						// var callback = parseCallback(e.url)
-						// processCallback(callback, promise)
+					console.log('browserPageLoaded')
+					// if (e.url.indexOf(cordovaRedirectUri) == 0) {
+					// 	// var callback = parseCallback(e.url)
+					// 	// processCallback(callback, promise)
 
-						closed = true
-						await Browser.close()
-						completed = true
-					}
+					// 	closed = true
+					// 	await Browser.close()
+					// 	completed = true
+					// }
 				})
+				await Browser.open({ url: loginUrl })
 
 				return false
 

@@ -1,9 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace "io.ionic.finmars"
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "io.ionic.starter"
+        applicationId "io.ionic.finmars"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
