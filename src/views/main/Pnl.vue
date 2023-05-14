@@ -25,6 +25,7 @@
 				:date_from="store.settings.pnl.date_from"
 				:date_to="store.settings.pnl.date_to"
 				:currency="store.settings.pnl.currency"
+				@refresher="portfoliosRefresher = $event"
 			/>
 
 			<IndicatorsComp
@@ -33,6 +34,18 @@
 				:date="store.settings.pnl.date_to"
 				@refresher="indicatorsRefresher = $event"
 			/>
+
+			<div class="header flex aic sb">
+				Profit & Loss
+
+				<ion-checkbox
+					v-model="isChartView"
+					labelPlacement="start"
+					class="chart_view"
+				>
+					Chart view
+				</ion-checkbox>
+			</div>
 
 			<swiper
 				v-if="categories.asset_types"
@@ -78,6 +91,68 @@
 					</div>
 				</swiper-slide>
 			</swiper>
+
+			<template v-if="detailSubcat.name">
+				<div class="header flex aic sb">Details</div>
+
+				<div class="balance_block instr_block">
+					<div class="bb_header_line instr_block_header flex sb aifs">
+						<div class="bb_header">{{ detailSubcat.name }}</div>
+						<div>
+							<div class="bb_price">
+								{{ $format(detailSubcat.total) }}
+								{{ store.settings.pnl.currency }}
+							</div>
+							<!-- <div class="instr_block_change flex jcfe">
+								<div class="instr_change_percent instr_first minus">
+									{{ $format(1254) }}
+								</div>
+								<div class="instr_change_percent instr_second plus">YTD</div>
+							</div> -->
+						</div>
+					</div>
+
+					<div
+						class="instruments"
+						v-for="item in detailSubcat.items"
+						:class="{
+							active: transactionsOpts.filter_entry_user_code == item.user_code,
+						}"
+						@click="
+							;(transactionsOpts.filter_entry_user_code = item.user_code),
+								(isOpenTransactions = true)
+						"
+					>
+						<div class="flex sb jcfe">
+							<div class="instr_name">
+								{{
+									item.name.length > 20
+										? item.name.slice(0, 20) + '...'
+										: item.name
+								}}
+							</div>
+							<div class="instr_market_value instr_first">
+								{{ $format(item.total) }}
+							</div>
+						</div>
+						<div class="flex sb">
+							<div class="instr_pos">{{ $format(item.position_size) }}</div>
+
+							<div class="flex" v-if="item.item_type != 2">
+								<div class="instr_change_percent instr_first">
+									{{ $format(item.change.value) }}
+								</div>
+								<div
+									class="instr_change_percent instr_second"
+									:class="[item.change.percent > 0 ? 'plus' : 'minus']"
+								>
+									{{ item.change.percent }}%
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</template>
 		</ion-content>
 	</ion-page>
 </template>
@@ -120,6 +195,7 @@
 	})
 
 	let indicatorsRefresher = null
+	let portfoliosRefresher = null
 
 	let isChartView = ref(true)
 	let detailSubcat = ref({})
@@ -133,7 +209,7 @@
 		(newVal, oldVal) => {
 			if (!route.path.includes('/main/pnl') || newVal == oldVal) return false
 
-			refresh()
+			Promise.all([init(), portfoliosRefresher(), indicatorsRefresher()])
 		}
 	)
 	watch(store.settings.pnl, () => {
@@ -141,10 +217,15 @@
 	})
 
 	async function refresh(event) {
-		await Promise.all([init(), indicatorsRefresher()])
+		await Promise.all([
+			init(),
+			portfoliosRefresher(true),
+			indicatorsRefresher(),
+		])
 
 		if (event) event.target.complete()
 	}
+
 	async function init() {
 		detailSubcat.value = {}
 
@@ -159,6 +240,7 @@
 			sum_field: 'total',
 			colorsCat,
 		})
+		console.log('categories.value:', categories.value)
 	}
 	async function fetchReport() {
 		let res = await useApi('pnlReport.post', {
@@ -221,7 +303,85 @@
 		font-size: 20px;
 		margin-bottom: 15px;
 	}
+	.chart_view {
+		font-size: 14px;
+	}
 	.header_info {
 		font-size: 16px;
+	}
+	.balance_swiper {
+		padding-bottom: 10px;
+	}
+	.balance_block {
+		margin: 0 15px;
+		padding: 15px 13px;
+		background: #fff;
+		border-radius: 5px;
+		margin-bottom: 10px;
+	}
+	.bb_header {
+		font-size: 18px;
+		line-height: 22px;
+		color: #747474;
+		width: 50%;
+	}
+	.bb_price {
+		font-weight: 600;
+		font-size: 18px;
+		line-height: 22px;
+		text-align: right;
+	}
+	.instr_block {
+		padding-left: 0;
+		padding-right: 0;
+	}
+	.instr_block_header {
+		padding-left: 13px;
+		padding-right: 13px;
+		margin-bottom: 10px;
+	}
+	.instruments {
+		padding: 5px 13px;
+		transition: 0.3s;
+		&.active {
+			background: rgba(255, 138, 0, 0.2);
+		}
+	}
+	.instr_name {
+		line-height: 20px;
+	}
+	.instr_first {
+		text-align: right;
+		width: 85px;
+	}
+	.instr_second {
+		text-align: right;
+		width: 47px;
+	}
+	.instr_pos {
+		color: #747474;
+		font-size: 14px;
+		line-height: 24px;
+	}
+	.instr_market_value {
+		font-weight: 500;
+		font-size: 16px;
+		line-height: 20px;
+	}
+	.instr_change_percent {
+		font-weight: 600;
+		font-size: 12px;
+		line-height: 20px;
+		color: #747474;
+
+		&.plus {
+			color: rgba(52, 199, 89, 1);
+		}
+		&.minus {
+			color: #ff2d55;
+		}
+		&.neutral {
+			color: #747474;
+		}
 	}
 </style>

@@ -106,7 +106,7 @@
 		Tooltip
 	)
 
-	const emits = defineEmits(['portfolioChange'])
+	const emits = defineEmits(['portfolioChange', 'refresher'])
 	const props = defineProps({
 		portfolio: String,
 		date_to: String,
@@ -138,18 +138,16 @@
 		}
 	}
 
+	emits('refresher', refresh)
+
 	watch(props, () => {
 		fetchHistory()
 	})
 
-	let mountedOnRoute = route.path
-	watch(
-		() => route.query.tab,
-		() => {
-			if (mountedOnRoute != route.path) return false
-			init()
-		}
-	)
+	async function refresh(force = false) {
+		createChart()
+		fetchHistory(force)
+	}
 
 	async function init() {
 		createChart()
@@ -252,7 +250,7 @@
 		})
 	}
 
-	async function fetchHistory() {
+	async function fetchHistory(force) {
 		let filters = {
 			portfolio: route.query.tab,
 			date_to: props.date_to,
@@ -264,7 +262,7 @@
 		const cacheName =
 			props.type + route.query.tab + props.date_to + props.date_from
 
-		if (localChartCache[cacheName]) {
+		if (localChartCache[cacheName] && !force) {
 			lineChartObj.data.labels = localChartCache[cacheName].labels
 			lineChartObj.data.datasets[0].data = localChartCache[cacheName].data
 			lineChartObj.update()

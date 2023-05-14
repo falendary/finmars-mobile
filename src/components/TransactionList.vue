@@ -126,6 +126,7 @@
 
 	const props = defineProps({
 		displayMode: String,
+		reportType: String,
 		options: Object,
 	})
 
@@ -169,10 +170,8 @@
 				account_mode: 1,
 				accounts: [],
 				accounts_cash: [],
-				accounts_cash_object: [],
 				accounts_object: [],
 				accounts_position: [],
-				accounts_position_object: [],
 				approach_multiplier: 0.5,
 				begin_date: props.options.begin_date,
 				calculationGroup: 'portfolio',
@@ -220,13 +219,9 @@
 				],
 				portfolio_mode: 1,
 				portfolios: [],
-				portfolios_object: [],
 				strategies1: [],
-				strategies1_object: [],
 				strategies2: [],
-				strategies2_object: [],
 				strategies3: [],
-				strategies3_object: [],
 				strategy1_mode: 0,
 				strategy2_mode: 0,
 				strategy3_mode: 0,
@@ -235,6 +230,11 @@
 			},
 		})
 
+		//depricated
+		res.items = res.items.filter(
+			(o) => o.entry_item_user_code == props.options.filter_entry_user_code
+		)
+		console.log('res.items:', res.items)
 		return res
 	}
 </script>

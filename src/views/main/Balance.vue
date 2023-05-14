@@ -22,12 +22,14 @@
 				:date_to="store.settings.balance.date"
 				:currency="store.settings.balance.currency"
 				@portfolioChange="init($event)"
+				@refresher="portfoliosRefresher = $event"
 			/>
 
 			<IndicatorsComp
 				:portfolio_id="route.query.tab"
 				:currency="store.settings.balance.currency"
 				:date="store.settings.balance.date"
+				@refresher="indicatorsRefresher = $event"
 			/>
 
 			<div class="header flex aic sb">
@@ -311,6 +313,9 @@
 
 	let colorsCat = {}
 
+	let indicatorsRefresher = null
+	let portfoliosRefresher = null
+
 	if (route.query.tab) init()
 
 	// This function is init balanceChart
@@ -327,7 +332,7 @@
 			if (!route.path.includes('/main/balance') || newVal == oldVal)
 				return false
 
-			init()
+			Promise.all([init(), portfoliosRefresher(true), indicatorsRefresher()])
 		}
 	)
 	watch(store.settings.balance, () => {
@@ -335,7 +340,11 @@
 	})
 
 	async function refresh(event) {
-		await init()
+		await Promise.all([
+			init(),
+			portfoliosRefresher(true),
+			indicatorsRefresher(),
+		])
 
 		if (event) event.target.complete()
 	}

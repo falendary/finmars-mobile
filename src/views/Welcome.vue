@@ -37,6 +37,7 @@
 	import { Preferences } from '@capacitor/preferences'
 	import KeycloakJs from 'keycloak-js'
 	import { useRouter } from 'vue-router'
+	import { Browser } from '@capacitor/browser'
 
 	const router = useRouter()
 	const regions = [
@@ -73,17 +74,185 @@
 	]
 	const region = ref('eu-central')
 
+	let capacitorAdapter
+
 	async function login() {
 		let regionObj = regions.find((o) => o.id == region.value)
 
 		Preferences.set({ key: 'region', value: JSON.stringify(regionObj) })
 		let keycloak = new KeycloakJs(regionObj.keycloakOpts)
 
-		keycloak.init()
+		keycloak.init({ adapter: createAdapter(keycloak) })
 		keycloak.login({
 			redirectUri:
 				window.location.origin + router.options.history.base + '/workspaces',
 		})
+	}
+
+	function createAdapter(kc) {
+		let createCordovaOptions = function (userOptions) {
+			let cordovaOptions = shallowCloneCordovaOptions(userOptions)
+			cordovaOptions.location = 'no'
+
+			if (userOptions && userOptions.prompt == 'none') {
+				cordovaOptions.hidden = 'yes'
+			}
+
+			return formatCordovaOptions(cordovaOptions)
+		}
+
+		let shallowCloneCordovaOptions = function (userOptions) {
+			if (userOptions && userOptions.cordovaOptions) {
+				return Object.keys(userOptions.cordovaOptions).reduce(function (
+					options,
+					optionName
+				) {
+					options[optionName] = userOptions.cordovaOptions[optionName]
+					return options
+				},
+				{})
+			} else {
+				return {}
+			}
+		}
+
+		let formatCordovaOptions = function (cordovaOptions) {
+			return Object.keys(cordovaOptions)
+				.reduce(function (options, optionName) {
+					options.push(optionName + '=' + cordovaOptions[optionName])
+					return options
+				}, [])
+				.join(',')
+		}
+
+		let cordovaRedirectUri = 'http://localhost:8100'
+
+		return {
+			async login(options) {
+				let cordovaOptions = createCordovaOptions(options)
+				let loginUrl = kc.createLoginUrl(options)
+
+				let completed = false
+				let closed = false
+
+				await Browser.open({ url: loginUrl })
+				await Browser.addListener('browserPageLoaded', async (e) => {
+					console.log('e:', e)
+					if (e.url.indexOf(cordovaRedirectUri) == 0) {
+						// var callback = parseCallback(e.url)
+						// processCallback(callback, promise)
+
+						closed = true
+						await Browser.close()
+						completed = true
+					}
+				})
+
+				return false
+
+				// ref.addEventListener('loaderror', function (event) {
+				// 	if (!completed) {
+				// 		if (event.url.indexOf(cordovaRedirectUri) == 0) {
+				// 			var callback = parseCallback(event.url)
+				// 			processCallback(callback, promise)
+				// 			closeBrowser()
+				// 			completed = true
+				// 		} else {
+				// 			promise.setError()
+				// 			closeBrowser()
+				// 		}
+				// 	}
+				// })
+
+				// ref.addEventListener('exit', function (event) {
+				// 	if (!closed) {
+				// 		promise.setError({
+				// 			reason: 'closed_by_user',
+				// 		})
+				// 	}
+				// })
+			},
+
+			logout: function (options) {
+				var promise = createPromise()
+
+				var logoutUrl = kc.createLogoutUrl(options)
+				var ref = cordovaOpenWindowWrapper(
+					logoutUrl,
+					'_blank',
+					'location=no,hidden=yes,clearcache=yes'
+				)
+
+				var error
+
+				ref.addEventListener('loadstart', function (event) {
+					if (event.url.indexOf(cordovaRedirectUri) == 0) {
+						ref.close()
+					}
+				})
+
+				ref.addEventListener('loaderror', function (event) {
+					if (event.url.indexOf(cordovaRedirectUri) == 0) {
+						ref.close()
+					} else {
+						error = true
+						ref.close()
+					}
+				})
+
+				ref.addEventListener('exit', function (event) {
+					if (error) {
+						promise.setError()
+					} else {
+						kc.clearToken()
+						promise.setSuccess()
+					}
+				})
+
+				return promise.promise
+			},
+
+			register: function (options) {
+				var promise = createPromise()
+				var registerUrl = kc.createRegisterUrl()
+				var cordovaOptions = createCordovaOptions(options)
+				var ref = cordovaOpenWindowWrapper(
+					registerUrl,
+					'_blank',
+					cordovaOptions
+				)
+				ref.addEventListener('loadstart', function (event) {
+					if (event.url.indexOf(cordovaRedirectUri) == 0) {
+						ref.close()
+						var oauth = parseCallback(event.url)
+						processCallback(oauth, promise)
+					}
+				})
+				return promise.promise
+			},
+
+			accountManagement: function () {
+				var accountUrl = kc.createAccountUrl()
+				if (typeof accountUrl !== 'undefined') {
+					var ref = cordovaOpenWindowWrapper(
+						accountUrl,
+						'_blank',
+						'location=no'
+					)
+					ref.addEventListener('loadstart', function (event) {
+						if (event.url.indexOf(cordovaRedirectUri) == 0) {
+							ref.close()
+						}
+					})
+				} else {
+					throw 'Not supported by the OIDC server'
+				}
+			},
+
+			redirectUri: function (options) {
+				return cordovaRedirectUri
+			},
+		}
 	}
 </script>
 

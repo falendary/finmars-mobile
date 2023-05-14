@@ -75,7 +75,7 @@ export const reportGroup = ({ report, sum_field, colorsCat }) => {
 			name: item.name,
 			item_type: item.item_type,
 			user_code: item.user_code,
-			market_value: item.market_value,
+			[sum_field]: item[sum_field],
 			position_size: item.position_size,
 			change: {
 				value: item.gross_cost_price,
