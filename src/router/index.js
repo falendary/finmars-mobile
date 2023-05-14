@@ -40,6 +40,8 @@ router.beforeEach(async (to, from) => {
 })
 
 async function initKeycloak(region) {
+	log.time('Keycloak init')
+
 	let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
 
 	keycloak = new KeycloakJs(region.keycloakOpts)
@@ -47,19 +49,22 @@ async function initKeycloak(region) {
 	keycloak.onAuthSuccess = setTokens
 	keycloak.onAuthRefreshSuccess = setTokens
 	keycloak.onTokenExpired = refreshTokens
-	keycloak.onReady = onReady
 
 	let kcOpts = {
 		onLoad: 'login-required',
+		timeSkew: 0,
 	}
-	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))
 
+	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))
 	await keycloak.init(kcOpts)
 
-	async function onReady(authenticated) {
-		// token is not expired, but it return expired. WTF keycloak?!
-		if (keycloak.isTokenExpired(5)) refreshTokens()
-	}
+	if (keycloak.isTokenExpired(5)) await refreshTokens()
+
+	log.timeEnd({
+		key: 'Keycloak init',
+		text: 'Keycloak initialized 🔐',
+		place: 'api',
+	})
 
 	function setTokens() {
 		Preferences.set({

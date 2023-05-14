@@ -262,10 +262,20 @@
 		if (!historyNav || historyNav.error) return false
 
 		if (allPorfoliosChart) {
-			allPorfoliosChart.data.labels = historyNav.items.map((o) => o.date)
-			allPorfoliosChart.data.datasets[0].data = historyNav.items.map(
-				(o) => o.nav
-			)
+			let labels = historyNav.items.map((o) => o.date)
+			let data = historyNav.items.map((o) => o.nav)
+
+			if (data[0] === null) {
+				labels.unshift('hack')
+				data.unshift(0)
+			}
+			if (data[data.length - 1] === null) {
+				labels.push('hack')
+				data.push(0)
+			}
+
+			allPorfoliosChart.data.labels = labels
+			allPorfoliosChart.data.datasets[0].data = data
 
 			isReadyChart.value = true
 
@@ -274,7 +284,13 @@
 	}
 
 	async function createChart() {
-		allPorfoliosChart = new Chart('myChart', {
+		const skipped = (ctx, value) =>
+			ctx.p0.skip || ctx.p1.skip ? value : undefined
+
+		const down = (ctx, value) =>
+			ctx.p0.parsed.y > ctx.p1.parsed.y ? value : undefined
+
+		allPorfoliosChart = new Chart(`myChart`, {
 			type: 'line',
 			data: {
 				labels: [],
@@ -289,12 +305,10 @@
 						backgroundColor: function (context) {
 							const chart = context.chart
 							const { ctx, chartArea } = chart
-
 							if (!chartArea) {
 								// This case happens on initial chart load
 								return
 							}
-
 							const chartWidth = chartArea.right - chartArea.left
 							const chartHeight = chartArea.bottom - chartArea.top
 							if (!gradient || width !== chartWidth || height !== chartHeight) {
@@ -314,14 +328,13 @@
 							return gradient
 						},
 						fill: true,
-						animation: {
-							x: {
-								from: false,
-							},
-							y: {
-								from: 200,
-							},
+						segment: {
+							borderColor: (ctx) =>
+								skipped(ctx, 'rgb(0,0,0,0.2)') || down(ctx, 'rgb(192,75,75)'),
+							borderDash: (ctx) => skipped(ctx, [6, 6]),
+							backgroundColor: (ctx) => skipped(ctx, 'rgb(0,0,0,0.1)'),
 						},
+						spanGaps: true,
 					},
 					// {
 					// 	label: 'Dataset 1',
@@ -356,35 +369,6 @@
 					},
 				},
 			},
-			plugins: [
-				{
-					id: 'custom_canvas_background_color',
-					afterDatasetDraw: (chart, args, options) => {
-						let metas = chart.getSortedVisibleDatasetMetas()
-
-						const { ctx } = chart
-
-						ctx.save()
-						ctx.globalCompositeOperation = 'destination-over'
-						ctx.fillStyle = options.nonActiveColor
-
-						metas[0].data.forEach((coll, key) => {
-							if (chart.data.datasets[0].data[key] === null) {
-								ctx.fillRect(
-									coll.x,
-									chart.chartArea.top,
-									2,
-									chart.chartArea.height
-								)
-							}
-						})
-						ctx.restore()
-					},
-					defaults: {
-						nonActiveColor: 'rgb(203, 203, 203, 0.4)',
-					},
-				},
-			],
 		})
 	}
 </script>

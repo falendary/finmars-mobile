@@ -6,7 +6,7 @@
 			</ion-refresher>
 
 			<div class="header flex sb aic">
-				<div v-if="activePortfolioName">{{ activePortfolioName }}</div>
+				<div v-if="portfolio">{{ portfolio.name }}</div>
 				<IonSkeletonText
 					v-else
 					:animated="true"
@@ -25,19 +25,21 @@
 			/>
 
 			<IndicatorsComp
-				:portfolio_id="activePortfolio"
+				:portfolio_id="route.query.tab"
 				:currency="store.settings.balance.currency"
 				:date="store.settings.balance.date"
 			/>
 
 			<div class="header flex aic sb">
 				Balance
+
 				<ion-checkbox
 					v-model="isChartView"
 					labelPlacement="start"
 					class="chart_view"
-					>Chart view</ion-checkbox
 				>
+					Chart view
+				</ion-checkbox>
 			</div>
 
 			<swiper
@@ -46,9 +48,10 @@
 				:modules="[Pagination]"
 				class="balance_swiper aic"
 				:loop="true"
-				@slideChange="onBalanceChange"
+				@slideChangeTransitionEnd="onBalanceChange"
+				@swiper="onSwiper"
 			>
-				<swiper-slide v-for="(item, k) in categories">
+				<swiper-slide v-for="(item, cat) in categories">
 					<div class="balance_block">
 						<div class="bb_header_line flex sb aic">
 							<div class="bb_header">{{ item.name }}</div>
@@ -62,13 +65,17 @@
 							<div
 								class="balance_chart_wrap"
 								style="width: 145px; height: 145px"
-								v-show="isChartView"
+								v-show="isChartView && !chartProcced"
 							>
-								<canvas v-if="'asset_types' == k" id="balanceChart"
-									><p>Chart</p></canvas
-								>
-								<div v-else id="balanceChart"></div>
+								<canvas :id="`${cat}_balanceChart`"><p>Chart</p></canvas>
 							</div>
+
+							<ion-skeleton-text
+								v-if="chartProcced"
+								class="balance_chart_wrap balance_chart_wrap_skeleton"
+								:animated="true"
+								style="width: 145px; height: 145px"
+							/>
 
 							<div class="balance_labels">
 								<div
@@ -76,8 +83,7 @@
 									v-for="subcat in item.items"
 									:class="{ active: detailSubcat.name == subcat.name }"
 									@click="
-										;(detailSubcat = subcat),
-											(transactionsOpts.filter_entry_user_code = null)
+										;(detailSubcat = subcat), (isOpenTransactions = false)
 									"
 								>
 									<div
@@ -101,6 +107,47 @@
 				</swiper-slide>
 			</swiper>
 
+			<div
+				class="balance_block tac"
+				v-else-if="!categories.asset_types && !chartProcced"
+			>
+				No data
+			</div>
+
+			<div v-else class="balance_block">
+				<div class="bb_header_line flex sb aic">
+					<div class="bb_header">
+						<IonSkeletonText
+							style="height: 22px; width: 100px"
+							:animated="true"
+						/>
+					</div>
+					<div class="bb_price">
+						<IonSkeletonText
+							style="height: 22px; width: 120px"
+							:animated="true"
+						/>
+					</div>
+				</div>
+
+				<div class="flex sb">
+					<ion-skeleton-text
+						class="balance_chart_wrap balance_chart_wrap_skeleton"
+						:animated="true"
+						style="width: 145px; height: 145px"
+					/>
+
+					<div class="balance_labels">
+						<div
+							class="balance_labels_item flex aic"
+							v-for="subcat in [3, 3, 3]"
+						>
+							<IonSkeletonText style="height: 32px" :animated="true" />
+						</div>
+					</div>
+				</div>
+			</div>
+
 			<template v-if="detailSubcat.name">
 				<div class="header flex aic sb">Details</div>
 
@@ -109,7 +156,7 @@
 						<div class="bb_header">{{ detailSubcat.name }}</div>
 						<div>
 							<div class="bb_price">
-								{{ $format(detailSubcat.agr_market_value) }}
+								{{ $format(detailSubcat.market_value) }}
 								{{ store.settings.balance.currency }}
 							</div>
 							<!-- <div class="instr_block_change flex jcfe">
@@ -127,7 +174,10 @@
 						:class="{
 							active: transactionsOpts.filter_entry_user_code == item.user_code,
 						}"
-						@click="transactionsOpts.filter_entry_user_code = item.user_code"
+						@click="
+							;(transactionsOpts.filter_entry_user_code = item.user_code),
+								(isOpenTransactions = true)
+						"
 					>
 						<div class="flex sb jcfe">
 							<div class="instr_name">
@@ -144,7 +194,7 @@
 						<div class="flex sb">
 							<div class="instr_pos">{{ $format(item.position_size) }}</div>
 
-							<div class="flex">
+							<div class="flex" v-if="item.item_type != 2">
 								<div class="instr_change_percent instr_first">
 									{{ $format(item.change.value) }}
 								</div>
@@ -160,10 +210,13 @@
 				</div>
 			</template>
 
-			<template v-if="transactionsOpts.filter_entry_user_code">
+			<template v-if="isOpenTransactions">
 				<div class="header flex aic sb">Transactions</div>
 
-				<TransactionListComp :options="transactionsOpts" />
+				<TransactionListComp
+					v-if="transactionsOpts.filter_entry_user_code"
+					:options="transactionsOpts"
+				/>
 			</template>
 		</ion-content>
 	</ion-page>
@@ -221,55 +274,22 @@
 	)
 
 	const store = useMiniStore()
-	const router = useRouter()
 	const route = useRoute()
 
-	let portfolioUserCode = route.query.tab
-	const activePortfolio = computed(() => {
-		return route.query.tab
+	const portfolio = computed(() => {
+		return store.portfolioList.find((o) => o.user_code == route.query.tab)
 	})
-	const activePortfolioName = computed(() => {
-		return store.portfolioList.find((o) => o.user_code == activePortfolio.value)
-			?.name
-	})
+
 	const transactionsOpts = reactive({
 		end_date: store.settings.balance.date,
 		begin_date: '0001-01-01',
-		portfolios: portfolioUserCode,
+		portfolios: route.query.tab,
 		filter_entry_user_code: null,
 	})
-
-	async function refresh(event) {
-		await init()
-
-		if (event) event.target.complete()
-	}
-
-	if (store.portfolioList.length && !activePortfolio.value)
-		router.push({
-			query: {
-				tab: store.portfolioList[0]?.user_code,
-			},
-		})
-	else if (!activePortfolio.value) {
-		watch(
-			() => store.portfolioList,
-			(n, o, unwatch) => {
-				router.push({
-					query: {
-						tab: store.portfolioList[0]?.user_code,
-					},
-				})
-
-				unwatch()
-			}
-		)
-	}
-	watch(store.settings.balance, () => {
-		init()
-	})
+	let isOpenTransactions = ref(false)
 
 	let balanceChartObj
+	let chartProcced = ref(false)
 
 	let data = {
 		labels: [],
@@ -291,32 +311,56 @@
 
 	let colorsCat = {}
 
-	init()
+	if (route.query.tab) init()
 
-	async function init(tab) {
-		if (tab == portfolioUserCode) return false
-		if (tab) portfolioUserCode = tab
-
-		detailSubcat.value = {}
-		transactionsOpts.end_date = store.settings.balance.date
-		transactionsOpts.portfolios = portfolioUserCode
-		transactionsOpts.filter_entry_user_code = null
-
-		let report = await fetchReport()
-		console.log('report:', report)
-		categories.value = reportGroup({
-			report,
-			sum_field: 'market_value',
-			colorsCat,
-		})
-		await nextTick()
-		if (!balanceChartObj) createChart()
+	// This function is init balanceChart
+	const onSwiper = (swiper) => {
+		createChart()
 
 		balanceChartObj.data = createBalanceDataset(categories.value.asset_types)
 		balanceChartObj.update()
 	}
 
-	onMounted(() => {})
+	watch(
+		() => route.query.tab,
+		(newVal, oldVal) => {
+			if (!route.path.includes('/main/balance') || newVal == oldVal)
+				return false
+
+			init()
+		}
+	)
+	watch(store.settings.balance, () => {
+		init()
+	})
+
+	async function refresh(event) {
+		await init()
+
+		if (event) event.target.complete()
+	}
+
+	async function init() {
+		chartProcced.value = true
+		detailSubcat.value = {}
+
+		transactionsOpts.end_date = store.settings.balance.date
+		transactionsOpts.portfolios = route.query.tab
+		transactionsOpts.filter_entry_user_code = null
+
+		let report = await fetchReport()
+
+		if (report && !report.error) {
+			categories.value = reportGroup({
+				report,
+				sum_field: 'market_value',
+				colorsCat,
+			})
+		} else {
+		}
+
+		chartProcced.value = false
+	}
 
 	async function fetchReport() {
 		let res = await useApi('balanceReport.post', {
@@ -324,10 +368,7 @@
 				account_mode: 0,
 				accounts: [],
 				accounts_cash: [],
-				accounts_cash_object: [],
-				accounts_object: [],
 				accounts_position: [],
-				accounts_position_object: [],
 				allocation_detailing: true,
 				allocation_mode: 0,
 				approach_multiplier: 0.5,
@@ -335,12 +376,6 @@
 				calculationGroup: 'portfolio',
 				complex_transaction_statuses_filter: 'booked',
 				cost_method: 1,
-				cost_method_object: {
-					id: 1,
-					user_code: 'AVCO',
-					name: 'AVCO',
-					description: 'AVCO',
-				},
 				custom_fields_to_calculate: 'Asset Types',
 				date_field: 'transaction_date',
 				depth_level: 'base_transaction',
@@ -376,41 +411,21 @@
 				],
 				pl_include_zero: false,
 				portfolio_mode: 1,
-				portfolios: [portfolioUserCode],
-				portfolios_object: [],
+				portfolios: [route.query.tab],
 				pricing_policy: 1,
-				pricing_policy_object: {
-					id: 1,
-					user_code: '-',
-					name: '-',
-					short_name: '-',
-					notes: null,
-					expr: '(ask+bid)/2',
-					deleted_user_code: null,
-					meta: {
-						content_type: 'instruments.pricingpolicy',
-						app_label: 'instruments',
-						model_name: 'pricingpolicy',
-						space_code: 'space0crgw',
-					},
-				},
 				report_currency: store.settings.balance.currency,
 				report_date: store.settings.balance.date,
 				report_type: 1,
 				show_balance_exposure_details: false,
 				show_transaction_details: true,
 				strategies1: [],
-				strategies1_object: [],
 				strategies2: [],
-				strategies2_object: [],
 				strategies3: [],
-				strategies3_object: [],
 				strategy1_mode: 0,
 				strategy2_mode: 0,
 				strategy3_mode: 0,
 				table_font_size: 'small',
 				transaction_classes: [],
-				transaction_classes_object: [],
 				pl_first_date: null,
 				task_id: null,
 			},
@@ -420,20 +435,19 @@
 	}
 
 	function onBalanceChange(swiper) {
-		let prevChart = swiper.slidesEl.querySelector('canvas#balanceChart')
-		let prevChartParent = prevChart.parentNode
-		let nextChart =
-			swiper.slides[swiper.activeIndex].querySelector('#balanceChart')
-		let oldChild = nextChart.parentNode.replaceChild(prevChart, nextChart)
-		prevChartParent.append(oldChild)
+		let catName = Object.keys(categories.value)[swiper.realIndex]
+		let cat = categories.value[catName]
 
-		let cat = categories.value[Object.keys(categories.value)[swiper.realIndex]]
+		createChart(catName)
+
 		balanceChartObj.data = createBalanceDataset(cat)
 		balanceChartObj.update()
 	}
 
-	function createChart() {
-		balanceChartObj = new Chart('balanceChart', {
+	function createChart(cat) {
+		if (balanceChartObj) balanceChartObj.destroy()
+
+		balanceChartObj = new Chart((cat || 'asset_types') + '_balanceChart', {
 			type: 'doughnut',
 			data: data,
 			options: {
@@ -471,6 +485,7 @@
 	function colorByCat(item) {
 		return colorsCat[item]
 	}
+
 	function createBalanceDataset(cat) {
 		let plusColors = []
 		let plus = cat.items
@@ -539,6 +554,14 @@
 		--padding-top: 10px;
 		--padding-bottom: 10px;
 		--background: #fafafa;
+	}
+	ion-skeleton-text {
+		margin: 0;
+	}
+	.balance_chart_wrap_skeleton {
+		border-radius: 50%;
+		--background: rgba(255, 138, 0, 0.2);
+		--background-rgb: 255, 138, 0;
 	}
 	.balance_swiper {
 		padding-bottom: 10px;

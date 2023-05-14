@@ -4,13 +4,17 @@
 		v-bind="$attrs"
 		:pagination="true"
 		:modules="[Pagination]"
+		:loop="true"
 		class="balance_swiper"
 		@swiper="onSwiper"
-		@slideChange="onPortfolioChange"
+		@slideChangeTransitionEnd="onPortfolioChange"
 	>
 		<swiper-slide v-for="(item, k) in store.portfolioList">
 			<div class="main_chart">
-				<div class="main_chart_h">Net Asset Value (NAV)</div>
+				<div class="main_chart_h">
+					{{ type == 'nav' ? 'Net Asset Value (NAV)' : 'Profit & Loss (P&L)' }}
+				</div>
+
 				<div class="main_chart_price">
 					- {{ store.settings.balance.currency }}
 				</div>
@@ -19,12 +23,12 @@
 					style="height: 80px; width: calc(100% + 10px); margin: 0 0 -5px -5px"
 					v-show="!error"
 				>
-					<canvas v-if="k == 0" id="lineChart" ref="chartCanvas"
+					<canvas :id="`${type}_line_chart_${item.user_code}`"
 						><p>Chart</p></canvas
 					>
-					<div v-else id="lineChart" class="center aic" style="height: 100%">
+					<!-- <div id="lineChart" class="center aic" style="height: 100%">
 						<IonSpinner style="width: 100px" color="primary" name="bubbles" />
-					</div>
+					</div> -->
 				</div>
 				<div
 					class="center aic"
@@ -116,87 +120,57 @@
 	const store = useMiniStore()
 	const router = useRouter()
 	const route = useRoute()
+
 	let error = ref('')
+
+	// This function is init
 	const onSwiper = (swiper) => {
 		let slideIndex = store.portfolioList.findIndex(
-			(o) => o.user_code == activePortfolio.value
+			(o) => o.user_code == route.query.tab
 		)
-		swiper.slideTo(slideIndex)
 
-		if (slideIndex === 0) {
-			fetchHistory()
+		if (slideIndex != -1) {
+			swiper.slideTo(slideIndex)
+			init()
+		} else {
+			// if no portfolio
+			router.push({ query: { tab: store.portfolioList[0].user_code } })
 		}
 	}
 
-	const activePortfolio = computed(() => {
-		return route.query.tab
+	watch(props, () => {
+		fetchHistory()
 	})
-	let portfolioUserCode = route.query.tab
 
-	let chartCanvas = ref(null)
+	let mountedOnRoute = route.path
+	watch(
+		() => route.query.tab,
+		() => {
+			if (mountedOnRoute != route.path) return false
+			init()
+		}
+	)
+
+	async function init() {
+		createChart()
+		fetchHistory()
+	}
+
+	let localChartCache = {}
 	let histNav = null
 	let lineChartObj
 	let width, height, gradient
 
-	watch(props, () => {
-		init()
-	})
-
-	async function init() {
-		fetchHistory()
-	}
-
-	onMounted(() => {
-		if (!store.portfolioList.length) {
-			watch(
-				() => store.portfolioList,
-				async (newVal, oldVal, unwatch) => {
-					await nextTick()
-					createChart()
-
-					unwatch()
-				}
-			)
-		} else {
-			createChart()
-		}
-	})
-
-	async function fetchHistory() {
-		let filters = {
-			portfolio: portfolioUserCode,
-			date_to: props.date_to,
-		}
-		error.value = ''
-
-		if (props.date_from) filters.date_from = props.date_from
-
-		histNav = await useApi('widgetsHistory.get', {
-			params: {
-				type: props.type,
-			},
-			provider: null,
-			filters,
-		})
-
-		if (!histNav || histNav.error) {
-			error.value = 'No data'
-			return false
-		}
-		console.log('histNav:', histNav)
-
-		if (lineChartObj) {
-			lineChartObj.data.labels = histNav.items.map((o) => o.date)
-			lineChartObj.data.datasets[0].data = histNav.items.map(
-				(o) => o[props.type == 'nav' ? 'nav' : 'total']
-			)
-
-			lineChartObj.update()
-		}
-	}
-
 	function createChart() {
-		lineChartObj = new Chart(chartCanvas.value, {
+		const skipped = (ctx, value) =>
+			ctx.p0.skip || ctx.p1.skip ? value : undefined
+
+		const down = (ctx, value) =>
+			ctx.p0.parsed.y > ctx.p1.parsed.y ? value : undefined
+
+		if (lineChartObj) lineChartObj.destroy()
+
+		lineChartObj = new Chart(`${props.type}_line_chart_${route.query.tab}`, {
 			type: 'line',
 			data: {
 				labels: [],
@@ -234,6 +208,13 @@
 							return gradient
 						},
 						fill: true,
+						segment: {
+							borderColor: (ctx) =>
+								skipped(ctx, 'rgb(0,0,0,0.2)') || down(ctx, 'rgb(192,75,75)'),
+							borderDash: (ctx) => skipped(ctx, [6, 6]),
+							backgroundColor: (ctx) => skipped(ctx, 'rgb(0,0,0,0.1)'),
+						},
+						spanGaps: true,
 					},
 					// {
 					// 	label: 'Dataset 1',
@@ -268,60 +249,72 @@
 					},
 				},
 			},
-			plugins: [
-				{
-					id: 'custom_canvas_background_color',
-					afterDatasetDraw: (chart, args, options) => {
-						let metas = chart.getSortedVisibleDatasetMetas()
-
-						const { ctx } = chart
-
-						ctx.save()
-						ctx.globalCompositeOperation = 'destination-over'
-						ctx.fillStyle = options.nonActiveColor
-
-						metas[0].data.forEach((coll, key) => {
-							if (chart.data.datasets[0].data[key] === null) {
-								ctx.fillRect(
-									coll.x,
-									chart.chartArea.top,
-									2,
-									chart.chartArea.height
-								)
-							}
-						})
-						ctx.restore()
-					},
-					defaults: {
-						nonActiveColor: 'rgb(203, 203, 203, 0.4)',
-					},
-				},
-			],
 		})
 	}
 
-	async function onPortfolioChange(swiper) {
-		let prevChart = swiper.slidesEl.querySelector('canvas#lineChart')
+	async function fetchHistory() {
+		let filters = {
+			portfolio: route.query.tab,
+			date_to: props.date_to,
+		}
+		error.value = ''
 
-		let prevChartParent = prevChart.parentNode
-		let nextChart =
-			swiper.slides[swiper.activeIndex].querySelector('#lineChart')
-		console.log('swiper.activeIndex:', swiper.activeIndex)
+		if (props.date_from) filters.date_from = props.date_from
 
-		portfolioUserCode = store.portfolioList[swiper.activeIndex]?.user_code
-		emits('portfolioChange', portfolioUserCode)
+		const cacheName =
+			props.type + route.query.tab + props.date_to + props.date_from
+
+		if (localChartCache[cacheName]) {
+			lineChartObj.data.labels = localChartCache[cacheName].labels
+			lineChartObj.data.datasets[0].data = localChartCache[cacheName].data
+			lineChartObj.update()
+
+			return true
+		}
+
+		histNav = await useApi('widgetsHistory.get', {
+			params: {
+				type: props.type,
+			},
+			provider: null,
+			filters,
+		})
+
+		if (!histNav || histNav.error) {
+			error.value = 'No data'
+			return false
+		}
+
+		let labels = histNav.items.map((o) => o.date)
+		let data = histNav.items.map(
+			(o) => o[props.type == 'nav' ? 'nav' : 'total']
+		)
+
+		if (data[0] === null) {
+			labels.unshift('hack')
+			data.unshift(0)
+		}
+		if (data[data.length - 1] === null) {
+			labels.push('hack')
+			data.push(0)
+		}
+
+		lineChartObj.data.labels = labels
+		lineChartObj.data.datasets[0].data = data
+
+		localChartCache[cacheName] = { labels, data }
+
+		lineChartObj.update()
+	}
+
+	function onPortfolioChange(swiper) {
+		let userCode = store.portfolioList[swiper.realIndex]?.user_code
 
 		router.push({
 			query: {
-				tab: portfolioUserCode,
+				tab: userCode,
 			},
 		})
-
-		await fetchHistory()
-
-		let oldChild = nextChart.parentNode.replaceChild(prevChart, nextChart)
-		prevChartParent.append(oldChild)
-		lineChartObj.update()
 	}
 </script>
 
@@ -344,7 +337,7 @@
 		}
 		&_price {
 			padding: 0 14px;
-			padding-bottom: 50px;
+			padding-bottom: 25px;
 			font-weight: 600;
 			font-size: 20px;
 			line-height: 24px;

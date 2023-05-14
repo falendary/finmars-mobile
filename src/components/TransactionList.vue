@@ -140,8 +140,7 @@
 
 	init()
 
-	watch(props.options, (newval) => {
-		console.log('[Transaction list] newval:', newval)
+	watch(props.options, (newval, oldVal) => {
 		init()
 	})
 
@@ -212,7 +211,7 @@
 							filter_type: 'equal',
 							filter_values: props.options.portfolios,
 							use_from_above: {
-								attrs_entity_type: 'balance-report',
+								attrs_entity_type: 'balance-report', // report
 								key: 'portfolio.user_code',
 							},
 						},

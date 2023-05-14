@@ -73,6 +73,7 @@ export const reportGroup = ({ report, sum_field, colorsCat }) => {
 		let newItem = {
 			id: item.id,
 			name: item.name,
+			item_type: item.item_type,
 			user_code: item.user_code,
 			market_value: item.market_value,
 			position_size: item.position_size,

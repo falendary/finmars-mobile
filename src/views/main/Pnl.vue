@@ -6,7 +6,7 @@
 			</ion-refresher>
 
 			<div class="header flex sb aic">
-				<div v-if="activePortfolioName">{{ activePortfolioName }}</div>
+				<div v-if="portfolio">{{ portfolio.name }}</div>
 				<IonSkeletonText
 					v-else
 					:animated="true"
@@ -25,14 +25,59 @@
 				:date_from="store.settings.pnl.date_from"
 				:date_to="store.settings.pnl.date_to"
 				:currency="store.settings.pnl.currency"
-				@portfolioChange="init($event)"
 			/>
 
 			<IndicatorsComp
-				:portfolio_id="activePortfolio"
+				:portfolio_id="portfolio?.user_code"
 				:currency="store.settings.pnl.currency"
 				:date="store.settings.pnl.date_to"
+				@refresher="indicatorsRefresher = $event"
 			/>
+
+			<swiper
+				v-if="categories.asset_types"
+				:pagination="true"
+				:modules="[Pagination]"
+				class="balance_swiper aic"
+				:loop="true"
+			>
+				<swiper-slide v-for="(item, cat) in categories">
+					<div class="balance_block">
+						<div class="bb_header_line flex sb aic">
+							<div class="bb_header">{{ item.name }}</div>
+							<div class="bb_price">
+								{{ $format(Math.floor(item.total)) }}
+								{{ store.settings.balance.currency }}
+							</div>
+						</div>
+
+						<div class="flex sb">
+							<div class="balance_labels">
+								<div
+									class="balance_labels_item flex aic"
+									v-for="subcat in item.items"
+									:class="{ active: detailSubcat.name == subcat.name }"
+									@click="
+										;(detailSubcat = subcat), (isOpenTransactions = false)
+									"
+								>
+									<div
+										class="balance_labels_percent"
+										:style="{ backgroundColor: colorByCat(subcat.name) }"
+									>
+										{{
+											Math.round((subcat.total / Math.abs(item.total)) * 100)
+										}}%
+									</div>
+									<div class="balance_labels_text">{{ subcat.name }}</div>
+								</div>
+							</div>
+
+							<div v-show="!isChartView"></div>
+						</div>
+					</div>
+				</swiper-slide>
+			</swiper>
 		</ion-content>
 	</ion-page>
 </template>
@@ -44,58 +89,70 @@
 		IonSkeletonText,
 		IonRefresher,
 		IonRefresherContent,
+		onIonViewWillLeave,
 	} from '@ionic/vue'
-	import { onMounted, ref, reactive, watch, computed } from 'vue'
+	import { ref, reactive, watch, computed } from 'vue'
 
 	import IndicatorsComp from '@/components/Indicators.vue'
 	import HistoryChartComp from '@/components/HistoryChart.vue'
 	import TransactionList from '@/components/TransactionList.vue'
 
+	import { Swiper, SwiperSlide } from 'swiper/vue'
+	import { Pagination } from 'swiper'
+
 	import useApi from '@/composables/useApi'
 	import useMiniStore from '@/composables/useMiniStore'
 	import { reportGroup } from '@/data-utils/reportAggs'
+	import { useRoute } from 'vue-router'
 
 	const store = useMiniStore()
-	// console.log('store:', store)
+	const route = useRoute()
 
-	let portfolioUserCode = 'Model'
+	const portfolio = computed(() => {
+		return store.portfolioList.find((o) => o.user_code == route.query.tab)
+	})
 
 	const transactionsOpts = reactive({
-		end_date: store.settings.balance.date,
+		end_date: store.settings.pnl.date,
 		begin_date: '0001-01-01',
-		portfolios: portfolioUserCode,
+		portfolios: portfolio.value?.user_code,
 		filter_entry_user_code: null,
 	})
+
+	let indicatorsRefresher = null
 
 	let isChartView = ref(true)
 	let detailSubcat = ref({})
 	let categories = ref({})
-
 	let colorsCat = {}
 
-	init()
+	if (route.query.tab) init()
 
-	async function refresh(event) {
-		await init()
+	watch(
+		() => route.query.tab,
+		(newVal, oldVal) => {
+			if (!route.path.includes('/main/pnl') || newVal == oldVal) return false
 
-		if (event) event.target.complete()
-	}
-
+			refresh()
+		}
+	)
 	watch(store.settings.pnl, () => {
 		init()
 	})
 
-	async function init(tab) {
-		// if (tab == portfolioUserCode) return false
-		// if (tab) portfolioUserCode = tab
+	async function refresh(event) {
+		await Promise.all([init(), indicatorsRefresher()])
 
+		if (event) event.target.complete()
+	}
+	async function init() {
 		detailSubcat.value = {}
+
 		transactionsOpts.end_date = store.settings.balance.date
-		transactionsOpts.portfolios = portfolioUserCode
+		transactionsOpts.portfolios = route.query.tab
 		transactionsOpts.filter_entry_user_code = null
 
 		let report = await fetchReport()
-		console.log('pl-report:', report)
 
 		categories.value = reportGroup({
 			report,
@@ -121,13 +178,13 @@
 				depth_level: 'base_transaction',
 				expression_iterations_count: 1,
 				filters: [],
-				pl_first_date: '2021-06-08',
+				pl_first_date: store.settings.pnl.date_from,
 				pl_include_zero: false,
 				portfolio_mode: 1,
-				portfolios: [2],
+				portfolios: [route.query.tab],
 				pricing_policy: 1,
-				report_currency: 2,
-				report_date: '2023-05-10',
+				report_currency: store.settings.pnl.currency,
+				report_date: store.settings.pnl.date_to,
 				report_type: 1,
 				show_balance_exposure_details: false,
 				show_transaction_details: false,
@@ -145,9 +202,18 @@
 
 		return res
 	}
+
+	function colorByCat(item) {
+		return colorsCat[item]
+	}
 </script>
 
 <style lang="scss" scoped>
+	ion-content {
+		--padding-top: 10px;
+		--padding-bottom: 10px;
+		--background: #fafafa;
+	}
 	.header {
 		color: #747474;
 		padding: 0 15px;

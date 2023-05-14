@@ -12,6 +12,9 @@ export default async function useApi(
 		provider = true, // Query object
 	} = {}
 ) {
+	let loggerName = 'API - ' + Date.now()
+	log.time(loggerName)
+
 	let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
 	const { value: workspace } = await Preferences.get({ key: 'workspace' })
 	let { value: region } = await Preferences.get({ key: 'region' })
@@ -62,9 +65,17 @@ export default async function useApi(
 	try {
 		let response = await fetch(url, opts)
 		response = await response.json()
-		return method == 'get' && providers[route] && provider
-			? providers[route](response)
-			: response
+		log.timeEnd({
+			key: loggerName,
+			text: route_opt,
+			place: 'api',
+		})
+
+		let result =
+			method == 'get' && providers[route] && provider
+				? providers[route](response)
+				: response
+		return result
 	} catch (e) {
 		console.log('e:', e)
 		let [code, url] = e.message.split('  ')
@@ -79,6 +90,10 @@ export default async function useApi(
 		let text = error_object
 		let title = code == 500 ? 'Server Error' : 'Client Error'
 
+		log.timeEnd({
+			key: loggerName,
+			module: 'api',
+		})
 		// useNotify({ group: 'server_error', title, text, duration: 20000 })
 
 		return { error: e.data || true, code }

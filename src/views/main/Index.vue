@@ -202,6 +202,8 @@
 	const store = useMiniStore()
 	const route = useRoute()
 
+	await store.init()
+
 	fetchPortfolios()
 
 	async function fetchPortfolios() {

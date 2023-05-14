@@ -2,8 +2,9 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import { IonicVue, IonPage, IonContent } from '@ionic/vue'
-import { Preferences } from '@capacitor/preferences'
+import log from '@/utils/log'
 
+window.log = log
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css'
 
@@ -26,11 +27,17 @@ import './theme/variables.css'
 import '@/assets/main.scss'
 
 import NumberFormat from '@/plugins/NumberFormat.js'
+import { createPinia } from 'pinia'
 
-const app = createApp(App).use(router).use(IonicVue).use(NumberFormat)
+const pinia = createPinia()
+const app = createApp(App)
+	.use(router)
+	.use(IonicVue)
+	.use(NumberFormat)
+	.use(pinia)
 
 app.component('IonPage', IonPage).component('IonContent', IonContent)
 
-router.isReady().then(() => {
-	app.mount('#app')
-})
+app.mount('#app')
+
+// router.isReady().then(() => {})

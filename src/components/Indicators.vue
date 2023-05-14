@@ -41,6 +41,7 @@
 	import ChangePriceComp from '@/components/ChangePrice.vue'
 	import useApi from '@/composables/useApi'
 
+	const emits = defineEmits(['refresher'])
 	const props = defineProps({
 		portfolioId: Array,
 		date: String,
@@ -69,9 +70,18 @@
 	])
 
 	init()
+	emits('refresher', refresh)
 
-	watch(props, init)
+	watch(props, refresh)
 
+	async function refresh() {
+		indicators.forEach((item) => {
+			item.price = null
+			item.percent = null
+		})
+
+		await init()
+	}
 	async function init() {
 		let filters = {
 			date_to: props.date,
