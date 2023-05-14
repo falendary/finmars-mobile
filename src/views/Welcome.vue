@@ -44,7 +44,7 @@
 		{
 			id: 'eu-central',
 			name: 'Europe (eu-central)',
-			domain: 'https://eu-central.finmars.com',
+			domain: 'https://finmars.com',
 			keycloakOpts: {
 				url: 'https://eu-central.finmars.com',
 				realm: 'finmars',
