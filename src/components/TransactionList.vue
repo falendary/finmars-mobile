@@ -32,9 +32,26 @@
 						}}
 					</div>
 					<div class="pos" v-if="displayMode != 'compact'">
-						<span :class="[item.entry_amount > 0 ? 'plus' : 'minus']">{{
-							$format(item.entry_amount)
-						}}</span>
+						<span
+							:class="[
+								item[
+									reportType == 'pl'
+										? 'position_size_with_sign'
+										: 'entry_amount'
+								] > 0
+									? 'plus'
+									: 'minus',
+							]"
+							>{{
+								$format(
+									item[
+										reportType == 'pl'
+											? 'position_size_with_sign'
+											: 'entry_amount'
+									]
+								)
+							}}</span
+						>
 						POS
 					</div>
 				</div>
@@ -179,7 +196,7 @@
 				cost_method: 1,
 				custom_fields_to_calculate: '',
 				date_field: 'accounting_date',
-				depth_level: 'entry',
+				depth_level: props.reportType == 'pl' ? 'base_transaction' : 'entry',
 				end_date: props.options.end_date,
 				expression_iterations_count: 1,
 				filters: [
@@ -218,6 +235,7 @@
 					},
 				],
 				portfolio_mode: 1,
+				pricing_policy: 1,
 				portfolios: [],
 				strategies1: [],
 				strategies2: [],
@@ -229,12 +247,22 @@
 				task_id: null,
 			},
 		})
+		let x = {
+			date_field: 'transaction_date',
+		}
 
 		//depricated
-		res.items = res.items.filter(
-			(o) => o.entry_item_user_code == props.options.filter_entry_user_code
-		)
-		console.log('res.items:', res.items)
+		if (props.reportType != 'pl') {
+			res.items = res.items.filter(
+				(o) => o.entry_item_user_code == props.options.filter_entry_user_code
+			)
+		} else {
+			res.items = res.items.filter(
+				(o) =>
+					o.transaction_item_user_code == props.options.filter_entry_user_code
+			)
+		}
+
 		return res
 	}
 </script>

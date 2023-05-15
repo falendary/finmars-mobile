@@ -38,13 +38,13 @@
 			<div class="header flex aic sb">
 				Profit & Loss
 
-				<ion-checkbox
+				<!-- <ion-checkbox
 					v-model="isChartView"
 					labelPlacement="start"
 					class="chart_view"
 				>
 					Chart view
-				</ion-checkbox>
+				</ion-checkbox> -->
 			</div>
 
 			<swiper
@@ -64,29 +64,31 @@
 							</div>
 						</div>
 
-						<div class="flex sb">
-							<div class="balance_labels">
-								<div
-									class="balance_labels_item flex aic"
-									v-for="subcat in item.items"
-									:class="{ active: detailSubcat.name == subcat.name }"
-									@click="
-										;(detailSubcat = subcat), (isOpenTransactions = false)
-									"
-								>
+						<div class="balance_labels">
+							<div
+								class="balance_labels_item flex sb"
+								v-for="subcat in item.items"
+								:class="{ active: detailSubcat.name == subcat.name }"
+								@click=";(detailSubcat = subcat), (isOpenTransactions = false)"
+							>
+								<div class="balance_labels_text">{{ subcat.name }}</div>
+								<div class="balance_labels_total">
+									{{ $format(subcat.total) }}
 									<div
-										class="balance_labels_percent"
-										:style="{ backgroundColor: colorByCat(subcat.name) }"
-									>
-										{{
-											Math.round((subcat.total / Math.abs(item.total)) * 100)
-										}}%
-									</div>
-									<div class="balance_labels_text">{{ subcat.name }}</div>
+										:style="{
+											height: '4px',
+											backgroundColor: colorByCat(subcat.name),
+											marginTop: '3px',
+											width:
+												Math.round(
+													(subcat.total / Math.abs(item.total)) * 100
+												) /
+													2 +
+												'%',
+										}"
+									></div>
 								</div>
 							</div>
-
-							<div v-show="!isChartView"></div>
 						</div>
 					</div>
 				</swiper-slide>
@@ -138,20 +140,22 @@
 						<div class="flex sb">
 							<div class="instr_pos">{{ $format(item.position_size) }}</div>
 
-							<div class="flex" v-if="item.item_type != 2">
-								<div class="instr_change_percent instr_first">
-									{{ $format(item.change.value) }}
-								</div>
-								<div
-									class="instr_change_percent instr_second"
-									:class="[item.change.percent > 0 ? 'plus' : 'minus']"
-								>
-									{{ item.change.percent }}%
-								</div>
+							<div class="instr_pos">
+								{{ $format(item.change.value) }}
 							</div>
 						</div>
 					</div>
 				</div>
+			</template>
+
+			<template v-if="isOpenTransactions">
+				<div class="header flex aic sb">Transactions</div>
+
+				<TransactionList
+					v-if="transactionsOpts.filter_entry_user_code"
+					reportType="pl"
+					:options="transactionsOpts"
+				/>
 			</template>
 		</ion-content>
 	</ion-page>
@@ -177,7 +181,7 @@
 
 	import useApi from '@/composables/useApi'
 	import useMiniStore from '@/composables/useMiniStore'
-	import { reportGroup } from '@/data-utils/reportAggs'
+	import { reportGroupPL } from '@/data-utils/reportAggs'
 	import { useRoute } from 'vue-router'
 
 	const store = useMiniStore()
@@ -188,7 +192,7 @@
 	})
 
 	const transactionsOpts = reactive({
-		end_date: store.settings.pnl.date,
+		end_date: store.settings.pnl.date_to,
 		begin_date: '0001-01-01',
 		portfolios: portfolio.value?.user_code,
 		filter_entry_user_code: null,
@@ -197,6 +201,7 @@
 	let indicatorsRefresher = null
 	let portfoliosRefresher = null
 
+	let isOpenTransactions = ref(false)
 	let isChartView = ref(true)
 	let detailSubcat = ref({})
 	let categories = ref({})
@@ -229,13 +234,13 @@
 	async function init() {
 		detailSubcat.value = {}
 
-		transactionsOpts.end_date = store.settings.balance.date
+		transactionsOpts.end_date = store.settings.pnl.date_to
 		transactionsOpts.portfolios = route.query.tab
 		transactionsOpts.filter_entry_user_code = null
 
 		let report = await fetchReport()
 
-		categories.value = reportGroup({
+		categories.value = reportGroupPL({
 			report,
 			sum_field: 'total',
 			colorsCat,
@@ -309,6 +314,9 @@
 	.header_info {
 		font-size: 16px;
 	}
+	.swiper-slide .balance_block {
+		height: 100%;
+	}
 	.balance_swiper {
 		padding-bottom: 10px;
 	}
@@ -317,6 +325,22 @@
 		padding: 15px 13px;
 		background: #fff;
 		border-radius: 5px;
+	}
+	.balance_labels_item {
+		height: 26px;
+		margin-top: 10px;
+	}
+	.balance_labels_text {
+		width: 50%;
+		font-size: 14px;
+		line-height: 16px;
+		color: #747474;
+	}
+	.balance_labels_total {
+		width: 50%;
+		text-align: right;
+	}
+	.instr_block {
 		margin-bottom: 10px;
 	}
 	.bb_header {

@@ -48,7 +48,7 @@
 				v-if="categories.asset_types"
 				:pagination="true"
 				:modules="[Pagination]"
-				class="balance_swiper aic"
+				class=""
 				:loop="true"
 				@slideChangeTransitionEnd="onBalanceChange"
 				@swiper="onSwiper"
@@ -79,31 +79,38 @@
 								style="width: 145px; height: 145px"
 							/>
 
-							<div class="balance_labels">
+							<div
+								class="balance_labels"
+								:style="!isChartView ? 'margin-left: 0;' : ''"
+							>
 								<div
-									class="balance_labels_item flex aic"
+									class="balance_labels_item flex aic sb"
 									v-for="subcat in item.items"
 									:class="{ active: detailSubcat.name == subcat.name }"
 									@click="
 										;(detailSubcat = subcat), (isOpenTransactions = false)
 									"
 								>
-									<div
-										class="balance_labels_percent"
-										:style="{ backgroundColor: colorByCat(subcat.name) }"
-									>
-										{{
-											Math.round(
-												(subcat.market_value / Math.abs(item.market_value)) *
-													100
-											)
-										}}%
+									<div class="flex aic">
+										<div
+											class="balance_labels_percent"
+											:style="{ backgroundColor: colorByCat(subcat.name) }"
+										>
+											{{
+												Math.round(
+													(subcat.market_value / Math.abs(item.market_value)) *
+														100
+												)
+											}}%
+										</div>
+										<div class="balance_labels_text">{{ subcat.name }}</div>
 									</div>
-									<div class="balance_labels_text">{{ subcat.name }}</div>
+
+									<div class="balance_labels_price" v-show="!isChartView">
+										{{ $format(subcat.market_value) }}
+									</div>
 								</div>
 							</div>
-
-							<div v-show="!isChartView"></div>
 						</div>
 					</div>
 				</swiper-slide>
@@ -332,7 +339,7 @@
 			if (!route.path.includes('/main/balance') || newVal == oldVal)
 				return false
 
-			Promise.all([init(), portfoliosRefresher(true), indicatorsRefresher()])
+			Promise.all([init(), portfoliosRefresher(), indicatorsRefresher()])
 		}
 	)
 	watch(store.settings.balance, () => {
@@ -561,7 +568,7 @@
 
 	ion-content {
 		--padding-top: 10px;
-		--padding-bottom: 10px;
+		--padding-bottom: 20px;
 		--background: #fafafa;
 	}
 	ion-skeleton-text {
@@ -580,10 +587,15 @@
 	}
 	.balance_block {
 		margin: 0 15px;
-		padding: 15px 13px;
+		padding: 15px 13px 12px;
 		background: #fff;
 		border-radius: 5px;
+	}
+	.instr_block {
 		margin-bottom: 10px;
+	}
+	.swiper-slide .balance_block {
+		height: 100%;
 	}
 	.bb_header {
 		font-size: 18px;
@@ -611,6 +623,11 @@
 		&.active {
 			background: rgba(255, 138, 0, 0.2);
 		}
+	}
+	.balance_labels_price {
+		font-weight: 500;
+		font-size: 16px;
+		line-height: 22px;
 	}
 	.balance_labels_percent {
 		padding: 3px 0;

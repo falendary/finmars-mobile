@@ -15,10 +15,16 @@
 }
 .swiper-pagination {
 	line-height: 0;
-	margin-bottom: -3px;
+	padding-top: 5px;
 }
 .swiper-wrapper {
-	align-items: center;
+	// display: grid !important;
+	// /* Смена оси автоматического размещения элементов */
+	// grid-auto-flow: column;
+	align-items: stretch;
+}
+.swiper-slide {
+	height: auto !important;
 }
 
 .dib,
