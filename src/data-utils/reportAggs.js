@@ -232,6 +232,11 @@ export const reportGroupPL = ({ report, sum_field, colorsCat, type }) => {
 		// Currency
 		_cats.currency[sum_field] += item[sum_field]
 
+		let instrs = report.items.filter(
+			(o) => o.user_code == item.user_code && o.item_group_code != 'OPENED'
+		)
+		if (item.item_group_code == 'OPENED' && instrs.length != 0) return false
+
 		let newItem = {
 			id: item.id,
 			name: item.name,
@@ -241,8 +246,21 @@ export const reportGroupPL = ({ report, sum_field, colorsCat, type }) => {
 			position_size: item.position_size,
 			change: {
 				value: 0,
-				percent: Math.round(item.daily_price_change * 10000) / 100,
 			},
+		}
+
+		if (item.item_group_code == 'CLOSED') {
+			let instrs = report.items.filter(
+				(o) => o.user_code == item.user_code && o.item_group_code == 'OPENED'
+			)
+			console.log('instrs:', instrs)
+
+			if (instrs) {
+				instrs.forEach((item) => {
+					newItem.total += item.total
+					newItem.change.value += item.total
+				})
+			}
 		}
 
 		if (item.item_type == 2) {
@@ -280,6 +298,8 @@ export const reportGroupPL = ({ report, sum_field, colorsCat, type }) => {
 			_cats.currency.items[key][sum_field] += item[sum_field]
 			_cats.currency.items[key].items.push(newItem)
 		}
+
+		if (item.custom_fields.length == 0) return false
 		// Asset types
 		_cats.asset_types[sum_field] += item[sum_field]
 
@@ -298,6 +318,11 @@ export const reportGroupPL = ({ report, sum_field, colorsCat, type }) => {
 
 	for (let prop in _cats) {
 		let colorKey = 0
+		if (_cats[prop].items.length == 0) {
+			delete categories[prop]
+
+			return false
+		}
 
 		categories[prop][sum_field] = _cats[prop][sum_field]
 		categories[prop].items = []

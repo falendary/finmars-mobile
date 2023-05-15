@@ -176,7 +176,7 @@
 		begin_date: dayjs(store.settings.dashboard.date)
 			.add(-3, 'month')
 			.format('YYYY-MM-DD'),
-		portfolios: [],
+		portfolios: store.settings.dashboard.portfolios || [],
 		filter_entry_user_code: null,
 	})
 
@@ -212,37 +212,41 @@
 		let res = await useApi('portfolioLight.get')
 
 		if (res && !res.error) {
-			portfolios.value = res.results.map((o, k) => {
-				useApi('reportsSummary.get', {
-					filters: {
-						portfolios: o.user_code,
-						currency: store.settings.dashboard.currency,
-						date_to: store.settings.dashboard.date,
-					},
-				}).then((stats) => {
-					if (stats.error) {
-						portfolios.value[k].price = '--'
-						portfolios.value[k].change.price = '--'
-						portfolios.value[k].change.percent = '--'
-					}
+			portfolios.value = res.results
+				.filter((o) =>
+					store.settings.dashboard.portfolios.includes(o.user_code)
+				)
+				.map((o, k) => {
+					useApi('reportsSummary.get', {
+						filters: {
+							portfolios: o.user_code,
+							currency: store.settings.dashboard.currency,
+							date_to: store.settings.dashboard.date,
+						},
+					}).then((stats) => {
+						if (stats.error) {
+							portfolios.value[k].price = '--'
+							portfolios.value[k].change.price = '--'
+							portfolios.value[k].change.percent = '--'
+						}
 
-					portfolios.value[k].price = stats.total.nav
-					portfolios.value[k].change.price = stats.total.pl_daily
-					portfolios.value[k].change.percent =
-						Math.round(stats.total.pl_daily_percent * 100) / 100
-				})
+						portfolios.value[k].price = stats.total.nav
+						portfolios.value[k].change.price = stats.total.pl_daily
+						portfolios.value[k].change.percent =
+							Math.round(stats.total.pl_daily_percent * 100) / 100
+					})
 
-				return {
-					id: o.id,
-					name: o.name,
-					user_code: o.user_code,
-					price: '-',
-					change: {
+					return {
+						id: o.id,
+						name: o.name,
+						user_code: o.user_code,
 						price: '-',
-						percent: '-',
-					},
-				}
-			})
+						change: {
+							price: '-',
+							percent: '-',
+						},
+					}
+				})
 		} else {
 			portfolios.value = []
 		}

@@ -4,6 +4,9 @@ export default {
 	portfolioLight: {
 		get: prefix + '/portfolios/portfolio/light/',
 	},
+	currencyLight: {
+		get: prefix + '/currencies/currency/light/',
+	},
 	reportsSummary: {
 		get: prefix + '/reports/summary/',
 	},

@@ -79,16 +79,27 @@
 											height: '4px',
 											backgroundColor: colorByCat(subcat.name),
 											marginTop: '3px',
+											marginLeft:
+												subcat.total < 0
+													? (subcat.total / maxTickStock[cat]) * 100 + '%'
+													: 0,
 											width:
-												Math.round(
-													(subcat.total / Math.abs(item.total)) * 100
-												) /
-													2 +
+												Math.abs((subcat.total / maxTickStock[cat]) * 100) +
 												'%',
 										}"
 									></div>
 								</div>
 							</div>
+							<div
+								style="
+									height: 100%;
+									width: 1px;
+									background: rgb(203 203 203);
+									position: absolute;
+									top: 0;
+									left: calc(50% - 0.5px);
+								"
+							></div>
 						</div>
 					</div>
 				</swiper-slide>
@@ -206,6 +217,7 @@
 	let detailSubcat = ref({})
 	let categories = ref({})
 	let colorsCat = {}
+	let maxTickStock = ref({})
 
 	if (route.query.tab) init()
 
@@ -245,7 +257,18 @@
 			sum_field: 'total',
 			colorsCat,
 		})
-		console.log('categories.value:', categories.value)
+
+		Object.keys(categories.value).forEach((item) => {
+			let arr = categories.value[item].items.map((item) => item.total)
+			let tickMax = Math.max(...arr)
+			let tickMin = Math.min(...arr)
+			let tickTo =
+				Math.abs(tickMax) > Math.abs(tickMin)
+					? Math.abs(tickMax)
+					: Math.abs(tickMin)
+
+			maxTickStock.value[item] = tickTo
+		})
 	}
 	async function fetchReport() {
 		let res = await useApi('pnlReport.post', {
@@ -322,13 +345,26 @@
 	}
 	.balance_block {
 		margin: 0 15px;
-		padding: 15px 13px;
+		padding: 15px 0;
 		background: #fff;
 		border-radius: 5px;
 	}
+	.balance_labels {
+		position: relative;
+	}
+	.bb_header_line {
+		margin-bottom: 25px;
+		padding: 0 13px;
+	}
 	.balance_labels_item {
-		height: 26px;
-		margin-top: 10px;
+		padding: 7px 13px 0;
+		& + & {
+			// margin-top: 10px;
+		}
+
+		&.active {
+			background: rgba(255, 138, 0, 0.2);
+		}
 	}
 	.balance_labels_text {
 		width: 50%;

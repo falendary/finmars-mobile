@@ -118,15 +118,18 @@
 						<ion-datetime-button datetime="datetime_date_to" />
 					</ion-item>
 
-					<ion-item v-if="store.settings[tab].currency">
+					<ion-item v-if="store.settings[tab].currency && currencies">
 						<ion-select
 							v-model="store.settings[tab].currency"
 							label="Reporting currency"
 							placeholder="Currency"
 						>
-							<ion-select-option value="USD">USD</ion-select-option>
-							<ion-select-option value="EUR">EUR</ion-select-option>
-							<ion-select-option value="RUB">RUB</ion-select-option>
+							<ion-select-option
+								v-for="item in currencies"
+								:value="item.user_code"
+							>
+								{{ item.short_name }}
+							</ion-select-option>
 						</ion-select>
 					</ion-item>
 
@@ -140,8 +143,9 @@
 							<ion-select-option
 								v-for="item in store.portfolioList"
 								:value="item.user_code"
-								>{{ item.name }}</ion-select-option
 							>
+								{{ item.name }}
+							</ion-select-option>
 						</ion-select>
 					</ion-item>
 				</ion-list>
@@ -202,8 +206,10 @@
 	const store = useMiniStore()
 	const route = useRoute()
 
+	let currencies = ref(null)
 	await store.init()
 
+	fetchCurrencies()
 	fetchPortfolios()
 
 	async function fetchPortfolios() {
@@ -224,6 +230,15 @@
 			})
 		} else {
 			store.portfolioList = []
+		}
+	}
+	async function fetchCurrencies() {
+		let res = await useApi('currencyLight.get')
+
+		if (res && !res.error) {
+			currencies.value = res.results
+		} else {
+			currencies.value = []
 		}
 	}
 
