@@ -40,8 +40,9 @@
 	import 'swiper/css'
 	import ChangePriceComp from '@/components/ChangePrice.vue'
 	import useApi from '@/composables/useApi'
+	import { nextTick } from 'vue'
 
-	const emits = defineEmits(['refresher'])
+	const emits = defineEmits(['refresher', 'nav'])
 	const props = defineProps({
 		portfolioId: Array,
 		date: String,
@@ -63,7 +64,7 @@
 		},
 		{
 			id: 3,
-			name: 'Daily p/l',
+			name: 'Year to date (YTD) P/L',
 			price: null,
 			percent: null,
 		},
@@ -72,14 +73,12 @@
 	init()
 	emits('refresher', refresh)
 
-	watch(props, refresh)
-
 	async function refresh() {
 		indicators.forEach((item) => {
 			item.price = null
 			item.percent = null
 		})
-
+		await nextTick()
 		await init()
 	}
 	async function init() {
@@ -93,6 +92,21 @@
 		let res = await useApi('reportsSummary.get', {
 			filters,
 		})
+
+		if (!res) {
+			indicators[0].price = 0.0
+			indicators[0].percent = 0.0
+
+			indicators[1].price = 0.0
+			indicators[1].percent = 0.0
+
+			indicators[2].price = 0.0
+			indicators[2].percent = 0.0
+
+			return false
+		}
+		emits('nav', res.total.nav)
+		console.log('res.total.nav:', res.total.nav)
 
 		indicators[0].price = res.total.pl_daily
 		indicators[0].percent = Math.round(res.total.pl_daily_percent * 100) / 100

@@ -23,13 +23,15 @@
 				:currency="store.settings.balance.currency"
 				@portfolioChange="init($event)"
 				@refresher="portfoliosRefresher = $event"
+				:nav="total_nav"
 			/>
 
 			<IndicatorsComp
-				:portfolio_id="route.query.tab"
+				:portfolioId="route.query.tab"
 				:currency="store.settings.balance.currency"
 				:date="store.settings.balance.date"
 				@refresher="indicatorsRefresher = $event"
+				@nav="total_nav = $event"
 			/>
 
 			<div class="header flex aic sb">
@@ -289,6 +291,7 @@
 		return store.portfolioList.find((o) => o.user_code == route.query.tab)
 	})
 
+	let total_nav = ref(null)
 	const transactionsOpts = reactive({
 		end_date: store.settings.balance.date,
 		begin_date: '0001-01-01',
@@ -339,6 +342,7 @@
 			if (!route.path.includes('/main/balance') || newVal == oldVal)
 				return false
 
+			total_nav.value = null
 			Promise.all([init(), portfoliosRefresher(), indicatorsRefresher()])
 		}
 	)

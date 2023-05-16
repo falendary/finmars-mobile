@@ -26,13 +26,15 @@
 				:date_to="store.settings.pnl.date_to"
 				:currency="store.settings.pnl.currency"
 				@refresher="portfoliosRefresher = $event"
+				:nav="total_nav"
 			/>
 
 			<IndicatorsComp
-				:portfolio_id="portfolio?.user_code"
+				:portfolioId="portfolio?.user_code"
 				:currency="store.settings.pnl.currency"
 				:date="store.settings.pnl.date_to"
 				@refresher="indicatorsRefresher = $event"
+				@nav="total_nav = $event"
 			/>
 
 			<div class="header flex aic sb">
@@ -201,6 +203,7 @@
 	const portfolio = computed(() => {
 		return store.portfolioList.find((o) => o.user_code == route.query.tab)
 	})
+	let total_nav = ref(null)
 
 	const transactionsOpts = reactive({
 		end_date: store.settings.pnl.date_to,
@@ -225,7 +228,7 @@
 		() => route.query.tab,
 		(newVal, oldVal) => {
 			if (!route.path.includes('/main/pnl') || newVal == oldVal) return false
-
+			total_nav.value = null
 			Promise.all([init(), portfoliosRefresher(), indicatorsRefresher()])
 		}
 	)

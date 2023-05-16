@@ -33,6 +33,9 @@ export default {
 	reportsSummary: {
 		get: prefix + '/reports/summary/',
 	},
+	reportsSummaryPortfolios: {
+		get: prefix + '/reports/summary/portfolios/',
+	},
 	widgetsHistory: {
 		get: prefix + '/widgets/history/{type}/',
 	},

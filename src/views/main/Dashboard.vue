@@ -213,8 +213,10 @@
 
 		if (res && !res.error) {
 			portfolios.value = res.results
-				.filter((o) =>
-					store.settings.dashboard.portfolios.includes(o.user_code)
+				.filter(
+					(o) =>
+						!store.settings.dashboard.portfolios.length ||
+						store.settings.dashboard.portfolios.includes(o.user_code)
 				)
 				.map((o, k) => {
 					useApi('reportsSummary.get', {

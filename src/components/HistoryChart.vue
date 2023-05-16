@@ -15,8 +15,12 @@
 					{{ type == 'nav' ? 'Net Asset Value (NAV)' : 'Profit & Loss (P&L)' }}
 				</div>
 
-				<div class="main_chart_price">
-					- {{ store.settings.balance.currency }}
+				<div class="main_chart_price" v-if="nav !== null">
+					{{ $format(nav) }}
+					{{ store.settings[type == 'nav' ? 'balance' : 'pnl'].currency }}
+				</div>
+				<div class="main_chart_price" v-else>
+					<IonSkeletonText :animated="true" style="width: 30%; height: 24px" />
 				</div>
 
 				<div
@@ -41,9 +45,11 @@
 		</swiper-slide>
 	</swiper>
 
-	<div v-bind="$attrs" style="height: 206px" v-if="!store.portfolioList.length">
+	<div v-bind="$attrs" style="height: 179px" v-if="!store.portfolioList.length">
 		<div class="main_chart">
-			<div class="main_chart_h">Net Asset Value (NAV)</div>
+			<div class="main_chart_h">
+				{{ type == 'nav' ? 'Net Asset Value (NAV)' : 'Profit & Loss (P&L)' }}
+			</div>
 			<div class="main_chart_price">
 				<IonSkeletonText :animated="true" style="width: 30%; height: 24px" />
 			</div>
@@ -112,6 +118,7 @@
 		date_to: String,
 		date_from: String,
 		currency: String,
+		nav: [String, Number],
 		type: {
 			type: String,
 			default: 'nav',

@@ -88,6 +88,7 @@
 						</div>
 					</div>
 				</template>
+				<div class="tac" v-if="!userFieldsMap.length">No description</div>
 			</div>
 		</div>
 
@@ -250,6 +251,8 @@
 		let x = {
 			date_field: 'transaction_date',
 		}
+
+		if (!props.options.filter_entry_user_code) return res
 
 		//depricated
 		if (props.reportType != 'pl') {
