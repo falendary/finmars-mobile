@@ -50,7 +50,7 @@
 			</div>
 
 			<swiper
-				v-if="categories.asset_types"
+				v-if="Object.keys(categories).length"
 				:pagination="true"
 				:modules="[Pagination]"
 				class="balance_swiper aic"

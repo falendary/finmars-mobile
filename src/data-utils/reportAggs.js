@@ -298,8 +298,12 @@ export const reportGroupPL = ({ report, sum_field, colorsCat, type }) => {
 			_cats.currency.items[key][sum_field] += item[sum_field]
 			_cats.currency.items[key].items.push(newItem)
 		}
-
-		if (item.custom_fields.length == 0) return false
+		item.custom_fields = undefined
+		if (!item.custom_fields?.length) {
+			delete _cats.asset_types
+			delete categories.asset_types
+			return false
+		}
 		// Asset types
 		_cats.asset_types[sum_field] += item[sum_field]
 
