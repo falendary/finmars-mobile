@@ -106,7 +106,6 @@
 			return false
 		}
 		emits('nav', res.total.nav)
-		console.log('res.total.nav:', res.total.nav)
 
 		indicators[0].price = res.total.pl_daily
 		indicators[0].percent = Math.round(res.total.pl_daily_percent * 100) / 100

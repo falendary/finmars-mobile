@@ -52,8 +52,8 @@
 		<ion-modal
 			v-if="tab"
 			:is-open="isOpen"
-			:initial-breakpoint="0.3"
-			:breakpoints="[0, 0.3, 0.75]"
+			:initial-breakpoint="0.75"
+			:breakpoints="[0, 0.75, 0.95]"
 			@ionModalDidDismiss="isOpen = false"
 		>
 			<ion-toolbar>
@@ -265,7 +265,7 @@
 
 <style lang="scss" scoped>
 	.tab_logo {
-		margin-top: -15px;
+		margin-top: -27px;
 		height: 70px;
 		background: none;
 		--padding-start: 0;
@@ -273,7 +273,7 @@
 	}
 	.logo_btn {
 		padding: 5px;
-		padding-bottom: 2px;
+		padding-bottom: 4px;
 		background: var(--ion-color-medium);
 		border-radius: 50%;
 		width: 55px;
@@ -286,8 +286,14 @@
 	}
 	.tab {
 		width: 20%;
+		color: #fff;
+		font-weight: 500;
 		--padding-start: 0;
 		--padding-end: 0;
+
+		ion-icon {
+			margin-bottom: 4px;
+		}
 	}
 	[role='tab'] {
 		padding: 0;

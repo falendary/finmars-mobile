@@ -320,6 +320,7 @@
 	let detailSubcat = ref({})
 
 	let categories = ref({})
+	let activeCategory = ''
 
 	let colorsCat = {}
 
@@ -328,11 +329,22 @@
 
 	if (route.query.tab) init()
 
+	let balanceSwiper = null
+
 	// This function is init balanceChart
 	const onSwiper = (swiper) => {
+		balanceSwiper = swiper
 		createChart()
 
-		balanceChartObj.data = createBalanceDataset(categories.value.asset_types)
+		let catName = Object.keys(categories.value)[0]
+		activeCategory = categories.value[catName]
+
+		if (!activeCategory) {
+			console.error('No categories')
+			return
+		}
+
+		balanceChartObj.data = createBalanceDataset(activeCategory)
 		balanceChartObj.update()
 	}
 
@@ -377,6 +389,15 @@
 				colorsCat,
 			})
 		} else {
+		}
+
+		if (balanceChartObj) {
+			balanceSwiper.slideTo(0)
+			let catName = Object.keys(categories.value)[0]
+			activeCategory = categories.value[catName]
+
+			balanceChartObj.data = createBalanceDataset(activeCategory)
+			balanceChartObj.update()
 		}
 
 		chartProcced.value = false
@@ -456,11 +477,11 @@
 
 	function onBalanceChange(swiper) {
 		let catName = Object.keys(categories.value)[swiper.realIndex]
-		let cat = categories.value[catName]
+		activeCategory = categories.value[catName]
 
 		createChart(catName)
 
-		balanceChartObj.data = createBalanceDataset(cat)
+		balanceChartObj.data = createBalanceDataset(activeCategory)
 		balanceChartObj.update()
 	}
 
