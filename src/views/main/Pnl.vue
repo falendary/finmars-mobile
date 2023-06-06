@@ -15,7 +15,7 @@
 
 				<div class="header_info">
 					{{ dayjs(store.settings.pnl.date_from).format('DD MMM YYYY') }}
-					->
+					<span style="font-size: 20px; position: relative; top: 2px">🠦</span>
 					{{ dayjs(store.settings.pnl.date_to).format('DD MMM YYYY') }}
 				</div>
 			</div>
@@ -34,7 +34,6 @@
 				:currency="store.settings.pnl.currency"
 				:date="store.settings.pnl.date_to"
 				@refresher="indicatorsRefresher = $event"
-				@nav="total_nav = $event"
 			/>
 
 			<div class="header flex aic sb">
@@ -61,15 +60,15 @@
 						<div class="bb_header_line flex sb aic">
 							<div class="bb_header">{{ item.name }}</div>
 							<div class="bb_price">
-								{{ $format(Math.floor(item.total)) }}
-								{{ store.settings.balance.currency }}
+								{{ $format(item.total) }}
+								{{ store.settings.pnl.currency }}
 							</div>
 						</div>
 
 						<div class="balance_labels">
 							<div
 								class="balance_labels_item flex sb"
-								v-for="subcat in item.items"
+								v-for="subcat in item.subcats"
 								:class="{ active: detailSubcat.name == subcat.name }"
 								@click=";(detailSubcat = subcat), (isOpenTransactions = false)"
 							>
@@ -79,7 +78,7 @@
 									<div
 										:style="{
 											height: '4px',
-											backgroundColor: colorByCat(subcat.name),
+											backgroundColor: colorByCat(cat + subcat.name),
 											marginTop: '3px',
 											marginLeft:
 												subcat.total < 0
@@ -255,6 +254,11 @@
 
 		let report = await fetchReport()
 
+		total_nav.value = report.items.reduce(
+			(res, val) => res + (val.total || 0),
+			0
+		)
+
 		categories.value = reportGroupPL({
 			report,
 			sum_field: 'total',
@@ -262,7 +266,9 @@
 		})
 
 		Object.keys(categories.value).forEach((item) => {
-			let arr = categories.value[item].items.map((item) => item.total)
+			let arr = Object.values(categories.value[item].subcats).map(
+				(item) => item.total
+			)
 			let tickMax = Math.max(...arr)
 			let tickMin = Math.min(...arr)
 			let tickTo =

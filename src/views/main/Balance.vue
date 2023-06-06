@@ -60,7 +60,7 @@
 						<div class="bb_header_line flex sb aic">
 							<div class="bb_header">{{ item.name }}</div>
 							<div class="bb_price">
-								{{ $format(Math.floor(item.market_value)) }}
+								{{ $format(item.market_value) }}
 								{{ store.settings.balance.currency }}
 							</div>
 						</div>

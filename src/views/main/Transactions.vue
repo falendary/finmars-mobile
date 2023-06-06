@@ -4,7 +4,8 @@
 			<div class="header flex sb aic">
 				<div>Transactions</div>
 				<div class="header_info">
-					{{ store.settings.transactions.date_from }} ->
+					{{ store.settings.transactions.date_from }}
+					<span style="font-size: 20px; position: relative; top: 2px">🠦</span>
 					{{ store.settings.transactions.date_to }}
 				</div>
 			</div>
