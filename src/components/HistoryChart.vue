@@ -17,7 +17,7 @@
 
 				<div class="main_chart_price" v-if="nav !== null">
 					{{ $format(nav) }}
-					{{ store.settings[type == 'nav' ? 'balance' : 'pnl'].currency }}
+					{{ store.settings.general.currency }}
 				</div>
 				<div class="main_chart_price" v-else>
 					<IonSkeletonText :animated="true" style="width: 30%; height: 24px" />

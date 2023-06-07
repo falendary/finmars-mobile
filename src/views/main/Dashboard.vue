@@ -8,14 +8,14 @@
 			<div class="header flex sb aic">
 				<div>All Portfolios</div>
 				<div class="header_info">
-					{{ dayjs(store.settings.dashboard.date).format('DD MMM YYYY') }}
+					{{ dayjs(store.settings.general.date_to).format('DD MMM YYYY') }}
 				</div>
 			</div>
 
 			<div class="main_chart">
 				<div class="main_chart_h">Net Asset Value (NAV)</div>
 				<div class="main_chart_price">
-					- {{ store.settings.dashboard.currency }}
+					- {{ store.settings.general.currency }}
 				</div>
 
 				<div
@@ -34,8 +34,8 @@
 			</div>
 
 			<Indicators
-				:currency="store.settings.dashboard.currency"
-				:date="store.settings.dashboard.date"
+				:currency="store.settings.general.currency"
+				:date="store.settings.general.date_to"
 			/>
 
 			<div class="header">Portfolios</div>
@@ -66,7 +66,7 @@
 							/>
 							<template v-else
 								>{{ $format(item.price) }}
-								{{ store.settings.dashboard.currency }}</template
+								{{ store.settings.general.currency }}</template
 							>
 						</div>
 
@@ -172,8 +172,8 @@
 	const store = useMiniStore()
 
 	const transactionsOpts = reactive({
-		end_date: store.settings.dashboard.date,
-		begin_date: dayjs(store.settings.dashboard.date)
+		end_date: store.settings.general.date_to,
+		begin_date: dayjs(store.settings.general.date_to)
 			.add(-3, 'month')
 			.format('YYYY-MM-DD'),
 		portfolios: store.settings.dashboard.portfolios || [],
@@ -185,9 +185,9 @@
 
 	init()
 
-	watch(store.settings.dashboard, () => {
-		transactionsOpts.end_date = store.settings.dashboard.date
-		transactionsOpts.begin_date = dayjs(store.settings.dashboard.date)
+	watch([store.settings.dashboard, store.settings.general], () => {
+		transactionsOpts.end_date = store.settings.general.date_to
+		transactionsOpts.begin_date = dayjs(store.settings.general.date_to)
 			.add(-3, 'month')
 			.format('YYYY-MM-DD')
 
@@ -222,8 +222,8 @@
 					useApi('reportsSummary.get', {
 						filters: {
 							portfolios: o.user_code,
-							currency: store.settings.dashboard.currency,
-							date_to: store.settings.dashboard.date,
+							currency: store.settings.general.currency,
+							date_to: store.settings.general.date_to,
 						},
 					}).then((stats) => {
 						if (stats.error) {
@@ -254,17 +254,17 @@
 		}
 	}
 	async function fetchHistoryNav() {
-		historyNav = await useApi('widgetsHistory.get', {
-			params: {
-				type: 'nav',
-			},
-			provider: null,
-			filters: {
-				portfolio: 2, // Need all
-				date_to: store.settings.dashboard.date,
-			},
-		})
-
+		// historyNav = await useApi('widgetsHistory.get', {
+		// 	params: {
+		// 		type: 'nav',
+		// 	},
+		// 	provider: null,
+		// 	filters: {
+		// 		portfolio: 2, // Need all
+		// 		date_to: store.settings.general.date_to,
+		// 	},
+		// })
+		historyNav = undefined
 		if (!historyNav || historyNav.error) return false
 
 		if (allPorfoliosChart) {

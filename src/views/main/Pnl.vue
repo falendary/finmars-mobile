@@ -16,23 +16,23 @@
 				<div class="header_info">
 					{{ dayjs(store.settings.pnl.date_from).format('DD MMM YYYY') }}
 					<span style="font-size: 20px; position: relative; top: 2px">🠦</span>
-					{{ dayjs(store.settings.pnl.date_to).format('DD MMM YYYY') }}
+					{{ dayjs(store.settings.general.date_to).format('DD MMM YYYY') }}
 				</div>
 			</div>
 
 			<HistoryChartComp
 				type="pl"
 				:date_from="store.settings.pnl.date_from"
-				:date_to="store.settings.pnl.date_to"
-				:currency="store.settings.pnl.currency"
+				:date_to="store.settings.general.date_to"
+				:currency="store.settings.general.currency"
 				@refresher="portfoliosRefresher = $event"
 				:nav="total_nav"
 			/>
 
 			<IndicatorsComp
 				:portfolioId="portfolio?.user_code"
-				:currency="store.settings.pnl.currency"
-				:date="store.settings.pnl.date_to"
+				:currency="store.settings.general.currency"
+				:date="store.settings.general.date_to"
 				@refresher="indicatorsRefresher = $event"
 			/>
 
@@ -49,7 +49,7 @@
 			</div>
 
 			<swiper
-				v-if="Object.keys(categories).length"
+				v-if="categories && Object.keys(categories).length"
 				:pagination="true"
 				:modules="[Pagination]"
 				class="balance_swiper aic"
@@ -61,7 +61,7 @@
 							<div class="bb_header">{{ item.name }}</div>
 							<div class="bb_price">
 								{{ $format(item.total) }}
-								{{ store.settings.pnl.currency }}
+								{{ store.settings.general.currency }}
 							</div>
 						</div>
 
@@ -106,6 +106,40 @@
 				</swiper-slide>
 			</swiper>
 
+			<template v-else-if="categories !== null">
+				<div class="nodata_wrap center aic">
+					<div>
+						<h3>Can't group by choosed fields</h3>
+
+						<p>No data or wrong fields</p>
+					</div>
+				</div>
+			</template>
+
+			<div v-else class="balance_block">
+				<div class="bb_header_line flex sb aic">
+					<div class="bb_header">
+						<IonSkeletonText
+							style="height: 22px; width: 100px"
+							:animated="true"
+						/>
+					</div>
+					<div class="bb_price">
+						<IonSkeletonText
+							style="height: 22px; width: 120px"
+							:animated="true"
+						/>
+					</div>
+				</div>
+
+				<div v-for="subcat in [3, 3, 3]">
+					<IonSkeletonText
+						style="height: 32px; margin-bottom: 5px"
+						:animated="true"
+					/>
+				</div>
+			</div>
+
 			<template v-if="detailSubcat.name">
 				<div class="header flex aic sb">Details</div>
 
@@ -115,7 +149,7 @@
 						<div>
 							<div class="bb_price">
 								{{ $format(detailSubcat.total) }}
-								{{ store.settings.pnl.currency }}
+								{{ store.settings.general.currency }}
 							</div>
 							<!-- <div class="instr_block_change flex jcfe">
 								<div class="instr_change_percent instr_first minus">
@@ -205,7 +239,7 @@
 	let total_nav = ref(null)
 
 	const transactionsOpts = reactive({
-		end_date: store.settings.pnl.date_to,
+		end_date: store.settings.general.date_to,
 		begin_date: '0001-01-01',
 		portfolios: portfolio.value?.user_code,
 		filter_entry_user_code: null,
@@ -217,7 +251,7 @@
 	let isOpenTransactions = ref(false)
 	let isChartView = ref(true)
 	let detailSubcat = ref({})
-	let categories = ref({})
+	let categories = ref(null)
 	let colorsCat = {}
 	let maxTickStock = ref({})
 
@@ -231,7 +265,7 @@
 			Promise.all([init(), portfoliosRefresher(), indicatorsRefresher()])
 		}
 	)
-	watch(store.settings.pnl, () => {
+	watch([store.settings.general, store.settings.pnl], () => {
 		init()
 	})
 
@@ -248,7 +282,7 @@
 	async function init() {
 		detailSubcat.value = {}
 
-		transactionsOpts.end_date = store.settings.pnl.date_to
+		transactionsOpts.end_date = store.settings.general.date_to
 		transactionsOpts.portfolios = route.query.tab
 		transactionsOpts.filter_entry_user_code = null
 
@@ -300,10 +334,10 @@
 				pl_first_date: store.settings.pnl.date_from,
 				pl_include_zero: false,
 				portfolio_mode: 1,
-				portfolios: [route.query.tab],
+				portfolios: route.query.tab && [route.query.tab],
 				pricing_policy: 1,
-				report_currency: store.settings.pnl.currency,
-				report_date: store.settings.pnl.date_to,
+				report_currency: store.settings.general.currency,
+				report_date: store.settings.general.date_to,
 				report_type: 1,
 				show_balance_exposure_details: false,
 				show_transaction_details: false,
@@ -450,6 +484,17 @@
 			color: #ff2d55;
 		}
 		&.neutral {
+			color: #747474;
+		}
+	}
+	.nodata_wrap {
+		text-align: center;
+		background: #eee;
+		height: 200px;
+		h3 {
+			font-size: 18px;
+		}
+		p {
 			color: #747474;
 		}
 	}

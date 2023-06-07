@@ -14,11 +14,8 @@ export default defineStore('store', {
 				dashboard: null,
 				balance: null,
 				pnl: null,
-				transactions: {
-					date_from: '2022-09-09',
-					date_to: '2022-09-09',
-					portfolios: ['-', 'Model'],
-				},
+				transactions: null,
+				general: null,
 			},
 		}
 	},
@@ -26,7 +23,7 @@ export default defineStore('store', {
 	actions: {
 		async init() {
 			let { value } = await Preferences.get({ key: 'layout' })
-
+			// value = null
 			if (value) {
 				let layout = JSON.parse(value)
 
@@ -38,23 +35,22 @@ export default defineStore('store', {
 				let date_to = dayjs().add(-1, 'day').format('YYYY-MM-DD')
 				let currency = 'USD'
 
+				this.settings.general = {
+					date_to,
+					currency,
+				}
+
+				this.settings.balance = {}
+
 				this.settings.dashboard = {
 					date: date_to,
-					currency,
 					portfolios: [],
-				}
-				this.settings.balance = {
-					date: date_to,
-					currency,
 				}
 				this.settings.pnl = {
 					date_from,
-					date_to,
-					currency,
 				}
 				this.settings.transactions = {
 					date_from,
-					date_to,
 					portfolios: [],
 				}
 			}

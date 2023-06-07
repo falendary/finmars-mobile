@@ -68,23 +68,6 @@
 
 			<ion-content>
 				<ion-list lines="full">
-					<ion-item v-if="store.settings[tab].date">
-						<ion-label>Date</ion-label>
-
-						<ion-datetime-button datetime="datetime_date" />
-						<ion-modal :keep-contents-mounted="true">
-							<ion-datetime
-								style="color: #000"
-								id="datetime_date"
-								v-model="store.settings[tab].date"
-								:prefer-wheel="true"
-								presentation="date"
-								show-default-buttons
-								mode="ios"
-							/>
-						</ion-modal>
-					</ion-item>
-
 					<ion-item v-if="store.settings[tab].date_from">
 						<ion-label>Date from</ion-label>
 
@@ -102,14 +85,14 @@
 						</ion-modal>
 					</ion-item>
 
-					<ion-item v-if="store.settings[tab].date_to">
+					<ion-item v-if="store.settings.general.date_to">
 						<ion-label>Date to</ion-label>
 
 						<ion-modal :keep-contents-mounted="true">
 							<ion-datetime
 								style="color: #000"
 								id="datetime_date_to"
-								v-model="store.settings[tab].date_to"
+								v-model="store.settings.general.date_to"
 								:prefer-wheel="true"
 								presentation="date"
 								show-default-buttons
@@ -118,9 +101,9 @@
 						<ion-datetime-button datetime="datetime_date_to" />
 					</ion-item>
 
-					<ion-item v-if="store.settings[tab].currency && currencies">
+					<ion-item v-if="store.settings.general.currency && currencies">
 						<ion-select
-							v-model="store.settings[tab].currency"
+							v-model="store.settings.general.currency"
 							label="Reporting currency"
 							placeholder="Currency"
 						>
@@ -169,6 +152,11 @@
 				>
 					LOGOUT
 				</ion-button>
+
+				<div class="ion-margin-horizontal flex sb info_bot">
+					<div>{{ workspace }}</div>
+					<div>{{ username }}</div>
+				</div>
 			</ion-content>
 		</ion-modal>
 	</ion-page>
@@ -208,6 +196,12 @@
 
 	let currencies = ref(null)
 	await store.init()
+
+	let { value } = await Preferences.get({ key: 'workspace' })
+	let workspace = ref(value)
+
+	let { value: valUser } = await Preferences.get({ key: 'username' })
+	let username = ref(valUser)
 
 	fetchCurrencies()
 	fetchPortfolios()
@@ -309,5 +303,9 @@
 	}
 	.logout {
 		margin-top: 10px;
+	}
+	.info_bot {
+		color: #646464;
+		margin-top: 25px;
 	}
 </style>

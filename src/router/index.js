@@ -58,6 +58,11 @@ async function initKeycloak(region) {
 	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))
 	await keycloak.init(kcOpts)
 
+	Preferences.set({
+		key: 'username',
+		value: keycloak.idTokenParsed.preferred_username,
+	})
+
 	if (keycloak.isTokenExpired(5)) await refreshTokens()
 
 	log.timeEnd({

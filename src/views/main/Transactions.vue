@@ -6,7 +6,7 @@
 				<div class="header_info">
 					{{ store.settings.transactions.date_from }}
 					<span style="font-size: 20px; position: relative; top: 2px">🠦</span>
-					{{ store.settings.transactions.date_to }}
+					{{ store.settings.general.date_to }}
 				</div>
 			</div>
 
@@ -36,14 +36,14 @@
 	const store = useMiniStore()
 
 	const transactionsOpts = reactive({
-		end_date: store.settings.transactions.date_to,
+		end_date: store.settings.general.date_to,
 		begin_date: store.settings.transactions.date_from,
 		portfolios: store.settings.transactions.portfolios,
 		filter_entry_user_code: null,
 	})
 
-	watch(store.settings.transactions, () => {
-		transactionsOpts.end_date = store.settings.transactions.date_to
+	watch([store.settings.transactions, store.settings.general], () => {
+		transactionsOpts.end_date = store.settings.general.date_to
 		transactionsOpts.begin_date = store.settings.transactions.date_from
 		transactionsOpts.portfolios = store.settings.transactions.portfolios
 	})

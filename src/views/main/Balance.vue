@@ -14,13 +14,13 @@
 				/>
 
 				<div class="header_info">
-					{{ dayjs(store.settings.balance.date).format('DD MMM YYYY') }}
+					{{ dayjs(store.settings.general.date_to).format('DD MMM YYYY') }}
 				</div>
 			</div>
 
 			<HistoryChartComp
-				:date_to="store.settings.balance.date"
-				:currency="store.settings.balance.currency"
+				:date_to="store.settings.general.date_to"
+				:currency="store.settings.general.currency"
 				@portfolioChange="init($event)"
 				@refresher="portfoliosRefresher = $event"
 				:nav="total_nav"
@@ -28,8 +28,8 @@
 
 			<IndicatorsComp
 				:portfolioId="route.query.tab"
-				:currency="store.settings.balance.currency"
-				:date="store.settings.balance.date"
+				:currency="store.settings.general.currency"
+				:date="store.settings.general.date_to"
 				@refresher="indicatorsRefresher = $event"
 				@nav="total_nav = $event"
 			/>
@@ -61,7 +61,7 @@
 							<div class="bb_header">{{ item.name }}</div>
 							<div class="bb_price">
 								{{ $format(item.market_value) }}
-								{{ store.settings.balance.currency }}
+								{{ store.settings.general.currency }}
 							</div>
 						</div>
 
@@ -168,7 +168,7 @@
 						<div>
 							<div class="bb_price">
 								{{ $format(detailSubcat.market_value) }}
-								{{ store.settings.balance.currency }}
+								{{ store.settings.general.currency }}
 							</div>
 							<!-- <div class="instr_block_change flex jcfe">
 								<div class="instr_change_percent instr_first minus">
@@ -293,7 +293,7 @@
 
 	let total_nav = ref(null)
 	const transactionsOpts = reactive({
-		end_date: store.settings.balance.date,
+		end_date: store.settings.general.date_to,
 		begin_date: '0001-01-01',
 		portfolios: route.query.tab,
 		filter_entry_user_code: null,
@@ -358,7 +358,7 @@
 			Promise.all([init(), portfoliosRefresher(), indicatorsRefresher()])
 		}
 	)
-	watch(store.settings.balance, () => {
+	watch(store.settings.general, () => {
 		init()
 	})
 
@@ -376,7 +376,7 @@
 		chartProcced.value = true
 		detailSubcat.value = {}
 
-		transactionsOpts.end_date = store.settings.balance.date
+		transactionsOpts.end_date = store.settings.general.date_to
 		transactionsOpts.portfolios = route.query.tab
 		transactionsOpts.filter_entry_user_code = null
 
@@ -454,8 +454,8 @@
 				portfolio_mode: 1,
 				portfolios: [route.query.tab],
 				pricing_policy: 1,
-				report_currency: store.settings.balance.currency,
-				report_date: store.settings.balance.date,
+				report_currency: store.settings.general.currency,
+				report_date: store.settings.general.date_to,
 				report_type: 1,
 				show_balance_exposure_details: false,
 				show_transaction_details: true,
