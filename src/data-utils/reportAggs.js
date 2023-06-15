@@ -278,11 +278,12 @@ export const reportGroupPL = ({
 		fieldsToGroup.forEach((group) => {
 			let valToGroup = item[group.key]
 
-			if (item.item_type == 2) valToGroup = 'Cash'
-			if (item.item_type == 5) valToGroup = 'Other!'
-			if (valToGroup === undefined) valToGroup = 'Undefined'
-			if (valToGroup === null) valToGroup = 'Null'
-
+			if (!valToGroup) {
+				if (item.item_type == 2) valToGroup = 'Cash'
+				if (item.item_type == 5) valToGroup = 'Other!'
+				if (valToGroup === undefined) valToGroup = 'Undefined'
+				if (valToGroup === null) valToGroup = 'Null'
+			}
 			if (!result[group.key]) {
 				result[group.key] = {
 					name: group.name,
