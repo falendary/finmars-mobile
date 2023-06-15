@@ -47,7 +47,7 @@
 			</div>
 
 			<swiper
-				v-if="categories.asset_types"
+				v-if="categories && Object.keys(categories).length"
 				:pagination="true"
 				:modules="[Pagination]"
 				class=""
@@ -87,7 +87,7 @@
 							>
 								<div
 									class="balance_labels_item flex aic sb"
-									v-for="subcat in item.items"
+									v-for="subcat in item.subcats"
 									:class="{ active: detailSubcat.name == subcat.name }"
 									@click="
 										;(detailSubcat = subcat), (isOpenTransactions = false)
@@ -96,7 +96,9 @@
 									<div class="flex aic">
 										<div
 											class="balance_labels_percent"
-											:style="{ backgroundColor: colorByCat(subcat.name) }"
+											:style="{
+												backgroundColor: colorByCat(cat + subcat.name),
+											}"
 										>
 											{{
 												Math.round(
@@ -344,7 +346,7 @@
 			return
 		}
 
-		balanceChartObj.data = createBalanceDataset(activeCategory)
+		balanceChartObj.data = createBalanceDataset(activeCategory, catName)
 		balanceChartObj.update()
 	}
 
@@ -390,6 +392,7 @@
 			})
 		} else {
 		}
+		console.log('categories.value:', categories.value)
 
 		if (balanceChartObj) {
 			balanceSwiper.slideTo(0)
@@ -481,68 +484,72 @@
 
 		createChart(catName)
 
-		balanceChartObj.data = createBalanceDataset(activeCategory)
+		balanceChartObj.data = createBalanceDataset(activeCategory, catName)
 		balanceChartObj.update()
 	}
 
 	function createChart(cat) {
 		if (balanceChartObj) balanceChartObj.destroy()
 
-		balanceChartObj = new Chart((cat || 'asset_types') + '_balanceChart', {
-			type: 'doughnut',
-			data: data,
-			options: {
-				cutout: '35%',
-				responsive: true,
-				maintainAspectRatio: false,
-				plugins: {
-					legend: {
-						display: false,
-					},
+		balanceChartObj = new Chart(
+			(cat || Object.keys(categories.value)[0]) + '_balanceChart',
+			{
+				type: 'doughnut',
+				data: data,
+				options: {
+					cutout: '35%',
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: {
+						legend: {
+							display: false,
+						},
 
-					tooltip: {
-						callbacks: {
-							label: function (context) {
-								let labelIndex = context.dataIndex
+						tooltip: {
+							callbacks: {
+								label: function (context) {
+									let labelIndex = context.dataIndex
 
-								if (context.datasetIndex === 1) {
-									labelIndex =
-										context.chart.data.datasets[0].data.length + labelIndex
-								}
+									if (context.datasetIndex === 1) {
+										labelIndex =
+											context.chart.data.datasets[0].data.length + labelIndex
+									}
 
-								return (
-									context.chart.data.labels[labelIndex] +
-									': ' +
-									context.formattedValue
-								)
+									return (
+										context.chart.data.labels[labelIndex] +
+										': ' +
+										context.formattedValue
+									)
+								},
 							},
 						},
 					},
 				},
-			},
-		})
+			}
+		)
 	}
 
 	function colorByCat(item) {
 		return colorsCat[item]
 	}
 
-	function createBalanceDataset(cat) {
+	function createBalanceDataset(cat, catName) {
+		console.log('cat:', cat)
 		let plusColors = []
-		let plus = cat.items
+		let plus = cat.subcats
 			.filter((item) => item.market_value >= 0)
 			.map((item, k) => {
-				plusColors.push(colorByCat(item.name))
+				plusColors.push(colorByCat(catName + item.name))
 				return item.market_value
 			})
 
 		let totalPlus = plus.length ? plus.reduce((a, b) => a + b) : 0
 
 		let minusColors = []
-		let minus = cat.items
+		let minus = cat.subcats
 			.filter((item) => item.market_value < 0)
 			.map((item, k) => {
-				minusColors.push(colorByCat(item.name))
+				minusColors.push(colorByCat(catName + item.name))
 
 				return item.market_value
 			})
@@ -551,7 +558,7 @@
 
 		let data = {}
 
-		data.labels = cat.items.map((item) => item.name)
+		data.labels = cat.subcats.map((item) => item.name)
 		data.datasets = [
 			{
 				data: plus,

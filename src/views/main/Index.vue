@@ -101,6 +101,23 @@
 						<ion-datetime-button datetime="datetime_date_to" />
 					</ion-item>
 
+					<ion-item
+						v-if="store.settings.general.pricing_policy && pricingPolicies"
+					>
+						<ion-select
+							v-model="store.settings.general.pricing_policy"
+							label="Pricing policy"
+							placeholder="Policy"
+						>
+							<ion-select-option
+								v-for="item in pricingPolicies"
+								:value="item.user_code"
+							>
+								{{ item.short_name }}
+							</ion-select-option>
+						</ion-select>
+					</ion-item>
+
 					<ion-item v-if="store.settings.general.currency && currencies">
 						<ion-select
 							v-model="store.settings.general.currency"
@@ -195,6 +212,8 @@
 	const route = useRoute()
 
 	let currencies = ref(null)
+	let pricingPolicies = ref(null)
+
 	await store.init()
 
 	let { value } = await Preferences.get({ key: 'workspace' })
@@ -205,6 +224,7 @@
 
 	fetchCurrencies()
 	fetchPortfolios()
+	fetchPolicies()
 
 	async function fetchPortfolios() {
 		let res = await useApi('portfolioLight.get')
@@ -233,6 +253,16 @@
 			currencies.value = res.results
 		} else {
 			currencies.value = []
+		}
+	}
+
+	async function fetchPolicies() {
+		let res = await useApi('pricingPolicies.get')
+
+		if (res && !res.error) {
+			pricingPolicies.value = res.results
+		} else {
+			pricingPolicies.value = []
 		}
 	}
 

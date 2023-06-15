@@ -2,6 +2,7 @@ import dayjs from 'dayjs'
 import { defineStore } from 'pinia'
 import { Preferences } from '@capacitor/preferences'
 import { watch } from 'vue'
+import useApi from './useApi'
 
 export default defineStore('store', {
 	state: () => {
@@ -17,6 +18,7 @@ export default defineStore('store', {
 				transactions: null,
 				general: null,
 			},
+			layout: null,
 		}
 	},
 
@@ -38,6 +40,7 @@ export default defineStore('store', {
 				this.settings.general = {
 					date_to,
 					currency,
+					pricing_policy: '-',
 				}
 
 				this.settings.balance = {}
@@ -48,6 +51,7 @@ export default defineStore('store', {
 				}
 				this.settings.pnl = {
 					date_from,
+					pricing_policy: '',
 				}
 				this.settings.transactions = {
 					date_from,
@@ -55,10 +59,38 @@ export default defineStore('store', {
 				}
 			}
 
+			this.fetchFields()
+
 			watch(this.settings, (newVal) => {
 				console.log('newVal:', newVal)
 				Preferences.set({ key: 'layout', value: JSON.stringify(newVal) })
 			})
+		},
+		async fetchFields() {
+			let res = await useApi('mobileLayout.get', {
+				filters: { is_default: true },
+			})
+
+			if (res.results && res.results[0]) {
+				this.layout = res.results[0].data
+			}
+			this.layout = {
+				pnl: {
+					fieldsToGroup: [
+						{ name: 'Asset type', key: 'instrument.attributes.asset_types' },
+						{ name: 'Sector', key: 'instrument.attributes.sector' },
+						{ name: 'Currency', key: 'pricing_currency.short_name' },
+					],
+				},
+				balance: {
+					fieldsToGroup: [
+						{ name: 'Asset type', key: 'instrument.attributes.asset_types' },
+						{ name: 'Sector', key: 'instrument.attributes.sector' },
+						{ name: 'Currency', key: 'pricing_currency.short_name' },
+					],
+				},
+			}
+			console.log('res:', res)
 		},
 	},
 })

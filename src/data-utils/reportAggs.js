@@ -1,4 +1,14 @@
-export const reportGroup = ({ report, sum_field, colorsCat, type }) => {
+export const reportGroup = ({
+	report,
+	sum_field,
+	colorsCat,
+	type,
+	fieldsToGroup = [
+		{ name: 'Asset type', key: 'instrument.attributes.asset_types' },
+		{ name: 'Sector', key: 'instrument.attributes.sector' },
+		{ name: 'Currency', key: 'pricing_currency.short_name' },
+	],
+}) => {
 	let colors = [
 		'#577590CC',
 		'#43AA8BCC',
@@ -41,132 +51,180 @@ export const reportGroup = ({ report, sum_field, colorsCat, type }) => {
 		'#96B5B4',
 		'#AB7967',
 	]
-	let _cats = {
-		asset_types: {
-			[sum_field]: 0,
-			name: 'Asset type',
-			items: {},
-		},
-		currency: {
-			[sum_field]: 0,
-			name: 'Currency',
-			items: {},
-		},
-	}
-	let categories = {
-		asset_types: {
-			name: 'Asset type',
-			[sum_field]: 0,
-			items: [],
-		},
-		currency: {
-			name: 'Currency',
-			[sum_field]: 0,
-			items: [],
-		},
+
+	if (!report.items.length) {
+		return {}
 	}
 
-	report.items.forEach((item) => {
-		// Currency
-		_cats.currency[sum_field] += item[sum_field]
+	let items = injectIntoItemsV2(report.items, report, 'balance-report')
 
-		let newItem = {
-			id: item.id,
-			name: item.name,
-			item_type: item.item_type,
-			user_code: item.user_code,
-			[sum_field]: item[sum_field],
-			position_size: item.position_size,
-			change: {
-				value: item.gross_cost_price,
-				percent: Math.round(item.daily_price_change * 10000) / 100,
-			},
-		}
+	let res = items.reduce((result, item) => {
+		fieldsToGroup.forEach((group) => {
+			let valToGroup = item[group.key]
 
-		if (item.item_type == 2) {
-			let key = report.item_currencies.find(
-				(o) => o.id == item.currency
-			)?.short_name
+			if (!valToGroup) {
+				if (item.item_type == 2) valToGroup = 'Cash'
+				if (item.item_type == 5) valToGroup = 'Other!'
+				if (valToGroup === undefined) valToGroup = 'Undefined'
+				if (valToGroup === null) valToGroup = 'Null'
+			}
 
-			if (!_cats.currency.items[key]) {
-				_cats.currency.items[key] = {
+			if (!result[group.key]) {
+				result[group.key] = {
+					name: group.name,
+					subcats: {},
+					[sum_field]: 0,
+				}
+			}
+
+			if (!result[group.key].subcats[valToGroup]) {
+				result[group.key].subcats[valToGroup] = {
+					name: valToGroup,
 					items: [],
 					[sum_field]: 0,
 				}
 			}
 
-			_cats.currency.items[key][sum_field] += item[sum_field]
-			_cats.currency.items[key].items.push(newItem)
-		}
-
-		if (item.item_type == 1) {
-			let instr_obj = report.item_instruments.find(
-				(o) => o.id == item.instrument
-			)
-
-			let key = report.item_currencies.find(
-				(o) => o.id == instr_obj.pricing_currency
-			)?.short_name
-
-			if (!_cats.currency.items[key]) {
-				_cats.currency.items[key] = {
-					items: [],
-					[sum_field]: 0,
-				}
-			}
-
-			_cats.currency.items[key][sum_field] += item[sum_field]
-			_cats.currency.items[key].items.push(newItem)
-		}
-		// Asset types
-		_cats.asset_types[sum_field] += item[sum_field]
-
-		if (!_cats.asset_types.items[item.custom_fields[0].value]) {
-			_cats.asset_types.items[item.custom_fields[0].value] = {
-				items: [],
-				[sum_field]: 0,
-			}
-		}
-
-		_cats.asset_types.items[item.custom_fields[0].value][sum_field] +=
-			item[sum_field]
-
-		_cats.asset_types.items[item.custom_fields[0].value].items.push(newItem)
-	})
-
-	for (let prop in _cats) {
-		let colorKey = 0
-
-		categories[prop][sum_field] = _cats[prop][sum_field]
-		categories[prop].items = []
-
-		for (let instr in _cats[prop].items) {
-			categories[prop].items.push({
-				..._cats[prop].items[instr],
-				name: instr,
-				items: _cats[prop].items[instr].items.sort((a, b) => {
-					return b[sum_field] - a[sum_field]
-				}),
+			result[group.key].subcats[valToGroup].items.push({
+				id: item.id,
+				name: item.name,
+				item_type: item.item_type,
+				user_code: item.user_code,
+				[sum_field]: item[sum_field],
+				position_size: item.position_size,
+				change: {
+					value: item.gross_cost_price,
+					percent: Math.round(item.daily_price_change * 10000) / 100,
+				},
 			})
 
-			colorsCat[instr] = colors[colorKey]
+			result[group.key][sum_field] += item[sum_field]
+			result[group.key].subcats[valToGroup][sum_field] += item[sum_field]
+		})
+
+		return result
+	}, {})
+
+	// report.items.forEach((item) => {
+	// 	// Currency
+	// 	_cats.currency[sum_field] += item[sum_field]
+
+	// 	let newItem = {
+	// 		id: item.id,
+	// 		name: item.name,
+	// 		item_type: item.item_type,
+	// 		user_code: item.user_code,
+	// 		[sum_field]: item[sum_field],
+	// 		position_size: item.position_size,
+	// 		change: {
+	// 			value: item.gross_cost_price,
+	// 			percent: Math.round(item.daily_price_change * 10000) / 100,
+	// 		},
+	// 	}
+
+	// 	if (item.item_type == 2) {
+	// 		let key = report.item_currencies.find(
+	// 			(o) => o.id == item.currency
+	// 		)?.short_name
+
+	// 		if (!_cats.currency.items[key]) {
+	// 			_cats.currency.items[key] = {
+	// 				items: [],
+	// 				[sum_field]: 0,
+	// 			}
+	// 		}
+
+	// 		_cats.currency.items[key][sum_field] += item[sum_field]
+	// 		_cats.currency.items[key].items.push(newItem)
+	// 	}
+
+	// 	if (item.item_type == 1) {
+	// 		let instr_obj = report.item_instruments.find(
+	// 			(o) => o.id == item.instrument
+	// 		)
+
+	// 		let key = report.item_currencies.find(
+	// 			(o) => o.id == instr_obj.pricing_currency
+	// 		)?.short_name
+
+	// 		if (!_cats.currency.items[key]) {
+	// 			_cats.currency.items[key] = {
+	// 				items: [],
+	// 				[sum_field]: 0,
+	// 			}
+	// 		}
+
+	// 		_cats.currency.items[key][sum_field] += item[sum_field]
+	// 		_cats.currency.items[key].items.push(newItem)
+	// 	}
+	// 	// Asset types
+	// 	_cats.asset_types[sum_field] += item[sum_field]
+
+	// 	if (!_cats.asset_types.items[item.custom_fields[0].value]) {
+	// 		_cats.asset_types.items[item.custom_fields[0].value] = {
+	// 			items: [],
+	// 			[sum_field]: 0,
+	// 		}
+	// 	}
+
+	// 	_cats.asset_types.items[item.custom_fields[0].value][sum_field] +=
+	// 		item[sum_field]
+
+	// 	_cats.asset_types.items[item.custom_fields[0].value].items.push(newItem)
+	// })
+
+	// for (let prop in _cats) {
+	// 	let colorKey = 0
+
+	// 	categories[prop][sum_field] = _cats[prop][sum_field]
+	// 	categories[prop].items = []
+
+	// 	for (let instr in _cats[prop].items) {
+	// 		categories[prop].items.push({
+	// 			..._cats[prop].items[instr],
+	// 			name: instr,
+	// 			items: _cats[prop].items[instr].items.sort((a, b) => {
+	// 				return b[sum_field] - a[sum_field]
+	// 			}),
+	// 		})
+
+	// 		colorsCat[instr] = colors[colorKey]
+	// 		++colorKey
+	// 	}
+	// 	categories[prop].items = categories[prop].items
+	// 		.filter((o) => o[sum_field] != 0)
+	// 		.sort((a, b) => b[sum_field] - a[sum_field])
+	// }
+
+	for (let prop in res) {
+		let colorKey = 0
+
+		res[prop].subcats = Object.values(res[prop].subcats)
+
+		res[prop].subcats.forEach((subcat) => {
+			colorsCat[prop + subcat.name] = colors[colorKey]
 			++colorKey
-		}
-		categories[prop].items = categories[prop].items
-			.filter((o) => o[sum_field] != 0)
+		})
+
+		res[prop].subcats = res[prop].subcats
 			.sort((a, b) => b[sum_field] - a[sum_field])
+			.filter((o) => o[sum_field] != 0)
 	}
 
-	return categories
+	return res
 }
 
-let fieldsToGroup = [
-	{ name: 'Asset type', key: 'instrument.attributes.asset_types' },
-	{ name: 'Sector', key: 'instrument.attributes.sector' },
-	{ name: 'Currency', key: 'pricing_currency.short_name' },
-]
-
-export const reportGroupPL = ({ report, sum_field, colorsCat, type }) => {
+export const reportGroupPL = ({
+	report,
+	sum_field,
+	colorsCat,
+	type,
+	fieldsToGroup = [
+		{ name: 'Asset type', key: 'instrument.attributes.asset_types' },
+		{ name: 'Sector', key: 'instrument.attributes.sector' },
+		{ name: 'Currency', key: 'pricing_currency.short_name' },
+	],
+}) => {
 	let colors = [
 		'#577590CC',
 		'#43AA8BCC',
@@ -287,7 +345,6 @@ export const reportGroupPL = ({ report, sum_field, colorsCat, type }) => {
 			.sort((a, b) => b[sum_field] - a[sum_field])
 			.filter((o) => o[sum_field] != 0)
 	}
-	console.log('res:', res)
 
 	return res
 }
@@ -761,9 +818,9 @@ function injectIntoItemsV2(items, reportOptions, entityType) {
 
 		//console.error('item', item);
 
-		if (entityType === 'balance-report') {
+		if (reportOptions && entityType === 'balance-report') {
 			item.date = reportOptions.report_date
-		} else if (entityType === 'pl-report') {
+		} else if (reportOptions && entityType === 'pl-report') {
 			item.pl_first_date = reportOptions.pl_first_date
 			item.report_date = reportOptions.report_date
 		}
