@@ -73,24 +73,24 @@ export default defineStore('store', {
 
 			if (res.results && res.results[0]) {
 				this.layout = res.results[0].data
+			} else {
+				this.layout = {
+					pnl: {
+						fieldsToGroup: [
+							{ name: 'Asset type', key: 'instrument.attributes.asset_types' },
+							{ name: 'Sector', key: 'instrument.attributes.sector' },
+							{ name: 'Currency', key: 'pricing_currency.short_name' },
+						],
+					},
+					balance: {
+						fieldsToGroup: [
+							{ name: 'Asset type', key: 'instrument.attributes.asset_types' },
+							{ name: 'Sector', key: 'instrument.attributes.sector' },
+							{ name: 'Currency', key: 'pricing_currency.short_name' },
+						],
+					},
+				}
 			}
-			this.layout = {
-				pnl: {
-					fieldsToGroup: [
-						{ name: 'Asset type', key: 'instrument.attributes.asset_types' },
-						{ name: 'Sector', key: 'instrument.attributes.sector' },
-						{ name: 'Currency', key: 'pricing_currency.short_name' },
-					],
-				},
-				balance: {
-					fieldsToGroup: [
-						{ name: 'Asset type', key: 'instrument.attributes.asset_types' },
-						{ name: 'Sector', key: 'instrument.attributes.sector' },
-						{ name: 'Currency', key: 'pricing_currency.short_name' },
-					],
-				},
-			}
-			console.log('res:', res)
 		},
 	},
 })
