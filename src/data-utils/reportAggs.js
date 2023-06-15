@@ -62,6 +62,7 @@ export const reportGroup = ({
 	let res = items.reduce((result, item) => {
 		fieldsToGroup.forEach((group) => {
 			let valToGroup = item[group.key]
+			console.log('valToGroup:', valToGroup)
 
 			if (!valToGroup) {
 				if (item.item_type == 2) valToGroup = 'Cash'

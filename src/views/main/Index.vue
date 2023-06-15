@@ -68,7 +68,7 @@
 
 			<ion-content>
 				<ion-list lines="full">
-					<ion-item v-if="store.settings[tab].date_from">
+					<ion-item v-if="tab == 'pnl' || tab == 'transactions'">
 						<ion-label>Date from</ion-label>
 
 						<ion-datetime-button datetime="datetime_date_from" />
