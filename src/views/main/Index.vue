@@ -133,15 +133,15 @@
 						</ion-select>
 					</ion-item>
 
-					<ion-item v-if="store.settings[tab].portfolios">
+					<ion-item v-if="store.settings.general.portfolios">
 						<ion-select
-							v-model="store.settings[tab].portfolios"
+							v-model="store.settings.general.portfolios"
 							label="Portfolios"
 							placeholder="Portfolios"
 							:multiple="true"
 						>
 							<ion-select-option
-								v-for="item in store.portfolioList"
+								v-for="item in store.portfolioListStock"
 								:value="item.user_code"
 							>
 								{{ item.name }}
@@ -207,6 +207,7 @@
 	import { Preferences } from '@capacitor/preferences'
 	import useMiniStore from '@/composables/useMiniStore'
 	import useApi from '@/composables/useApi'
+	import { watch } from 'vue'
 
 	const store = useMiniStore()
 	const route = useRoute()
@@ -230,7 +231,7 @@
 		let res = await useApi('portfolioLight.get')
 
 		if (res && !res.error) {
-			store.portfolioList = res.results.map((o, k) => {
+			store.portfolioListStock = res.results.map((o, k) => {
 				return {
 					id: o.id,
 					name: o.name,
@@ -242,10 +243,22 @@
 					},
 				}
 			})
+
+			store.portfolioList = store.settings.general.portfolios?.length
+				? store.portfolioListStock.filter((o) =>
+						store.settings.general.portfolios.includes(o.user_code)
+				  )
+				: store.portfolioListStock
 		} else {
+			store.portfolioListStock = []
 			store.portfolioList = []
 		}
 	}
+	watch(store.settings.general.portfolios, () => {
+		store.portfolioList = store.portfolioListStock.filter((o) =>
+			store.settings.general.portfolios.includes(o.user_code)
+		)
+	})
 	async function fetchCurrencies() {
 		let res = await useApi('currencyLight.get')
 

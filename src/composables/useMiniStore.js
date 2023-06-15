@@ -10,6 +10,7 @@ export default defineStore('store', {
 			member: null,
 			workspace: null,
 			portfolioList: [],
+			portfolioListStock: [],
 			currencyList: [],
 			settings: {
 				dashboard: null,
@@ -41,6 +42,7 @@ export default defineStore('store', {
 					date_to,
 					currency,
 					pricing_policy: '-',
+					portfolios: [],
 				}
 
 				this.settings.balance = {}

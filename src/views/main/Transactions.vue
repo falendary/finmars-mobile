@@ -38,14 +38,14 @@
 	const transactionsOpts = reactive({
 		end_date: store.settings.general.date_to,
 		begin_date: store.settings.transactions.date_from,
-		portfolios: store.settings.transactions.portfolios,
+		portfolios: store.settings.general.portfolios,
 		filter_entry_user_code: null,
 	})
 
 	watch([store.settings.transactions, store.settings.general], () => {
 		transactionsOpts.end_date = store.settings.general.date_to
 		transactionsOpts.begin_date = store.settings.transactions.date_from
-		transactionsOpts.portfolios = store.settings.transactions.portfolios
+		transactionsOpts.portfolios = store.settings.general.portfolios
 	})
 </script>
 

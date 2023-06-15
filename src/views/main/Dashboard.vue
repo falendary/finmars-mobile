@@ -212,43 +212,37 @@
 		let res = await useApi('portfolioLight.get')
 
 		if (res && !res.error) {
-			portfolios.value = res.results
-				.filter(
-					(o) =>
-						!store.settings.dashboard.portfolios.length ||
-						store.settings.dashboard.portfolios.includes(o.user_code)
-				)
-				.map((o, k) => {
-					useApi('reportsSummary.get', {
-						filters: {
-							portfolios: o.user_code,
-							currency: store.settings.general.currency,
-							date_to: store.settings.general.date_to,
-						},
-					}).then((stats) => {
-						if (stats.error) {
-							portfolios.value[k].price = '--'
-							portfolios.value[k].change.price = '--'
-							portfolios.value[k].change.percent = '--'
-						}
-
-						portfolios.value[k].price = stats.total.nav
-						portfolios.value[k].change.price = stats.total.pl_daily
-						portfolios.value[k].change.percent =
-							Math.round(stats.total.pl_daily_percent * 100) / 100
-					})
-
-					return {
-						id: o.id,
-						name: o.name,
-						user_code: o.user_code,
-						price: '-',
-						change: {
-							price: '-',
-							percent: '-',
-						},
+			portfolios.value = store.portfolioList.map((o, k) => {
+				useApi('reportsSummary.get', {
+					filters: {
+						portfolios: o.user_code,
+						currency: store.settings.general.currency,
+						date_to: store.settings.general.date_to,
+					},
+				}).then((stats) => {
+					if (stats.error) {
+						portfolios.value[k].price = '--'
+						portfolios.value[k].change.price = '--'
+						portfolios.value[k].change.percent = '--'
 					}
+
+					portfolios.value[k].price = stats.total.nav
+					portfolios.value[k].change.price = stats.total.pl_daily
+					portfolios.value[k].change.percent =
+						Math.round(stats.total.pl_daily_percent * 100) / 100
 				})
+
+				return {
+					id: o.id,
+					name: o.name,
+					user_code: o.user_code,
+					price: '-',
+					change: {
+						price: '-',
+						percent: '-',
+					},
+				}
+			})
 		} else {
 			portfolios.value = []
 		}

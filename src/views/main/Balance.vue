@@ -361,7 +361,7 @@
 		}
 	)
 	watch(store.settings.general, () => {
-		init()
+		Promise.all([init(), portfoliosRefresher(), indicatorsRefresher()])
 	})
 
 	async function refresh(event) {
@@ -376,6 +376,7 @@
 
 	async function init() {
 		chartProcced.value = true
+		console.log('chartProcced:', chartProcced)
 		detailSubcat.value = {}
 
 		transactionsOpts.end_date = store.settings.general.date_to
