@@ -457,7 +457,7 @@
 				pl_include_zero: false,
 				portfolio_mode: 1,
 				portfolios: [route.query.tab],
-				pricing_policy: 1,
+				pricing_policy: store.settings.general.pricing_policy,
 				report_currency: store.settings.general.currency,
 				report_date: store.settings.general.date_to,
 				report_type: 1,
