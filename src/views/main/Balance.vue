@@ -389,6 +389,7 @@
 				report,
 				sum_field: 'market_value',
 				colorsCat,
+				fieldsToGroup: store.layout.balance.fieldsToGroup,
 			})
 		} else {
 		}

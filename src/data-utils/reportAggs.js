@@ -57,6 +57,7 @@ export const reportGroup = ({
 	}
 
 	let items = injectIntoItemsV2(report.items, report, 'balance-report')
+	console.log('items:', items)
 
 	let res = items.reduce((result, item) => {
 		fieldsToGroup.forEach((group) => {
@@ -273,6 +274,7 @@ export const reportGroupPL = ({
 	}
 
 	let items = injectIntoItemsV2(report.items, report, 'pl-report')
+	console.log('items:', items)
 
 	let res = items.reduce((result, item) => {
 		fieldsToGroup.forEach((group) => {

@@ -297,7 +297,9 @@
 			report,
 			sum_field: 'total',
 			colorsCat,
+			fieldsToGroup: store.layout.pnl.fieldsToGroup,
 		})
+		console.log('store.layout:', store.layout)
 
 		Object.keys(categories.value).forEach((item) => {
 			let arr = Object.values(categories.value[item].subcats).map(
