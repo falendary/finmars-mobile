@@ -400,7 +400,7 @@
 			let catName = Object.keys(categories.value)[0]
 			activeCategory = categories.value[catName]
 
-			balanceChartObj.data = createBalanceDataset(activeCategory)
+			balanceChartObj.data = createBalanceDataset(activeCategory, catName)
 			balanceChartObj.update()
 		}
 
