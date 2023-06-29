@@ -76,7 +76,7 @@
 							<ion-datetime
 								style="color: #000"
 								id="datetime_date_from"
-								v-model="store.settings[tab].date_from"
+								v-model="store.settings.general.date_from"
 								:prefer-wheel="true"
 								presentation="date"
 								show-default-buttons
@@ -86,7 +86,10 @@
 					</ion-item>
 
 					<ion-item v-if="store.settings.general.date_to">
-						<ion-label>Date to</ion-label>
+						<ion-label
+							>Date
+							{{ tab == 'pnl' || tab == 'transactions' ? 'to' : '' }}</ion-label
+						>
 
 						<ion-modal :keep-contents-mounted="true">
 							<ion-datetime

@@ -12,7 +12,10 @@
 				</div>
 			</div>
 
-			<!-- <div class="main_chart">
+			<div
+				class="main_chart"
+				v-if="store.layout?.dashboard?.isShowHistoryChart"
+			>
 				<div class="main_chart_h">Net Asset Value (NAV)</div>
 				<div class="main_chart_price">
 					- {{ store.settings.general.currency }}
@@ -31,7 +34,7 @@
 				>
 					<IonSpinner style="width: 100px" color="primary" name="bubbles" />
 				</div>
-			</div> -->
+			</div>
 
 			<Indicators
 				:currency="store.settings.general.currency"
@@ -117,7 +120,11 @@
 
 			<div class="header">Last transactions for 3 Month</div>
 
-			<TransactionList displayMode="compact" :options="transactionsOpts" />
+			<TransactionList
+				reportType="pl"
+				displayMode="compact"
+				:options="transactionsOpts"
+			/>
 		</ion-content>
 	</ion-page>
 </template>

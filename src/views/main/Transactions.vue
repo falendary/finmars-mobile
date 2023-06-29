@@ -4,15 +4,18 @@
 			<div class="header flex sb aic">
 				<div>Transactions</div>
 				<div class="header_info">
-					{{ store.settings.transactions.date_from }}
+					{{ dayjs(store.settings.general.date_from).format('DD MMM YYYY') }}
 					<span style="font-size: 20px; position: relative; top: 2px">🠦</span>
-					{{ store.settings.general.date_to }}
+					{{ dayjs(store.settings.general.date_to).format('DD MMM YYYY') }}
 				</div>
 			</div>
-
 			<!-- <ion-searchbar animated="true" placeholder="Search..." /> -->
 
-			<TransactionList displayMode="compact" :options="transactionsOpts" />
+			<TransactionList
+				reportType="pl"
+				displayMode="compact"
+				:options="transactionsOpts"
+			/>
 		</ion-content>
 	</ion-page>
 </template>
@@ -28,6 +31,7 @@
 		IonToolbar,
 		IonFooter,
 	} from '@ionic/vue'
+	import dayjs from 'dayjs'
 
 	import { reactive, watch } from 'vue'
 	import TransactionList from '@/components/TransactionList.vue'
@@ -37,14 +41,14 @@
 
 	const transactionsOpts = reactive({
 		end_date: store.settings.general.date_to,
-		begin_date: store.settings.transactions.date_from,
+		begin_date: store.settings.general.date_from,
 		portfolios: store.settings.general.portfolios,
 		filter_entry_user_code: null,
 	})
 
 	watch([store.settings.transactions, store.settings.general], () => {
 		transactionsOpts.end_date = store.settings.general.date_to
-		transactionsOpts.begin_date = store.settings.transactions.date_from
+		transactionsOpts.begin_date = store.settings.general.date_from
 		transactionsOpts.portfolios = store.settings.general.portfolios
 	})
 </script>

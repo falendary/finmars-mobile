@@ -376,7 +376,6 @@
 
 	async function init() {
 		chartProcced.value = true
-		console.log('chartProcced:', chartProcced)
 		detailSubcat.value = {}
 
 		transactionsOpts.end_date = store.settings.general.date_to
@@ -388,7 +387,7 @@
 		if (report && !report.error) {
 			categories.value = reportGroup({
 				report,
-				sum_field: 'market_value',
+				sum_field: store.layout.balance.fieldToAggrigate[0].key,
 				colorsCat,
 				fieldsToGroup: store.layout.balance.fieldsToGroup,
 			})

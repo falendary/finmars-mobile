@@ -14,7 +14,7 @@
 				/>
 
 				<div class="header_info">
-					{{ dayjs(store.settings.pnl.date_from).format('DD MMM YYYY') }}
+					{{ dayjs(store.settings.general.date_from).format('DD MMM YYYY') }}
 					<span style="font-size: 20px; position: relative; top: 2px">🠦</span>
 					{{ dayjs(store.settings.general.date_to).format('DD MMM YYYY') }}
 				</div>
@@ -22,7 +22,7 @@
 
 			<HistoryChartComp
 				type="pl"
-				:date_from="store.settings.pnl.date_from"
+				:date_from="store.settings.general.date_from"
 				:date_to="store.settings.general.date_to"
 				:currency="store.settings.general.currency"
 				@refresher="portfoliosRefresher = $event"
@@ -295,7 +295,7 @@
 
 		categories.value = reportGroupPL({
 			report,
-			sum_field: 'total',
+			sum_field: store.layout.pnl.fieldToAggrigate[0]?.key,
 			colorsCat,
 			fieldsToGroup: store.layout.pnl.fieldsToGroup,
 		})
@@ -327,12 +327,11 @@
 				calculationGroup: 'portfolio',
 				complex_transaction_statuses_filter: 'booked',
 				cost_method: 1,
-				custom_fields_to_calculate: 'Asset Types',
 				date_field: 'accounting_date',
 				depth_level: 'base_transaction',
 				expression_iterations_count: 1,
 				filters: [],
-				pl_first_date: store.settings.pnl.date_from,
+				pl_first_date: store.settings.general.date_from,
 				pl_include_zero: false,
 				portfolio_mode: 1,
 				portfolios: route.query.tab && [route.query.tab],

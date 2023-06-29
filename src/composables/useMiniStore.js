@@ -40,6 +40,7 @@ export default defineStore('store', {
 
 				this.settings.general = {
 					date_to,
+					date_from,
 					currency,
 					pricing_policy: '-',
 					portfolios: [],
@@ -51,10 +52,7 @@ export default defineStore('store', {
 					date: date_to,
 					portfolios: [],
 				}
-				this.settings.pnl = {
-					date_from,
-					pricing_policy: '',
-				}
+				this.settings.pnl = {}
 				this.settings.transactions = {
 					date_from,
 					portfolios: [],
