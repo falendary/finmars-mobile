@@ -106,12 +106,12 @@
 				</swiper-slide>
 			</swiper>
 
-			<template v-else-if="categories !== null">
+			<template v-else-if="chartError">
 				<div class="nodata_wrap center aic">
 					<div>
-						<h3>Can't group by choosed fields</h3>
+						<h3>Configuration error</h3>
 
-						<p>No data or wrong fields</p>
+						<p>{{ chartError }}</p>
 					</div>
 				</div>
 			</template>
@@ -255,6 +255,12 @@
 	let colorsCat = {}
 	let maxTickStock = ref({})
 
+	const ERROR_STATUSES = {
+		NO_LAYOUT: 'No columns to aggrigate',
+		NO_REPORT: 'No data',
+	}
+	const chartError = ref('')
+
 	if (route.query.tab) init()
 
 	watch(
@@ -281,6 +287,7 @@
 
 	async function init() {
 		detailSubcat.value = {}
+		chartError.value = ''
 
 		transactionsOpts.end_date = store.settings.general.date_to
 		transactionsOpts.portfolios = route.query.tab
@@ -288,31 +295,39 @@
 
 		let report = await fetchReport()
 
-		total_nav.value = report.items.reduce(
-			(res, val) => res + (val.total || 0),
-			0
-		)
+		if (report && !report.error) {
+			if (store.layout.pnl.fieldToAggrigate && store.layout.pnl.fieldsToGroup) {
+				total_nav.value = report.items.reduce(
+					(res, val) => res + (val.total || 0),
+					0
+				)
 
-		categories.value = reportGroupPL({
-			report,
-			sum_field: store.layout.pnl.fieldToAggrigate[0]?.key,
-			colorsCat,
-			fieldsToGroup: store.layout.pnl.fieldsToGroup,
-		})
+				categories.value = reportGroupPL({
+					report,
+					sum_field: store.layout.pnl.fieldToAggrigate[0]?.key,
+					colorsCat,
+					fieldsToGroup: store.layout.pnl.fieldsToGroup,
+				})
 
-		Object.keys(categories.value).forEach((item) => {
-			let arr = Object.values(categories.value[item].subcats).map(
-				(item) => item.total
-			)
-			let tickMax = Math.max(...arr)
-			let tickMin = Math.min(...arr)
-			let tickTo =
-				Math.abs(tickMax) > Math.abs(tickMin)
-					? Math.abs(tickMax)
-					: Math.abs(tickMin)
+				Object.keys(categories.value).forEach((item) => {
+					let arr = Object.values(categories.value[item].subcats).map(
+						(item) => item.total
+					)
+					let tickMax = Math.max(...arr)
+					let tickMin = Math.min(...arr)
+					let tickTo =
+						Math.abs(tickMax) > Math.abs(tickMin)
+							? Math.abs(tickMax)
+							: Math.abs(tickMin)
 
-			maxTickStock.value[item] = tickTo
-		})
+					maxTickStock.value[item] = tickTo
+				})
+			} else {
+				chartError.value = ERROR_STATUSES['NO_LAYOUT']
+			}
+		} else {
+			chartError.value = ERROR_STATUSES['NO_REPORT']
+		}
 	}
 	async function fetchReport() {
 		let res = await useApi('pnlReport.post', {

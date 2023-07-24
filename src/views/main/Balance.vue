@@ -120,11 +120,12 @@
 				</swiper-slide>
 			</swiper>
 
-			<div
-				class="balance_block tac"
-				v-else-if="!categories.asset_types && !chartProcced"
-			>
-				No data
+			<div class="nodata_wrap center aic" v-else-if="!chartProcced">
+				<div>
+					<h3>Configuration error</h3>
+
+					<p>{{ chartError }}</p>
+				</div>
 			</div>
 
 			<div v-else class="balance_block">
@@ -333,6 +334,12 @@
 
 	let balanceSwiper = null
 
+	const ERROR_STATUSES = {
+		NO_LAYOUT: 'No columns to aggrigate',
+		NO_REPORT: 'No data',
+	}
+	const chartError = ref('')
+
 	// This function is init balanceChart
 	const onSwiper = (swiper) => {
 		balanceSwiper = swiper
@@ -385,13 +392,21 @@
 		let report = await fetchReport()
 
 		if (report && !report.error) {
-			categories.value = reportGroup({
-				report,
-				sum_field: store.layout.balance.fieldToAggrigate[0].key,
-				colorsCat,
-				fieldsToGroup: store.layout.balance.fieldsToGroup,
-			})
+			if (
+				store.layout.balance.fieldToAggrigate &&
+				store.layout.balance.fieldsToGroup
+			) {
+				categories.value = reportGroup({
+					report,
+					sum_field: store.layout.balance.fieldToAggrigate[0].key,
+					colorsCat,
+					fieldsToGroup: store.layout.balance.fieldsToGroup,
+				})
+			} else {
+				chartError.value = ERROR_STATUSES['NO_LAYOUT']
+			}
 		} else {
+			chartError.value = ERROR_STATUSES['NO_REPORT']
 		}
 		console.log('categories.value:', categories.value)
 
