@@ -52,6 +52,26 @@ npx cap build ios
 
 cordova plugin add ionic-plugin-deeplinks --variable URL_SCHEME=finmars --variable DEEPLINK_SCHEME=https --variable DEEPLINK_HOST=finmars.com  --variable ANDROID_PATH_PREFIX=/
 
+in android/app/src/main/AndroidManifest.xml add 
+
+https://devdactic.com/setup-deep-links-capacitor - good article
+
+Update nginx to be able serve
+https://developers.google.com/digital-asset-links/tools/generator [generator]
+https://stackoverflow.com/questions/69384022/how-to-not-need-a-dotted-file-path-in-nginx-configuration [nginx]
+
+https://finmars.com/.well-known/assetlinks.json
+Example content:
+```
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target" : { "namespace": "android_app", "package_name": "com.finmars.app",
+    "sha256_cert_fingerprints": ["1A:6C:25:F9:8E:5D:4F:FF:54:82:07:18:B9:CB:95:28:14:CD:3F:92:FF:80:35:EC:B1:48:AE:EE:8E:FE:72:30"] }
+}]
+```
+
+
+
 ### Notes
 
 BASE_URL is deprecated

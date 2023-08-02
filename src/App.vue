@@ -8,6 +8,14 @@
 
 <script setup>
 	import { IonApp, IonRouterOutlet } from '@ionic/vue'
+
+	import { App, URLOpenListenerEvent } from '@capacitor/app';
+
+	App.addListener('appUrlOpen', (event) => {
+
+
+	})
+
 </script>
 
 <style lang="scss" scoped></style>

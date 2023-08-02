@@ -29,6 +29,8 @@ import '@/assets/main.scss'
 import NumberFormat from '@/plugins/NumberFormat.js'
 import { createPinia } from 'pinia'
 
+
+
 const pinia = createPinia()
 const app = createApp(App)
 	.use(router)
