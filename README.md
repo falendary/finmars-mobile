@@ -5,6 +5,10 @@
 npm install
 sudo npm i -g @ionic/cli
 
+npm install ionic-plugin-deeplinks
+npm install @awesome-cordova-plugins/deeplinks
+ionic cap sync
+
 ### Build and run Server
 
 npm run build
@@ -28,6 +32,25 @@ You need to have a keystore and configured android studio
 2) Pick generate release
 3) Check your local ./android/app/release folder
 4) Upload app-release.apk to google play console
+
+
+## BUILD IOS
+
+https://capacitorjs.com/docs/ios
+
+npm install @capacitor/ios
+
+sudo xcode-select --switch /Applications/Xcode.app
+
+Update signing team in xcode
+
+npx cap add ios
+npx cap open ios
+npx cap build ios
+
+### Deeplinks
+
+cordova plugin add ionic-plugin-deeplinks --variable URL_SCHEME=finmars --variable DEEPLINK_SCHEME=https --variable DEEPLINK_HOST=finmars.com  --variable ANDROID_PATH_PREFIX=/
 
 ### Notes
 
