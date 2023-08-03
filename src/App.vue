@@ -9,10 +9,11 @@
 <script setup>
 	import { IonApp, IonRouterOutlet } from '@ionic/vue'
 
-	import { App, URLOpenListenerEvent } from '@capacitor/app';
+	import { App } from '@capacitor/app';
 
 	App.addListener('appUrlOpen', (event) => {
 
+		console.log('App opened with URL: ' + event);
 
 	})
 

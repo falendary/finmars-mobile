@@ -53,6 +53,7 @@ async function initKeycloak(region) {
 	let kcOpts = {
 		onLoad: 'login-required',
 		timeSkew: 0,
+		redirectUri: 'https://finmars.com/m/workspaces'
 	}
 
 	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))

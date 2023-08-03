@@ -19,8 +19,15 @@ ionic serve
 npm install @capacitor/android
 npx cap add android
 npx cap open android
-npx cap build android
 
+# This two actuially builds app
+npm run build && npx cap run android
+
+
+npx cap build android
+-- for signing build
+npx cap build android --keystorepath=/Users/szhitenev/projects/finmars/data/keystores/android/finmars-keystore --keystorealias=key0 --keystorealiaspass=[pass] --keystorepass=[pass]
+ 
 ionic
 ionic capacitor build android
 
@@ -73,6 +80,9 @@ Example content:
 
 
 ### Notes
+
+npm install @capacitor/configure
+
 
 BASE_URL is deprecated
 
