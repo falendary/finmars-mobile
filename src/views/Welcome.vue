@@ -28,9 +28,8 @@
 	import { IonButton, IonContent, IonPage, IonSelect, IonSelectOption } from '@ionic/vue'
 	import { ref } from 'vue'
 	import { Preferences } from '@capacitor/preferences'
-	import KeycloakJs from 'keycloak-js'
+	import '../keycloak.js'
 	import { useRouter } from 'vue-router'
-	import { Browser } from '@capacitor/browser'
 
 	const router = useRouter()
 	const regions = [
@@ -70,25 +69,45 @@
 	let capacitorAdapter
 
 	async function login() {
+
 		let regionObj = regions.find((o) => o.id == region.value)
 		Preferences.set({ key: 'region', value: JSON.stringify(regionObj) })
 
 
-
 		regionObj.keycloakOpts['redirectUri'] = 'https://finmars.com/m/workspaces'
 
-		alert(regionObj.keycloakOpts['redirectUri'])
+		// alert(regionObj.keycloakOpts['redirectUri'])
 
-		let keycloak = new KeycloakJs(regionObj.keycloakOpts)
+		let keycloak = Keycloak(regionObj.keycloakOpts)
 
 		var initOptions = {
-			checkLoginIframe: false,
+			checkLoginIframe: true,
 			onLoad: 'login-required',
-			redirectUri: 'https://finmars.com/m/workspaces'
+			redirectUri: 'https://finmars.com/workspaces'
 		}
 
+		if (window.Cordova) {
+			initOptions['adapter'] = 'capacitor'
+			initOptions['responseMode'] = 'query'
+			initOptions['redirectUri'] = 'https://finmars.com/m/workspaces'
+		}
+		// alert(JSON.stringify(initOptions, null, 4))
 
-		keycloak.init(initOptions)
+		await keycloak.init(initOptions)
+
+		console.log('Welcome keycloak inited')
+
+		router.push('/workspaces')
+
+		// Preferences.set({
+		// 	key: 'kcTokens',
+		// 	value: JSON.stringify({
+		// 		token: keycloak.token,
+		// 		refreshToken: keycloak.refreshToken,
+		// 		idToken: keycloak.idToken
+		// 	})
+		// })
+
 		// keycloak.login({
 		// 	redirectUri: 'https://finmars.com/' + router.options.history.base + '/workspaces'
 		// 	// window.location.origin + router.options.history.base + '/workspaces',

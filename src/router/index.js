@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router'
 import { Preferences } from '@capacitor/preferences'
-import KeycloakJs from 'keycloak-js'
 
 import routes from './routes.js'
+import '../keycloak.js'
 
 let keycloak
 
@@ -15,6 +15,8 @@ router.beforeEach(async (to, from) => {
 	// refactor
 	const region = await getRegion()
 	const { value: space } = await Preferences.get({ key: 'space' })
+
+	console.log('to.path ', to.path );
 
 	if (to.path == '/logout') {
 		Preferences.clear()
@@ -44,7 +46,7 @@ async function initKeycloak(region) {
 
 	let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
 
-	keycloak = new KeycloakJs(region.keycloakOpts)
+	keycloak = Keycloak(region.keycloakOpts)
 
 	keycloak.onAuthSuccess = setTokens
 	keycloak.onAuthRefreshSuccess = setTokens
@@ -53,11 +55,21 @@ async function initKeycloak(region) {
 	let kcOpts = {
 		onLoad: 'login-required',
 		timeSkew: 0,
-		redirectUri: 'https://finmars.com/m/workspaces'
+		redirectUri: 'https://finmars.com/workspaces'
+	}
+
+	if (window.Cordova) {
+		kcOpts['adapter'] = 'capacitor'
+		kcOpts['responseMode'] = 'query'
+		kcOpts['redirectUri'] = 'https://finmars.com/m/workspaces'
 	}
 
 	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))
 	await keycloak.init(kcOpts)
+
+	// console.log('keycloak.token', keycloak.token)
+	// console.log('keycloak.refreshToken', keycloak.refreshToken)
+	// console.log('keycloak.idToken', keycloak.idToken)
 
 	Preferences.set({
 		key: 'username',
@@ -73,6 +85,9 @@ async function initKeycloak(region) {
 	})
 
 	function setTokens() {
+
+		// alert('setTokens: ' + keycloak.token)
+
 		Preferences.set({
 			key: 'kcTokens',
 			value: JSON.stringify({

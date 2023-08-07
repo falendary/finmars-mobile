@@ -72,7 +72,7 @@ Example content:
 ```
 [{
   "relation": ["delegate_permission/common.handle_all_urls"],
-  "target" : { "namespace": "android_app", "package_name": "com.finmars.app",
+  "target" : { "namespace": "android_app", "package_name": "com.finmars.mobile",
     "sha256_cert_fingerprints": ["1A:6C:25:F9:8E:5D:4F:FF:54:82:07:18:B9:CB:95:28:14:CD:3F:92:FF:80:35:EC:B1:48:AE:EE:8E:FE:72:30"] }
 }]
 ```
@@ -101,3 +101,9 @@ export PATH=$PATH:$ANDROID_HOME/tools/bin
 export PATH=$PATH:$ANDROID_HOME/platform-tools
 
 
+
+cordova plugin add ionic-plugin-deeplinks --variable URL_SCHEME=finmars --variable DEEPLINK_SCHEME=https --variable DEEPLINK_HOST=finmars.com
+
+
+npm install @capacitor/browser
+npx cap sync

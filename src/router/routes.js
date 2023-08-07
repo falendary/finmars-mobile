@@ -7,6 +7,11 @@ export default [
 		beforeEnter: [() => {}],
 	},
 	{
+		path: '/welcome',
+		component: () => import('@/views/Welcome.vue'),
+		beforeEnter: [() => {}],
+	},
+	{
 		path: '/workspaces',
 		component: () => import('@/views/Workspaces.vue'),
 	},

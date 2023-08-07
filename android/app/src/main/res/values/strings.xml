@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Finmars Mobile</string>
-    <string name="title_activity_main">Finmars Mobile</string>
-    <string name="package_name">io.ionic.starter</string>
-    <string name="custom_url_scheme">io.ionic.starter</string>
+    <string name="app_name">Finmars</string>
+    <string name="title_activity_main">Finmars</string>
+    <string name="package_name">com.finmars.mobile</string>
+    <string name="custom_url_scheme">com.finmars.mobile</string>
 </resources>
