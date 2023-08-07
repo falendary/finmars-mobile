@@ -74,7 +74,7 @@
 		Preferences.set({ key: 'region', value: JSON.stringify(regionObj) })
 
 
-		regionObj.keycloakOpts['redirectUri'] = 'https://finmars.com/m/workspaces'
+		regionObj.keycloakOpts['redirectUri'] = 'https://finmars.com/workspaces'
 
 		// alert(regionObj.keycloakOpts['redirectUri'])
 
@@ -89,7 +89,7 @@
 		if (window.Cordova) {
 			initOptions['adapter'] = 'capacitor'
 			initOptions['responseMode'] = 'query'
-			initOptions['redirectUri'] = 'https://finmars.com/m/workspaces'
+			initOptions['redirectUri'] = 'https://finmars.com/workspaces'
 		}
 		// alert(JSON.stringify(initOptions, null, 4))
 

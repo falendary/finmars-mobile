@@ -61,7 +61,7 @@ async function initKeycloak(region) {
 	if (window.Cordova) {
 		kcOpts['adapter'] = 'capacitor'
 		kcOpts['responseMode'] = 'query'
-		kcOpts['redirectUri'] = 'https://finmars.com/m/workspaces'
+		kcOpts['redirectUri'] = 'https://finmars.com/workspaces'
 	}
 
 	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))
