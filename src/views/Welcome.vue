@@ -70,6 +70,8 @@
 
 	async function login() {
 
+		console.log('Login keycloak inited')
+
 		let regionObj = regions.find((o) => o.id == region.value)
 		Preferences.set({ key: 'region', value: JSON.stringify(regionObj) })
 
@@ -96,6 +98,19 @@
 		await keycloak.init(initOptions)
 
 		console.log('Welcome keycloak inited')
+
+		Preferences.set({
+			key: 'kcTokens',
+			value: JSON.stringify({
+				token: keycloak.token,
+				refreshToken: keycloak.refreshToken,
+				idToken: keycloak.idToken,
+			}),
+		})
+
+		console.log('Tokens are set')
+
+		// await keycloak.updateToken(5)
 
 		router.push('/workspaces')
 
