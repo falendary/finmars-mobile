@@ -76,7 +76,7 @@ async function initKeycloak(region) {
 		value: keycloak.idTokenParsed.preferred_username,
 	})
 
-	if (keycloak.isTokenExpired(5)) await refreshTokens()
+	// if (keycloak.isTokenExpired(5)) await refreshTokens()
 
 	log.timeEnd({
 		key: 'Keycloak init',

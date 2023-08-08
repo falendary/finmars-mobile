@@ -81,7 +81,7 @@
 		let keycloak = Keycloak(regionObj.keycloakOpts)
 
 		var initOptions = {
-			checkLoginIframe: true,
+			// checkLoginIframe: true,
 			onLoad: 'login-required',
 			redirectUri: 'https://finmars.com/workspaces'
 		}
@@ -99,19 +99,6 @@
 
 		router.push('/workspaces')
 
-		// Preferences.set({
-		// 	key: 'kcTokens',
-		// 	value: JSON.stringify({
-		// 		token: keycloak.token,
-		// 		refreshToken: keycloak.refreshToken,
-		// 		idToken: keycloak.idToken
-		// 	})
-		// })
-
-		// keycloak.login({
-		// 	redirectUri: 'https://finmars.com/' + router.options.history.base + '/workspaces'
-		// 	// window.location.origin + router.options.history.base + '/workspaces',
-		// })
 	}
 
 </script>

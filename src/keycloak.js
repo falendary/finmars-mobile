@@ -1615,7 +1615,7 @@
 			if (type == 'capacitor') {
 				loginIframe.enable = false;
 
-				console.log("Capacitor initlalized")
+				// console.log("Capacitor initlalized")
 
 				return {
 					login: function(options) {
