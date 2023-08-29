@@ -39,6 +39,7 @@ export default defineStore('store', {
 				let currency = 'USD'
 
 				this.settings.general = {
+					period: 'inception',
 					date_to,
 					date_from,
 					currency,

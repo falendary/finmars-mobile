@@ -56,7 +56,7 @@
 				@swiper="onSwiper"
 			>
 				<swiper-slide v-for="(item, cat) in categories">
-					<div class="balance_block">
+					<div class="balance_block" v-show="item.subcats.length">
 						<div class="bb_header_line flex sb aic">
 							<div class="bb_header">{{ item.name }}</div>
 							<div class="bb_price">
@@ -114,6 +114,15 @@
 										{{ $format(subcat.market_value) }}
 									</div>
 								</div>
+							</div>
+						</div>
+					</div>
+					<div v-show="!item.subcats.length">
+						<div class="nodata_wrap center aic">
+							<div>
+								<h3>No data</h3>
+
+								<p>No data</p>
 							</div>
 						</div>
 					</div>
@@ -350,7 +359,7 @@
 
 		if (!activeCategory) {
 			console.error('No categories')
-			return
+			return false
 		}
 
 		balanceChartObj.data = createBalanceDataset(activeCategory, catName)
@@ -408,9 +417,9 @@
 		} else {
 			chartError.value = ERROR_STATUSES['NO_REPORT']
 		}
-		console.log('categories.value:', categories.value)
 
-		if (balanceChartObj) {
+		if (balanceChartObj && !balanceSwiper?.destroyed) {
+			console.log('balanceSwiper:', balanceSwiper)
 			balanceSwiper.slideTo(0)
 			let catName = Object.keys(categories.value)[0]
 			activeCategory = categories.value[catName]
@@ -505,6 +514,7 @@
 	}
 
 	function createChart(cat) {
+		console.log('cat:', cat)
 		if (balanceChartObj) balanceChartObj.destroy()
 
 		balanceChartObj = new Chart(
@@ -550,7 +560,8 @@
 	}
 
 	function createBalanceDataset(cat, catName) {
-		console.log('cat:', cat)
+		if (!cat) return false
+
 		let plusColors = []
 		let plus = cat.subcats
 			.filter((item) => item.market_value >= 0)
@@ -745,6 +756,17 @@
 			color: #ff2d55;
 		}
 		&.neutral {
+			color: #747474;
+		}
+	}
+	.nodata_wrap {
+		text-align: center;
+		background: #eee;
+		height: 200px;
+		h3 {
+			font-size: 18px;
+		}
+		p {
 			color: #747474;
 		}
 	}

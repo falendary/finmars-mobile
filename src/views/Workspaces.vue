@@ -15,6 +15,8 @@
 						</ion-select-option>
 					</ion-select>
 
+					<div v-if="error">{{ error }}</div>
+
 					<IonButton expand="full" @click="setWorkspace()">SELECT</IonButton>
 				</div>
 			</div>
@@ -41,12 +43,16 @@
 	const router = useRouter()
 	const workspaces = ref([])
 	const workspace = ref(null)
+	const error = ref(null)
 
 	init()
 	async function init() {
 		let { results } = await useApi('masterUser.get')
 
-		if (!results) return false
+		if (!results) {
+			error.value = `Can't get masterUser`
+			return false
+		}
 
 		workspaces.value = results
 	}

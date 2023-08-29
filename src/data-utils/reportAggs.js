@@ -3,11 +3,7 @@ export const reportGroup = ({
 	sum_field,
 	colorsCat,
 	type,
-	fieldsToGroup = [
-		{ name: 'Asset type', key: 'instrument.attributes.asset_types' },
-		{ name: 'Sector', key: 'instrument.attributes.sector' },
-		{ name: 'Currency', key: 'pricing_currency.short_name' },
-	],
+	fieldsToGroup,
 }) => {
 	let colors = [
 		'#577590CC',
@@ -62,7 +58,6 @@ export const reportGroup = ({
 	let res = items.reduce((result, item) => {
 		fieldsToGroup.forEach((group) => {
 			let valToGroup = item[group.key]
-			console.log('valToGroup:', valToGroup)
 
 			if (!valToGroup) {
 				if (item.item_type == 2) valToGroup = 'Cash'
@@ -211,6 +206,8 @@ export const reportGroup = ({
 		res[prop].subcats = res[prop].subcats
 			.sort((a, b) => b[sum_field] - a[sum_field])
 			.filter((o) => o[sum_field] != 0)
+
+		if (!res[prop].subcats.length) delete res[prop]
 	}
 
 	return res
@@ -221,11 +218,7 @@ export const reportGroupPL = ({
 	sum_field,
 	colorsCat,
 	type,
-	fieldsToGroup = [
-		{ name: 'Asset type', key: 'instrument.attributes.asset_types' },
-		{ name: 'Sector', key: 'instrument.attributes.sector' },
-		{ name: 'Currency', key: 'pricing_currency.short_name' },
-	],
+	fieldsToGroup,
 }) => {
 	let colors = [
 		'#577590CC',
@@ -348,6 +341,8 @@ export const reportGroupPL = ({
 		res[prop].subcats = res[prop].subcats
 			.sort((a, b) => b[sum_field] - a[sum_field])
 			.filter((o) => o[sum_field] != 0)
+
+		if (!res[prop].subcats.length) delete res[prop]
 	}
 
 	return res

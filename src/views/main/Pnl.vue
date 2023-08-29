@@ -106,7 +106,7 @@
 				</swiper-slide>
 			</swiper>
 
-			<template v-else-if="chartError">
+			<template v-if="chartError">
 				<div class="nodata_wrap center aic">
 					<div>
 						<h3>Configuration error</h3>
@@ -116,7 +116,21 @@
 				</div>
 			</template>
 
-			<div v-else class="balance_block">
+			<template
+				v-if="
+					categories && !chartProcessed && Object.keys(categories).length == 0
+				"
+			>
+				<div class="nodata_wrap center aic">
+					<div>
+						<h3>No data</h3>
+
+						<p>No data</p>
+					</div>
+				</div>
+			</template>
+
+			<div v-if="chartProcessed" class="balance_block">
 				<div class="bb_header_line flex sb aic">
 					<div class="bb_header">
 						<IonSkeletonText
@@ -254,6 +268,7 @@
 	let categories = ref(null)
 	let colorsCat = {}
 	let maxTickStock = ref({})
+	let chartProcessed = ref(false)
 
 	const ERROR_STATUSES = {
 		NO_LAYOUT: 'No columns to aggrigate',
@@ -286,9 +301,12 @@
 	}
 
 	async function init() {
+		chartProcessed.value = true
+
 		detailSubcat.value = {}
 		chartError.value = ''
 
+		transactionsOpts.begin_date = store.settings.general.date_from
 		transactionsOpts.end_date = store.settings.general.date_to
 		transactionsOpts.portfolios = route.query.tab
 		transactionsOpts.filter_entry_user_code = null
@@ -328,6 +346,7 @@
 		} else {
 			chartError.value = ERROR_STATUSES['NO_REPORT']
 		}
+		chartProcessed.value = false
 	}
 	async function fetchReport() {
 		let res = await useApi('pnlReport.post', {

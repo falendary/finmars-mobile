@@ -1,23 +1,21 @@
 <template>
 	<ion-page>
-		<ion-content class='ion-padding'>
-			<div class='center aic' style='height: 100%'>
-				<div style='width: 90%'>
-					<h1 class='tac'>
-						Welcome to Finmars
-					</h1>
+		<ion-content class="ion-padding">
+			<div class="center aic" style="height: 100%">
+				<div style="width: 90%">
+					<h1 class="tac">Welcome to Finmars</h1>
 
 					<ion-select
-						v-model='region'
-						label='Region'
-						placeholder='Choose region'
+						v-model="region"
+						label="Region"
+						placeholder="Choose region"
 					>
-						<ion-select-option v-for='item in regions' :value='item.id'>
+						<ion-select-option v-for="item in regions" :value="item.id">
 							{{ item.name }}
 						</ion-select-option>
 					</ion-select>
 
-					<IonButton expand='full' @click='login()'>LOGIN</IonButton>
+					<IonButton expand="full" @click="login()">LOGIN</IonButton>
 				</div>
 			</div>
 		</ion-content>
@@ -25,7 +23,13 @@
 </template>
 
 <script setup>
-	import { IonButton, IonContent, IonPage, IonSelect, IonSelectOption } from '@ionic/vue'
+	import {
+		IonButton,
+		IonContent,
+		IonPage,
+		IonSelect,
+		IonSelectOption,
+	} from '@ionic/vue'
 	import { ref } from 'vue'
 	import { Preferences } from '@capacitor/preferences'
 	import '../keycloak.js'
@@ -40,8 +44,8 @@
 			keycloakOpts: {
 				url: 'https://eu-central.finmars.com',
 				realm: 'finmars',
-				clientId: 'finmars'
-			}
+				clientId: 'finmars',
+			},
 		},
 		{
 			id: 'eu2-central',
@@ -50,8 +54,8 @@
 			keycloakOpts: {
 				url: 'https://eu-central-2.finmars.com',
 				realm: 'finmars',
-				clientId: 'finmars'
-			}
+				clientId: 'finmars',
+			},
 		},
 		{
 			id: 'dev',
@@ -60,23 +64,21 @@
 			keycloakOpts: {
 				url: 'https://dev-auth.finmars.com',
 				realm: 'finmars',
-				clientId: 'finmars'
-			}
-		}
+				clientId: 'finmars',
+			},
+		},
 	]
 	const region = ref('eu-central')
 
 	let capacitorAdapter
 
 	async function login() {
-
 		console.log('Login keycloak inited')
 
 		let regionObj = regions.find((o) => o.id == region.value)
 		Preferences.set({ key: 'region', value: JSON.stringify(regionObj) })
 
-
-		regionObj.keycloakOpts['redirectUri'] = 'https://finmars.com/workspaces'
+		regionObj.keycloakOpts['redirectUri'] = 'https://finmars.com/m/workspaces'
 
 		// alert(regionObj.keycloakOpts['redirectUri'])
 
@@ -85,13 +87,13 @@
 		var initOptions = {
 			// checkLoginIframe: true,
 			onLoad: 'login-required',
-			redirectUri: 'https://finmars.com/workspaces'
+			redirectUri: 'https://finmars.com/m/workspaces',
 		}
 
 		if (window.Cordova) {
 			initOptions['adapter'] = 'capacitor'
 			initOptions['responseMode'] = 'query'
-			initOptions['redirectUri'] = 'https://finmars.com/workspaces'
+			initOptions['redirectUri'] = 'https://finmars.com/m/workspaces'
 		}
 		// alert(JSON.stringify(initOptions, null, 4))
 
@@ -113,12 +115,10 @@
 		// await keycloak.updateToken(5)
 
 		router.push('/workspaces')
-
 	}
-
 </script>
 
-<style lang='scss' scoped>
+<style lang="scss" scoped>
 	ion-button {
 		margin-top: 20px;
 	}

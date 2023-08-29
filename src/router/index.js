@@ -16,7 +16,7 @@ router.beforeEach(async (to, from) => {
 	const region = await getRegion()
 	const { value: space } = await Preferences.get({ key: 'space' })
 
-	console.log('to.path ', to.path );
+	console.log('to.path ', to.path)
 
 	if (to.path == '/logout') {
 		Preferences.clear()
@@ -55,13 +55,13 @@ async function initKeycloak(region) {
 	let kcOpts = {
 		onLoad: 'login-required',
 		timeSkew: 0,
-		redirectUri: 'https://finmars.com/workspaces'
+		redirectUri: 'https://finmars.com/m/workspaces',
 	}
 
 	if (window.Cordova) {
 		kcOpts['adapter'] = 'capacitor'
 		kcOpts['responseMode'] = 'query'
-		kcOpts['redirectUri'] = 'https://finmars.com/workspaces'
+		kcOpts['redirectUri'] = 'https://finmars.com/m/workspaces'
 	}
 
 	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))
@@ -85,7 +85,6 @@ async function initKeycloak(region) {
 	})
 
 	function setTokens() {
-
 		// alert('setTokens: ' + keycloak.token)
 
 		Preferences.set({

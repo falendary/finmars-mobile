@@ -68,21 +68,26 @@
 
 			<ion-content>
 				<ion-list lines="full">
+					<ion-item>
+						<ion-select
+							v-model="store.settings.general.period"
+							label="Period"
+							placeholder="Period"
+							@ionChange="changeDataFrom"
+						>
+							<ion-select-option value="inception">
+								Inception
+							</ion-select-option>
+							<ion-select-option value="ytd"> YTD </ion-select-option>
+							<ion-select-option value="qtd"> QTD </ion-select-option>
+							<ion-select-option value="mtd"> MTD </ion-select-option>
+						</ion-select>
+					</ion-item>
+
 					<ion-item v-if="tab == 'pnl' || tab == 'transactions'">
 						<ion-label>Date from</ion-label>
 
-						<ion-datetime-button datetime="datetime_date_from" />
-						<ion-modal :keep-contents-mounted="true">
-							<ion-datetime
-								style="color: #000"
-								id="datetime_date_from"
-								v-model="store.settings.general.date_from"
-								:prefer-wheel="true"
-								presentation="date"
-								show-default-buttons
-								mode="ios"
-							/>
-						</ion-modal>
+						{{ dayjs(store.settings.general.date_from).format('DD MMM YYYY') }}
 					</ion-item>
 
 					<ion-item v-if="store.settings.general.date_to">
@@ -91,7 +96,10 @@
 							{{ tab == 'pnl' || tab == 'transactions' ? 'to' : '' }}</ion-label
 						>
 
-						<ion-modal :keep-contents-mounted="true">
+						<ion-modal
+							:keep-contents-mounted="true"
+							@didDismiss="changeDataFrom"
+						>
 							<ion-datetime
 								style="color: #000"
 								id="datetime_date_to"
@@ -211,6 +219,9 @@
 	import useMiniStore from '@/composables/useMiniStore'
 	import useApi from '@/composables/useApi'
 	import { watch } from 'vue'
+	import dayjs from 'dayjs'
+	import quarterOfYear from 'dayjs/plugin/quarterOfYear'
+	dayjs.extend(quarterOfYear)
 
 	const store = useMiniStore()
 	const route = useRoute()
@@ -280,6 +291,34 @@
 		} else {
 			pricingPolicies.value = []
 		}
+	}
+	function changeDataFrom() {
+		const funcs = {
+			inception: () => {
+				store.settings.general.date_from = '01-01-0001'
+			},
+			ytd: () => {
+				store.settings.general.date_from = dayjs(store.settings.general.date_to)
+					.add(-1, 'year')
+					.format('YYYY-MM-DD')
+			},
+			qtd: () => {
+				console.log(
+					'dayjs(store.settings.general.date_to).quarter():',
+					dayjs(store.settings.general.date_to).quarter()
+				)
+				store.settings.general.date_from = dayjs(store.settings.general.date_to)
+					.quarter(dayjs(store.settings.general.date_to).quarter() - 1)
+					.format('YYYY-MM-DD')
+			},
+			mtd: () => {
+				store.settings.general.date_from = dayjs(store.settings.general.date_to)
+					.add(-1, 'month')
+					.format('YYYY-MM-DD')
+			},
+		}
+
+		funcs[store.settings.general.period]()
 	}
 
 	const tab = computed(() => {
