@@ -32,3 +32,6 @@ npm-debug.log*
 /www
 
 *.local
+
+android/app/release/
+ios
