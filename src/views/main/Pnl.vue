@@ -58,7 +58,7 @@
 				<swiper-slide v-for="(item, cat) in categories">
 					<div class="balance_block">
 						<div class="bb_header_line flex sb aic">
-							<div class="bb_header">{{ item.name }}</div>
+							<div class="bb_header">{{ item.layout_name || item.name }}</div>
 							<div class="bb_price">
 								{{ $format(item.total) }}
 								{{ store.settings.general.currency }}
@@ -311,7 +311,7 @@
 		transactionsOpts.portfolios = route.query.tab
 		transactionsOpts.filter_entry_user_code = null
 
-		let report = await fetchReport()
+		let report = await fetchReport(store.layout.pnl.fieldsToGroup)
 
 		if (report && !report.error) {
 			if (store.layout.pnl.fieldToAggrigate && store.layout.pnl.fieldsToGroup) {
@@ -348,7 +348,16 @@
 		}
 		chartProcessed.value = false
 	}
-	async function fetchReport() {
+	async function fetchReport(fieldsToGroup) {
+		let customFields = ''
+
+		if (fieldsToGroup) {
+			customFields = fieldsToGroup
+				.filter((o) => o.custom_field)
+				.map((item) => item.custom_field.name)
+				.join(',')
+		}
+
 		let res = await useApi('pnlReport.post', {
 			body: {
 				account_mode: 0,
@@ -360,6 +369,7 @@
 				approach_multiplier: 0.5,
 				calculationGroup: 'portfolio',
 				complex_transaction_statuses_filter: 'booked',
+				custom_fields_to_calculate: customFields,
 				cost_method: 1,
 				date_field: 'accounting_date',
 				depth_level: 'base_transaction',

@@ -58,7 +58,7 @@
 				<div class="flex sb">
 					<div class="desc">
 						{{
-							item['complex_transaction.text'].slice(
+							item['complex_transaction.text']?.slice(
 								0,
 								displayMode != 'compact' ? 30 : 40
 							)

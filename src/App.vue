@@ -9,19 +9,18 @@
 <script setup>
 	import { IonApp, IonRouterOutlet } from '@ionic/vue'
 
-	import { App } from '@capacitor/app';
+	import { App } from '@capacitor/app'
 	import { useRouter } from 'vue-router'
 	import { Preferences } from '@capacitor/preferences'
 
 	const router = useRouter()
 
 	App.addListener('appUrlOpen', async (event) => {
-
 		// alert('App opened with URL: ' + event);
 
-		console.log('event.url', event.url);
+		console.log('event.url', event.url)
 
-		const slug = event.url.split('https://finmars.com')[1]
+		const slug = event.url.split('myapp://finmars.com')[1]
 
 		// alert('slug: ' + slug)
 
@@ -82,13 +81,8 @@
 			// await initKeycloak(region)
 
 			router.push(slug)
-
-
-
 		}
-
 	})
-
 </script>
 
 <style lang="scss" scoped></style>

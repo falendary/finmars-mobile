@@ -71,7 +71,9 @@
 					<ion-item>
 						<ion-select
 							v-model="store.settings.general.period"
-							label="Period"
+							:label="`Period [${dayjs(store.settings.general.date_from).format(
+								'DD MMM YYYY'
+							)}]`"
 							placeholder="Period"
 							@ionChange="changeDataFrom"
 						>
@@ -82,12 +84,6 @@
 							<ion-select-option value="qtd"> QTD </ion-select-option>
 							<ion-select-option value="mtd"> MTD </ion-select-option>
 						</ion-select>
-					</ion-item>
-
-					<ion-item v-if="tab == 'pnl' || tab == 'transactions'">
-						<ion-label>Date from</ion-label>
-
-						{{ dayjs(store.settings.general.date_from).format('DD MMM YYYY') }}
 					</ion-item>
 
 					<ion-item v-if="store.settings.general.date_to">
@@ -268,11 +264,14 @@
 			store.portfolioList = []
 		}
 	}
-	watch(store.settings.general.portfolios, () => {
-		store.portfolioList = store.portfolioListStock.filter((o) =>
-			store.settings.general.portfolios.includes(o.user_code)
-		)
-	})
+	watch(
+		() => store.settings.general.portfolios,
+		() => {
+			store.portfolioList = store.portfolioListStock.filter((o) =>
+				store.settings.general.portfolios.includes(o.user_code)
+			)
+		}
+	)
 	async function fetchCurrencies() {
 		let res = await useApi('currencyLight.get')
 

@@ -55,13 +55,14 @@ async function initKeycloak(region) {
 	let kcOpts = {
 		onLoad: 'login-required',
 		timeSkew: 0,
-		redirectUri: 'https://finmars.com/m/workspaces',
+		redirectUri:
+			window.location.origin + router.options.history.base + '/workspaces',
 	}
 
-	if (window.Cordova) {
+	if (window.Capacitor.platform != 'web') {
 		kcOpts['adapter'] = 'capacitor'
 		kcOpts['responseMode'] = 'query'
-		kcOpts['redirectUri'] = 'https://finmars.com/m/workspaces'
+		kcOpts['redirectUri'] = 'https://finmars.com/workspaces'
 	}
 
 	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))

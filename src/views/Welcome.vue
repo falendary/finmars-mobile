@@ -47,16 +47,16 @@
 				clientId: 'finmars',
 			},
 		},
-		{
-			id: 'eu2-central',
-			name: 'Switzerland (eu-central-2)',
-			domain: 'https://eu-central-2.finmars.com',
-			keycloakOpts: {
-				url: 'https://eu-central-2.finmars.com',
-				realm: 'finmars',
-				clientId: 'finmars',
-			},
-		},
+		// {
+		// 	id: 'eu2-central',
+		// 	name: 'Switzerland (eu-central-2)',
+		// 	domain: 'https://eu-central-2.finmars.com',
+		// 	keycloakOpts: {
+		// 		url: 'https://eu-central-2.finmars.com',
+		// 		realm: 'finmars',
+		// 		clientId: 'finmars',
+		// 	},
+		// },
 		{
 			id: 'dev',
 			name: 'Development (dev)',
@@ -73,48 +73,26 @@
 	let capacitorAdapter
 
 	async function login() {
-		console.log('Login keycloak inited')
-
 		let regionObj = regions.find((o) => o.id == region.value)
 		Preferences.set({ key: 'region', value: JSON.stringify(regionObj) })
-
-		regionObj.keycloakOpts['redirectUri'] = 'https://finmars.com/m/workspaces'
-
-		// alert(regionObj.keycloakOpts['redirectUri'])
 
 		let keycloak = Keycloak(regionObj.keycloakOpts)
 
 		var initOptions = {
-			// checkLoginIframe: true,
 			onLoad: 'login-required',
-			redirectUri: 'https://finmars.com/m/workspaces',
+			redirectUri:
+				window.location.origin + router.options.history.base + '/workspaces',
 		}
 
-		if (window.Cordova) {
+		if (window.Capacitor.platform != 'web') {
+			initOptions['checkLoginIframe'] = false
 			initOptions['adapter'] = 'capacitor'
 			initOptions['responseMode'] = 'query'
-			initOptions['redirectUri'] = 'https://finmars.com/m/workspaces'
+			initOptions['redirectUri'] = 'https://finmars.com/workspaces'
 		}
-		// alert(JSON.stringify(initOptions, null, 4))
+		console.log('initOptions:', initOptions)
 
 		await keycloak.init(initOptions)
-
-		console.log('Welcome keycloak inited')
-
-		Preferences.set({
-			key: 'kcTokens',
-			value: JSON.stringify({
-				token: keycloak.token,
-				refreshToken: keycloak.refreshToken,
-				idToken: keycloak.idToken,
-			}),
-		})
-
-		console.log('Tokens are set')
-
-		// await keycloak.updateToken(5)
-
-		router.push('/workspaces')
 	}
 </script>
 

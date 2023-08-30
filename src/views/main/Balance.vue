@@ -58,7 +58,7 @@
 				<swiper-slide v-for="(item, cat) in categories">
 					<div class="balance_block" v-show="item.subcats.length">
 						<div class="bb_header_line flex sb aic">
-							<div class="bb_header">{{ item.name }}</div>
+							<div class="bb_header">{{ item.layout_name || item.name }}</div>
 							<div class="bb_price">
 								{{ $format(item.market_value) }}
 								{{ store.settings.general.currency }}
@@ -398,7 +398,7 @@
 		transactionsOpts.portfolios = route.query.tab
 		transactionsOpts.filter_entry_user_code = null
 
-		let report = await fetchReport()
+		let report = await fetchReport(store.layout.balance.fieldsToGroup)
 
 		if (report && !report.error) {
 			if (
@@ -431,7 +431,17 @@
 		chartProcced.value = false
 	}
 
-	async function fetchReport() {
+	async function fetchReport(fieldsToGroup) {
+		let filters = []
+		let customFields = ''
+
+		if (fieldsToGroup) {
+			customFields = fieldsToGroup
+				.filter((o) => o.custom_field)
+				.map((item) => item.custom_field.name)
+				.join(',')
+		}
+
 		let res = await useApi('balanceReport.post', {
 			body: {
 				account_mode: 0,
@@ -445,39 +455,11 @@
 				calculationGroup: 'portfolio',
 				complex_transaction_statuses_filter: 'booked',
 				cost_method: 1,
-				custom_fields_to_calculate: 'Asset Types',
+				custom_fields_to_calculate: customFields,
 				date_field: 'transaction_date',
 				depth_level: 'base_transaction',
 				expression_iterations_count: 1,
-				filters: [
-					{
-						custom_field: {
-							expr: "iff(item_type_name=='Currency', 'Cash and equivalents', instrument.attributes.asset_types)",
-							name: 'Asset Types',
-							notes: '',
-							user_code: 'asset_types',
-							value_type: 10,
-						},
-						expr: "iff(item_type_name=='Currency', 'Cash and equivalents', instrument.attributes.asset_types)",
-						filtersListIndex: 3,
-						key: 'custom_fields.asset_types',
-						layout_name: 'Asset Types',
-						name: 'Custom Field. Asset Types',
-						notes: '',
-						options: {
-							enabled: true,
-							exclude_empty_cells: false,
-							filter_type: 'contains',
-							filter_values: [],
-							use_from_above: {
-								attrs_entity_type: 'balance-report',
-								key: 'custom_fields.asset_types',
-							},
-						},
-						user_code: 'asset_types',
-						value_type: 10,
-					},
-				],
+				filters,
 				pl_include_zero: false,
 				portfolio_mode: 1,
 				portfolios: [route.query.tab],

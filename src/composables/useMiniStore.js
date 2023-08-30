@@ -13,10 +13,6 @@ export default defineStore('store', {
 			portfolioListStock: [],
 			currencyList: [],
 			settings: {
-				dashboard: null,
-				balance: null,
-				pnl: null,
-				transactions: null,
 				general: null,
 			},
 			layout: null,
@@ -46,24 +42,11 @@ export default defineStore('store', {
 					pricing_policy: '-',
 					portfolios: [],
 				}
-
-				this.settings.balance = {}
-
-				this.settings.dashboard = {
-					date: date_to,
-					portfolios: [],
-				}
-				this.settings.pnl = {}
-				this.settings.transactions = {
-					date_from,
-					portfolios: [],
-				}
 			}
 
 			this.fetchFields()
 
 			watch(this.settings, (newVal) => {
-				console.log('newVal:', newVal)
 				Preferences.set({ key: 'layout', value: JSON.stringify(newVal) })
 			})
 		},
