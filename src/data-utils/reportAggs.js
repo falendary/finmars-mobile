@@ -68,7 +68,7 @@ export const reportGroup = ({
 
 			if (!result[group.key]) {
 				result[group.key] = {
-					name: group.name,
+					name: group.layout_name || group.name,
 					subcats: {},
 					[sum_field]: 0,
 				}
@@ -282,7 +282,7 @@ export const reportGroupPL = ({
 			}
 			if (!result[group.key]) {
 				result[group.key] = {
-					name: group.name,
+					name: group.layout_name || group.name,
 					subcats: {},
 					[sum_field]: 0,
 				}
