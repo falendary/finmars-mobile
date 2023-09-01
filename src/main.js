@@ -29,17 +29,22 @@ import '@/assets/main.scss'
 import NumberFormat from '@/plugins/NumberFormat.js'
 import { createPinia } from 'pinia'
 
+let pinia, app
 
+createAppVue()
 
-const pinia = createPinia()
-const app = createApp(App)
-	.use(router)
-	.use(IonicVue)
-	.use(NumberFormat)
-	.use(pinia)
+window.restartVueApp = () => {
+	app.unmount()
+	createAppVue()
+}
 
-app.component('IonPage', IonPage).component('IonContent', IonContent)
+function createAppVue() {
+	pinia = createPinia()
+	app = createApp(App).use(router).use(IonicVue).use(NumberFormat).use(pinia)
 
-app.mount('#app')
+	app.component('IonPage', IonPage).component('IonContent', IonContent)
+
+	app.mount('#app')
+}
 
 // router.isReady().then(() => {})

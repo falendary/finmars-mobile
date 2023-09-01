@@ -21,14 +21,33 @@ router.beforeEach(async (to, from) => {
 	if (to.path == '/logout') {
 		Preferences.clear()
 
-		await keycloak.logout({
-			redirectUri: window.location.origin + router.options.history.base + '/',
+		let redirectUri = window.location.origin + router.options.history.base + '/'
+
+		if (window.Capacitor.platform != 'web') redirectUri = 'https://finmars.com/'
+
+		keycloak.logout({
+			redirectUri,
 		})
 
-		return false
+		setTimeout(() => {
+			keycloak = undefined
+			window.restartVueApp()
+		}, 100)
+
+		return '/'
 	}
+
+	if (to.path == '/login') {
+		let res = await initKeycloak(region)
+
+		if (res) return '/workspaces'
+
+		return true
+	}
+
 	if (to.path == '/') {
 		if (region && space) return '/main'
+		console.log('region:', region)
 
 		return true
 	}
@@ -46,38 +65,33 @@ async function initKeycloak(region) {
 
 	let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
 
-	keycloak = Keycloak(region.keycloakOpts)
+	keycloak = new Keycloak(region.keycloakOpts)
 
-	keycloak.onAuthSuccess = setTokens
-	keycloak.onAuthRefreshSuccess = setTokens
-	keycloak.onTokenExpired = refreshTokens
-
-	let kcOpts = {
+	let initOptions = {
 		onLoad: 'login-required',
 		timeSkew: 0,
 		redirectUri:
 			window.location.origin + router.options.history.base + '/workspaces',
 	}
-
 	if (window.Capacitor.platform != 'web') {
-		kcOpts['adapter'] = 'capacitor'
-		kcOpts['responseMode'] = 'query'
-		kcOpts['redirectUri'] = 'https://finmars.com/workspaces'
+		initOptions.checkLoginIframe = false
+		initOptions.adapter = 'capacitor'
+		initOptions.responseMode = 'query'
+		initOptions.redirectUri = 'https://finmars.com/login'
 	}
 
-	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))
-	await keycloak.init(kcOpts)
+	if (tokens) Object.assign(initOptions, JSON.parse(tokens))
 
-	// console.log('keycloak.token', keycloak.token)
-	// console.log('keycloak.refreshToken', keycloak.refreshToken)
-	// console.log('keycloak.idToken', keycloak.idToken)
+	keycloak.onAuthSuccess = setTokens
+	keycloak.onAuthRefreshSuccess = setTokens
+	keycloak.onTokenExpired = refreshTokens
+
+	await keycloak.init(initOptions)
 
 	Preferences.set({
 		key: 'username',
 		value: keycloak.idTokenParsed.preferred_username,
 	})
-
-	// if (keycloak.isTokenExpired(5)) await refreshTokens()
 
 	log.timeEnd({
 		key: 'Keycloak init',
@@ -85,9 +99,10 @@ async function initKeycloak(region) {
 		place: 'api',
 	})
 
-	function setTokens() {
-		// alert('setTokens: ' + keycloak.token)
+	return true
 
+	function setTokens() {
+		console.log('keycloak.token:', keycloak.token)
 		Preferences.set({
 			key: 'kcTokens',
 			value: JSON.stringify({

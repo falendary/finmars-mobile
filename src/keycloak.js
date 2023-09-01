@@ -1519,10 +1519,8 @@
 		}
 
 		kc.createLogoutUrl = function (options) {
-			var url =
-				kc.endpoints.logout() +
-				'?redirect_uri=' +
-				encodeURIComponent(adapter.redirectUri(options, false))
+			var url = kc.endpoints.logout() + '?redirectUri='
+			encodeURIComponent(adapter.redirectUri(options, false))
 
 			return url
 		}
@@ -2787,18 +2785,16 @@
 						var loginUrl = kc.createLoginUrl(options)
 
 						window.Capacitor.Plugins.App.addListener('appUrlOpen', (data) => {
-							// console.log("appUrlOpen", data);
-
-							// window.cordova.plugins.browsertab.close();
 							var oauth = parseCallback(data.url)
 
-							// console.log('capacitor.oauth', oauth);
+							window.Capacitor.Plugins.App.removeAllListeners()
 
 							processCallback(oauth, promise)
 						})
 
 						// window.cordova.plugins.browsertab.openUrl(loginUrl);
 						window.Capacitor.Plugins.Browser.open({ url: loginUrl })
+
 						return promise.promise
 					},
 
@@ -2806,13 +2802,16 @@
 						var promise = createPromise()
 						var logoutUrl = kc.createLogoutUrl(options)
 
-						window.Capacitor.Plugins.App.addListener('appUrlOpen', (data) => {
-							window.cordova.plugins.browsertab.close()
-							kc.clearToken()
-							promise.setSuccess()
-						})
+						window.Capacitor.Plugins.Browser.addListener(
+							'browserFinished',
+							() => {
+								window.Capacitor.Plugins.Browser.removeAllListeners()
+								promise.setSuccess()
+							}
+						)
 
-						window.cordova.plugins.browsertab.openUrl(logoutUrl)
+						window.Capacitor.Plugins.Browser.open({ url: logoutUrl })
+
 						return promise.promise
 					},
 

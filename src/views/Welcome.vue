@@ -58,6 +58,16 @@
 		// 	},
 		// },
 		{
+			id: 'stage',
+			name: 'RC (stage)',
+			domain: 'https://stage.finmars.com',
+			keycloakOpts: {
+				url: 'https://stage-auth.finmars.com',
+				realm: 'finmars',
+				clientId: 'finmars',
+			},
+		},
+		{
 			id: 'dev',
 			name: 'Development (dev)',
 			domain: 'https://dev.finmars.com',
@@ -70,29 +80,11 @@
 	]
 	const region = ref('eu-central')
 
-	let capacitorAdapter
-
 	async function login() {
 		let regionObj = regions.find((o) => o.id == region.value)
-		Preferences.set({ key: 'region', value: JSON.stringify(regionObj) })
+		await Preferences.set({ key: 'region', value: JSON.stringify(regionObj) })
 
-		let keycloak = Keycloak(regionObj.keycloakOpts)
-
-		var initOptions = {
-			onLoad: 'login-required',
-			redirectUri:
-				window.location.origin + router.options.history.base + '/workspaces',
-		}
-
-		if (window.Capacitor.platform != 'web') {
-			initOptions['checkLoginIframe'] = false
-			initOptions['adapter'] = 'capacitor'
-			initOptions['responseMode'] = 'query'
-			initOptions['redirectUri'] = 'https://finmars.com/workspaces'
-		}
-		console.log('initOptions:', initOptions)
-
-		await keycloak.init(initOptions)
+		router.push('/login')
 	}
 </script>
 

@@ -16,6 +16,9 @@ export default [
 		component: () => import('@/views/Workspaces.vue'),
 	},
 	{
+		path: '/login',
+	},
+	{
 		path: '/logout',
 	},
 	{
