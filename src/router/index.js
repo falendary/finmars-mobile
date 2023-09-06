@@ -38,11 +38,11 @@ router.beforeEach(async (to, from) => {
 	}
 
 	if (to.path == '/login') {
-		let res = await initKeycloak(region)
+		let res = initKeycloak(region)
 
-		if (res) return '/workspaces'
+		// if (res) return '/workspaces'
 
-		return true
+		return '/workspaces'
 	}
 
 	if (to.path == '/') {

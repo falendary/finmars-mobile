@@ -108,9 +108,7 @@
 						<ion-datetime-button datetime="datetime_date_to" />
 					</ion-item>
 
-					<ion-item
-						v-if="store.settings.general.pricing_policy && pricingPolicies"
-					>
+					<ion-item v-if="pricingPolicies?.length">
 						<ion-select
 							v-model="store.settings.general.pricing_policy"
 							label="Pricing policy"
@@ -125,7 +123,7 @@
 						</ion-select>
 					</ion-item>
 
-					<ion-item v-if="store.settings.general.currency && currencies">
+					<ion-item v-if="currencies?.length">
 						<ion-select
 							v-model="store.settings.general.currency"
 							label="Reporting currency"
@@ -140,7 +138,7 @@
 						</ion-select>
 					</ion-item>
 
-					<ion-item v-if="store.settings.general.portfolios">
+					<ion-item>
 						<ion-select
 							v-model="store.settings.general.portfolios"
 							label="Portfolios"
