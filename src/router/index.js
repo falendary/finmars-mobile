@@ -38,9 +38,9 @@ router.beforeEach(async (to, from) => {
 	}
 
 	if (to.path == '/login') {
-		let res = initKeycloak(region)
+		let res = await initKeycloak(region)
 
-		// if (res) return '/workspaces'
+		if (res) return '/workspaces'
 
 		return '/workspaces'
 	}

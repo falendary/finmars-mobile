@@ -26,7 +26,7 @@ export default {
 		post: prefix + '/reports/transaction-report/',
 	},
 	transactionUserField: {
-		get: prefix + '/ui/complex-transaction-user-field/',
+		get: prefix + '/ui/complex-transaction-user-field/primary/',
 	},
 
 	// Надо отделить

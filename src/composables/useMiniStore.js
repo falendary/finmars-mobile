@@ -44,7 +44,7 @@ export default defineStore('store', {
 				}
 			}
 
-			this.fetchFields()
+			await this.fetchFields()
 
 			watch(this.settings, (newVal) => {
 				Preferences.set({ key: 'layout', value: JSON.stringify(newVal) })

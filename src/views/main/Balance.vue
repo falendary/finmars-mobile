@@ -444,7 +444,7 @@
 
 		let res = await useApi('balanceReport.post', {
 			body: {
-				account_mode: 0,
+				account_mode: 1,
 				accounts: [],
 				accounts_cash: [],
 				accounts_position: [],

@@ -53,7 +53,6 @@ export const reportGroup = ({
 	}
 
 	let items = injectIntoItemsV2(report.items, report, 'balance-report')
-	console.log('items:', items)
 
 	let res = items.reduce((result, item) => {
 		fieldsToGroup.forEach((group) => {
@@ -69,6 +68,7 @@ export const reportGroup = ({
 			if (!result[group.key]) {
 				result[group.key] = {
 					name: group.name,
+					layout_name: group.layout_name,
 					subcats: {},
 					[sum_field]: 0,
 				}
@@ -192,6 +192,7 @@ export const reportGroup = ({
 	// 		.filter((o) => o[sum_field] != 0)
 	// 		.sort((a, b) => b[sum_field] - a[sum_field])
 	// }
+	console.log('res:', res)
 
 	for (let prop in res) {
 		let colorKey = 0
