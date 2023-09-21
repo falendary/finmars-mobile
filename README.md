@@ -23,6 +23,9 @@ npx cap open android
 # This two actuially builds app
 npm run build && npx cap run android
 
+# How to push new version to google play
+go to ```android/app/build.gradle```
+update versionCode
 
 npx cap build android
 -- for signing build
@@ -54,6 +57,9 @@ Update signing team in xcode
 npx cap add ios
 npx cap open ios
 npx cap build ios
+
+
+
 
 ### Deeplinks
 

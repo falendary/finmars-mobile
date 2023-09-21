@@ -109,9 +109,9 @@
 			<template v-if="chartError">
 				<div class="nodata_wrap center aic">
 					<div>
-						<h3>Configuration error</h3>
+<!--						<h3>Configuration error</h3>-->
 
-						<p>{{ chartError }}</p>
+<!--						<p>{{ chartError }}</p>-->
 					</div>
 				</div>
 			</template>

@@ -131,9 +131,9 @@
 
 			<div class="nodata_wrap center aic" v-else-if="!chartProcced">
 				<div>
-					<h3>Configuration error</h3>
+<!--					<h3>Configuration error</h3>-->
 
-					<p>{{ chartError }}</p>
+<!--					<p>{{ chartError }}</p>-->
 				</div>
 			</div>
 
