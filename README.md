@@ -12,7 +12,7 @@ ionic cap sync
 ### Build and run Server
 
 npm run build
-VITE_BASE_URL='/m/' VITE_APP_PLATFORM='mobile' ionic serve
+VITE_BASE_URL='/m/' VITE_APP_PLATFORM='web' ionic serve
 
 ### Build APK
 

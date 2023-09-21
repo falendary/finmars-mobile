@@ -72,7 +72,7 @@ export default async function useApi(
 		},
 	}
 
-	if (body) opts.body = JSON.stringify(body)
+	if (body) opts.data = JSON.stringify(body)
 	if (filters) {
 		let searchPaarams = []
 
