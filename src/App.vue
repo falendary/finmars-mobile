@@ -8,10 +8,12 @@
 
 <script setup>
 	import { IonApp, IonRouterOutlet } from '@ionic/vue'
+	import { onMounted } from 'vue'
 
 	import { App } from '@capacitor/app'
 	import { useRouter } from 'vue-router'
 	import { Preferences } from '@capacitor/preferences'
+	import { initKeycloak } from '@/services/keycloakService.js'
 
 	const router = useRouter()
 
@@ -20,6 +22,11 @@
 
 	// 	const slug = event.url.split('https://finmars.com')[1]
 	// })
+
+	onMounted(() => {
+		initKeycloak();
+	});
+
 </script>
 
 <style lang="scss" scoped></style>

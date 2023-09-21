@@ -2,6 +2,32 @@ import routes from '@/api/routes'
 import providers from '@/api/providers/main.js'
 import { Preferences } from '@capacitor/preferences'
 
+
+import axios from 'axios';
+import { refreshToken } from '@/services/keycloakService.js'
+axios.interceptors.response.use(
+	response => {
+		return response;
+	},
+	async error => {
+		if (error.response.status === 401) {
+			// Handle token refresh logic here
+			// For instance, call your function that refreshes Keycloak token
+
+			// After refreshing, you might want to retry the original request:
+			let config = error.response.config;
+
+			// Update the token in the header
+			const newToken = await refreshToken();
+			config.headers['Authorization'] = 'Token ' + newToken;
+
+			return axios.request(config);
+		}
+
+		return Promise.reject(error);
+	}
+);
+
 export default async function useApi(
 	route_opt,
 	{
@@ -63,8 +89,8 @@ export default async function useApi(
 	}
 
 	try {
-		let response = await fetch(url, opts)
-		response = await response.json()
+		let response = await axios(url, opts);
+		response = await response.data;
 		log.timeEnd({
 			key: loggerName,
 			text: route_opt,
