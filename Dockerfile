@@ -9,7 +9,7 @@ RUN npm install -g @ionic/cli
 RUN npm install express
 COPY . .
 
-RUN npm run build
+RUN VITE_APP_PLATFORM='web' npm run build
 
 EXPOSE 8080
 
