@@ -2,8 +2,8 @@ import express from 'express'
 import * as path from 'path'
 
 var app = express()
-// var port = process.env.PORT || 8080;
-var port = process.env.PORT || 8050;
+var port = process.env.PORT || 8080;
+// var port = process.env.PORT || 8050;
 var BASE_URL = process.env.BASE_URL || '/m/';
 const __dirname = path.resolve();
 
