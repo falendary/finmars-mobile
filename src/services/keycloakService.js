@@ -1,7 +1,6 @@
 import { Preferences } from '@capacitor/preferences'
 import router from '@/router/index.js'
 
-
 async function getRegion() {
 	let { value } = await Preferences.get({ key: 'region' })
 
@@ -33,6 +32,9 @@ export async function initKeycloak() {
 	}
 
 	if (window.Cordova) {
+
+		console.log('window.Cordova', window.Cordova)
+
 		kcOpts['adapter'] = 'capacitor'
 		kcOpts['responseMode'] = 'query'
 		kcOpts['redirectUri'] = 'https://finmars.com/workspaces'
@@ -44,10 +46,12 @@ export async function initKeycloak() {
 
 	await window.keycloak.init(kcOpts)
 
-	Preferences.set({
-		key: 'username',
-		value: window.keycloak.idTokenParsed.preferred_username
-	})
+	if (window.keycloak.idTokenParsed) {
+		Preferences.set({
+			key: 'username',
+			value: window.keycloak.idTokenParsed.preferred_username
+		})
+	}
 
 }
 

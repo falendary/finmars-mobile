@@ -12,11 +12,17 @@
 
 <script setup>
 
+	import { useRouter } from 'vue-router'
+
+	const router = useRouter()
+
 	console.log("Login Page Init")
 
 	import { initKeycloak } from '@/services/keycloakService.js'
 
 	await initKeycloak()
+
+	router.push('/workspaces')
 
 </script>
 

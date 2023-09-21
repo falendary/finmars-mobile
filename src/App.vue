@@ -23,8 +23,17 @@
 	// 	const slug = event.url.split('https://finmars.com')[1]
 	// })
 
-	onMounted(() => {
-		initKeycloak();
+	onMounted(async () => {
+		let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
+
+		if (tokens) {
+
+			await initKeycloak()
+			router.push('/workspaces')
+		} else {
+		// 	user should pick region and after that login
+		}
+
 	});
 
 </script>
