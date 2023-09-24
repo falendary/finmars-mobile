@@ -5,12 +5,14 @@
 
 			<ion-tab-bar class="tab_bar" color="medium" slot="bottom">
 				<ion-tab-button class="tab" tab="balance" href="/main/balance">
-					<ion-icon :icon="balanceIcon" />
+<!--					<ion-icon :icon="balanceIcon" />-->
+					<ion-icon :icon='readerOutline' size='8'></ion-icon>
 					<ion-label>Balance</ion-label>
 				</ion-tab-button>
 
 				<ion-tab-button class="tab" tab="pnl" href="/main/pnl">
-					<ion-icon :icon="iconTest" />
+<!--					<ion-icon :icon="iconTest" />-->
+					<ion-icon :icon='barChartOutline' size='8'></ion-icon>
 					<ion-label>P&L</ion-label>
 				</ion-tab-button>
 
@@ -38,12 +40,14 @@
 					tab="transactions"
 					href="/main/transactions"
 				>
-					<ion-icon part="tab" :icon="iconTest" />
+<!--					<ion-icon part="tab" :icon="iconTest" />-->
+					<ion-icon part="tab" :icon="layersOutline" />
 					<ion-label part="tab">Transactions</ion-label>
 				</ion-tab-button>
 
 				<ion-tab-button class="tab" tab="settings" @click="isOpen = true">
-					<ion-icon :icon="settingsSharp" />
+<!--					<ion-icon :icon="settingsSharp" />-->
+					<ion-icon :icon="settingsOutline" />
 					<ion-label>Settings</ion-label>
 				</ion-tab-button>
 			</ion-tab-bar>
@@ -206,7 +210,7 @@
 		IonButton,
 		IonTitle,
 	} from '@ionic/vue'
-	import { settingsSharp, close } from 'ionicons/icons'
+	import { settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline } from 'ionicons/icons'
 	import { ref, inject, computed } from 'vue'
 	import { useRoute } from 'vue-router'
 	import { Preferences } from '@capacitor/preferences'
@@ -231,9 +235,9 @@
 	let { value: valUser } = await Preferences.get({ key: 'username' })
 	let username = ref(valUser)
 
-	fetchCurrencies()
-	fetchPortfolios()
-	fetchPolicies()
+	await fetchCurrencies()
+	await fetchPortfolios()
+	await fetchPolicies()
 
 	async function fetchPortfolios() {
 		let res = await useApi('portfolioLight.get')
@@ -285,6 +289,13 @@
 
 		if (res && !res.error) {
 			pricingPolicies.value = res.results
+
+			if (!store.settings.general.pricing_policy) {
+				store.settings.general.pricing_policy = res.results[0].user_code
+			}
+
+			console.log('store.settings.general.pricing_policy', store.settings.general.pricing_policy);
+
 		} else {
 			pricingPolicies.value = []
 		}
@@ -292,7 +303,7 @@
 	function changeDataFrom() {
 		const funcs = {
 			inception: () => {
-				store.settings.general.date_from = '01-01-0001'
+				store.settings.general.date_from = '0001-01-01'
 			},
 			ytd: () => {
 				store.settings.general.date_from = dayjs(store.settings.general.date_to)
@@ -369,6 +380,7 @@
 
 		ion-icon {
 			margin-bottom: 4px;
+			font-size: 16px;
 		}
 	}
 	[role='tab'] {

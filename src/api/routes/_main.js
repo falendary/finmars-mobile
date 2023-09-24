@@ -25,6 +25,9 @@ export default {
 	transactionReport: {
 		post: prefix + '/reports/transaction-report/',
 	},
+	backendTransactionReportItems: {
+		post: prefix + '/reports/backend-transaction-report/items/',
+	},
 	transactionUserField: {
 		get: prefix + '/ui/complex-transaction-user-field/primary/',
 	},

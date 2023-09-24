@@ -5,7 +5,7 @@
 				<div>Transactions</div>
 				<div class="header_info">
 					{{ dayjs(store.settings.general.date_from).format('DD MMM YYYY') }}
-					<span style="font-size: 20px; position: relative; top: 2px">🠦</span>
+					<ion-icon style='position: relative; top: 3px;' :icon="removeOutline"></ion-icon>
 					{{ dayjs(store.settings.general.date_to).format('DD MMM YYYY') }}
 				</div>
 			</div>
@@ -36,6 +36,7 @@
 	import { reactive, watch } from 'vue'
 	import TransactionList from '@/components/TransactionList.vue'
 	import useMiniStore from '@/composables/useMiniStore'
+	import { removeOutline } from 'ionicons/icons'
 
 	const store = useMiniStore()
 
@@ -56,13 +57,13 @@
 <style lang="scss" scoped>
 	.header {
 		padding: 0 15px;
-		color: #747474;
+		color: #363636;
 		font-weight: 500;
-		font-size: 20px;
+		font-size: 1.1rem;
 		margin-bottom: 15px;
 	}
 	.header_info {
-		font-size: 16px;
+		font-size: 0.6rem;
 	}
 	ion-searchbar {
 		padding-left: 15px;
@@ -72,6 +73,7 @@
 	ion-content {
 		--padding-top: 10px;
 		--padding-bottom: 10px;
-		--background: #fafafa;
+		//--background: #fafafa;
+		--background: #eff4f7;
 	}
 </style>

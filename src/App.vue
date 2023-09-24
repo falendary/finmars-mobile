@@ -26,11 +26,19 @@
 	onMounted(async () => {
 		let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
 
+		// console.log('onMounted.tokens', tokens);
+
 		if (tokens) {
 
 			await initKeycloak()
 			router.push('/workspaces')
 		} else {
+
+			if (window.location.href.indexOf('state=')) {
+				await initKeycloak()
+				router.push('/workspaces')
+			}
+
 		// 	user should pick region and after that login
 		}
 

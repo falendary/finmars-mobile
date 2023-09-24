@@ -52,19 +52,19 @@
 	let indicators = reactive([
 		{
 			id: 1,
-			name: 'Daily p/l',
+			name: 'Daily Profit & Loss',
 			price: null,
 			percent: null,
 		},
 		{
 			id: 2,
-			name: 'Month to date (MTD) P/L',
+			name: 'Month to date (MTD) P&L',
 			price: null,
 			percent: null,
 		},
 		{
 			id: 3,
-			name: 'Year to date (YTD) P/L',
+			name: 'Year to date (YTD) P&L',
 			price: null,
 			percent: null,
 		},
@@ -130,7 +130,11 @@
 		padding: 9px;
 		padding-top: 6px;
 		border-radius: 5px;
-		width: 132px;
+		//width: 132px;
+		width: 170px;
+		min-height: 170px;
+		padding: 1rem;
+		box-sizing: border-box;
 		box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.05);
 	}
 	.ii_header {
@@ -142,9 +146,10 @@
 		margin-bottom: 5px;
 	}
 	.ii_price {
-		font-size: 13px;
+		//font-size: 13px;
 		font-weight: 600;
 		line-height: 24px;
 		margin-bottom: 3px;
+		font-size: 0.8rem;
 	}
 </style>

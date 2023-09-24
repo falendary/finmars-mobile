@@ -5,6 +5,10 @@
 				<ion-refresher-content />
 			</ion-refresher>
 
+			<div class="welcome-block">
+				Welcome Back, {{ username }}
+			</div>
+
 			<div class="header flex sb aic">
 				<div>All Portfolios</div>
 				<div class="header_info">
@@ -160,6 +164,7 @@
 	import { onMounted, ref, reactive, watch } from 'vue'
 	import useApi from '@/composables/useApi.js'
 	import useMiniStore from '@/composables/useMiniStore'
+	import { Preferences } from '@capacitor/preferences'
 	// Stores the controller so that the chart initialization routine can look it up
 	Chart.register(
 		LineElement,
@@ -174,6 +179,9 @@
 
 	let allPorfoliosChart
 	let width, height, gradient
+
+	let result = await useApi('user.get')
+	let username = ref(result.first_name || result.username)
 
 	const portfolios = ref(null)
 	const store = useMiniStore()
@@ -378,20 +386,36 @@
 	ion-content {
 		--padding-top: 10px;
 		--padding-bottom: 25px;
-		--background: #fafafa;
+		//--background: #fafafa;
+		--background: #eff4f7;
 	}
 	ion-skeleton-text {
 		margin: 0;
 	}
+	.welcome-block {
+		padding: 0 15px;
+		margin-top: 1rem;
+		margin-bottom: 1.5rem;
+		font-size: 1rem;
+		background: #1e1e1e;
+		color: #fff;
+		margin: 0;
+		padding: 1rem;
+		margin-bottom: 1rem;
+		box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.6);
+		margin-top: 0.3rem;
+	}
 	.header {
 		padding: 0 15px;
-		color: #747474;
+		//color: #747474;
+		color: #363636;
 		font-weight: 500;
-		font-size: 20px;
+		//font-size: 20px;
+		font-size: 1.1rem;
 		margin-bottom: 15px;
 	}
 	.header_info {
-		font-size: 16px;
+		font-size: 0.6rem;
 	}
 	.main_chart {
 		margin: 0 15px;
@@ -422,8 +446,9 @@
 	.portfolios_item {
 		border-radius: 5px;
 		background: #fff;
-		padding: 7px 10px;
+		//padding: 7px 10px;
 		box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.05);
+		padding: 1rem;
 
 		& + & {
 			margin-top: 10px;
@@ -439,7 +464,9 @@
 		color: #747474;
 	}
 	.pi_price {
-		font-size: 20px;
+		//font-size: 20px;
+		font-size: 1.3rem;
+		font-weight: bold;
 		line-height: 24px;
 	}
 	.pi_price_change {

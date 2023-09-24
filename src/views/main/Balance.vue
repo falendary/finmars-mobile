@@ -594,23 +594,24 @@
 
 <style lang="scss" scoped>
 	.header {
-		color: #747474;
+		color: #363636;
 		padding: 0 15px;
 		font-weight: 500;
-		font-size: 20px;
+		font-size: 1.1rem;
 		margin-bottom: 15px;
 	}
 	.chart_view {
 		font-size: 14px;
 	}
 	.header_info {
-		font-size: 16px;
+		font-size: 0.6rem;
 	}
 
 	ion-content {
 		--padding-top: 10px;
 		--padding-bottom: 20px;
-		--background: #fafafa;
+		//--background: #fafafa;
+		--background: #eff4f7;
 	}
 	ion-skeleton-text {
 		margin: 0;

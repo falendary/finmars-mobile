@@ -50,7 +50,7 @@
 		let { results } = await useApi('masterUser.get')
 
 		if (!results) {
-			error.value = `Can't get masterUser`
+			error.value = `Can't get Spaces`
 			return false
 		}
 
@@ -79,6 +79,7 @@
 		margin-top: 20px;
 	}
 	ion-content {
-		--background: #fafafa;
+		//--background: #fafafa;
+		--background: #eff4f7;
 	}
 </style>

@@ -60,8 +60,20 @@ export default async function useApi(
 		return false
 	}
 
-	url = url.replace('{client}', workspace)
-	url = url.replace('{host}', region.domain)
+	if  (window.location.href.indexOf('0.0.0.0') !== -1) {
+
+		if (url.indexOf('authorizer') !== -1) {
+			url = url.replace('{host}', 'http://0.0.0.0:8083')
+		} else {
+
+			url = url.replace('{client}', 'space00000')
+			url = url.replace('{host}', 'http://0.0.0.0:8000')
+		}
+	} else {
+		url = url.replace('{client}', workspace)
+		url = url.replace('{host}', region.domain)
+	}
+
 
 	let opts = {
 		method: method.toUpperCase() || 'GET',

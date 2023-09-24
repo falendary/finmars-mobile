@@ -94,6 +94,7 @@
 	}
 
 	ion-content {
-		--background: #fafafa;
+		//--background: #fafafa;
+		--background: #eff4f7;
 	}
 </style>
