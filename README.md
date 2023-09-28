@@ -54,6 +54,7 @@ sudo xcode-select --switch /Applications/Xcode.app
 
 Update signing team in xcode
 
+VITE_BASE_URL='/m/'  npm run build
 npx cap add ios
 npx cap open ios
 npx cap build ios

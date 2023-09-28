@@ -384,7 +384,7 @@
 
 <style lang="scss" scoped>
 	ion-content {
-		--padding-top: 10px;
+		--padding-top: 16px;
 		--padding-bottom: 25px;
 		//--background: #fafafa;
 		--background: #eff4f7;

@@ -608,7 +608,7 @@
 	}
 
 	ion-content {
-		--padding-top: 10px;
+		--padding-top: 16px;
 		--padding-bottom: 20px;
 		//--background: #fafafa;
 		--background: #eff4f7;
