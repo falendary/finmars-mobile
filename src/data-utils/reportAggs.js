@@ -1,10 +1,10 @@
 export const reportGroup = ({
-	report,
-	sum_field,
-	colorsCat,
-	type,
-	fieldsToGroup,
-}) => {
+															report,
+															sum_field,
+															colorsCat,
+															type,
+															fieldsToGroup
+														}) => {
 	let colors = [
 		'#577590CC',
 		'#43AA8BCC',
@@ -45,7 +45,7 @@ export const reportGroup = ({
 		'#D9ED92',
 		'#C8D7F9',
 		'#96B5B4',
-		'#AB7967',
+		'#AB7967'
 	]
 
 	if (!report.items.length) {
@@ -66,11 +66,28 @@ export const reportGroup = ({
 			}
 
 			if (!result[group.key]) {
+
+				let verbose_name = group.name
+
+				if (group.name.indexOf('.')) {
+					var pieces = group.name.split('.')
+
+					console.log('pieces', pieces);
+
+					if (pieces.length >= 3) {
+						verbose_name = pieces[1] // need middle of it
+					} else {
+						verbose_name = pieces[0]
+					}
+
+				}
+
 				result[group.key] = {
 					name: group.name,
+					verbose_name: verbose_name,
 					layout_name: group.layout_name,
 					subcats: {},
-					[sum_field]: 0,
+					[sum_field]: 0
 				}
 			}
 
@@ -78,7 +95,7 @@ export const reportGroup = ({
 				result[group.key].subcats[valToGroup] = {
 					name: valToGroup,
 					items: [],
-					[sum_field]: 0,
+					[sum_field]: 0
 				}
 			}
 
@@ -91,8 +108,8 @@ export const reportGroup = ({
 				position_size: item.position_size,
 				change: {
 					value: item.gross_cost_price,
-					percent: Math.round(item.daily_price_change * 10000) / 100,
-				},
+					percent: Math.round(item.daily_price_change * 10000) / 100
+				}
 			})
 
 			result[group.key][sum_field] += item[sum_field]
@@ -211,16 +228,18 @@ export const reportGroup = ({
 		if (!res[prop].subcats.length) delete res[prop]
 	}
 
+	console.log('reportGroup.res', res)
+
 	return res
 }
 
 export const reportGroupPL = ({
-	report,
-	sum_field,
-	colorsCat,
-	type,
-	fieldsToGroup,
-}) => {
+																report,
+																sum_field,
+																colorsCat,
+																type,
+																fieldsToGroup
+															}) => {
 	let colors = [
 		'#577590CC',
 		'#43AA8BCC',
@@ -261,7 +280,7 @@ export const reportGroupPL = ({
 		'#D9ED92',
 		'#C8D7F9',
 		'#96B5B4',
-		'#AB7967',
+		'#AB7967'
 	]
 
 	if (!report.items.length) {
@@ -285,7 +304,7 @@ export const reportGroupPL = ({
 				result[group.key] = {
 					name: group.layout_name || group.name,
 					subcats: {},
-					[sum_field]: 0,
+					[sum_field]: 0
 				}
 			}
 
@@ -293,7 +312,7 @@ export const reportGroupPL = ({
 				result[group.key].subcats[valToGroup] = {
 					name: valToGroup,
 					items: [],
-					[sum_field]: 0,
+					[sum_field]: 0
 				}
 			}
 
@@ -311,8 +330,8 @@ export const reportGroupPL = ({
 					[sum_field]: item[sum_field],
 					position_size: item.position_size,
 					change: {
-						value: 0,
-					},
+						value: 0
+					}
 				})
 			} else {
 				existingInstr[sum_field] += item[sum_field]
@@ -349,7 +368,7 @@ export const reportGroupPL = ({
 	return res
 }
 
-var unwrapRelationsAsFlatDicts = function (items) {
+var unwrapRelationsAsFlatDicts = function(items) {
 	var result = {}
 
 	for (const item of items) {
@@ -359,7 +378,7 @@ var unwrapRelationsAsFlatDicts = function (items) {
 			var resultKey = 'attributes'
 			var localResultKey
 
-			item.attributes.forEach(function (attribute) {
+			item.attributes.forEach(function(attribute) {
 				// localResultKey = resultKey + '.' + attribute.attribute_type;
 				localResultKey =
 					resultKey + '.' + attribute.attribute_type_object.user_code
@@ -396,12 +415,12 @@ var unwrapRelationsAsFlatDicts = function (items) {
 	return result
 }
 
-var joinFlatRelationToItem = function (item, key, relation) {
+var joinFlatRelationToItem = function(item, key, relation) {
 	// console.log('joinFlatRelationToItem.key', key)
 	// console.log('joinFlatRelationToItem.item', item[key])
 
 	if (relation) {
-		Object.keys(relation).forEach(function (relation_key) {
+		Object.keys(relation).forEach(function(relation_key) {
 			item[key + '.' + relation_key] = relation[relation_key]
 		})
 	}
@@ -460,7 +479,7 @@ function injectIntoItemsV2(items, reportOptions, entityType) {
 		)
 	}
 
-	items.forEach(function (item) {
+	items.forEach(function(item) {
 		if (item.instrument) {
 			joinFlatRelationToItem(
 				item,
@@ -810,7 +829,7 @@ function injectIntoItemsV2(items, reportOptions, entityType) {
 		}
 
 		if (item.custom_fields) {
-			item.custom_fields.forEach(function (localCustomField) {
+			item.custom_fields.forEach(function(localCustomField) {
 				item['custom_fields.' + localCustomField.user_code] =
 					localCustomField.value
 			})

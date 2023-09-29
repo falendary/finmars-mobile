@@ -394,7 +394,7 @@
 	}
 	.welcome-block {
 		padding: 0 15px;
-		margin-top: 1rem;
+		//margin-top: 0.5rem;
 		margin-bottom: 1.5rem;
 		font-size: 1rem;
 		background: #1e1e1e;
@@ -403,7 +403,7 @@
 		padding: 1rem;
 		margin-bottom: 1rem;
 		box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.6);
-		margin-top: 0.3rem;
+		//margin-top: 0.3rem;
 	}
 	.header {
 		padding: 0 15px;

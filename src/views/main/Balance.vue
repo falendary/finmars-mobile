@@ -58,7 +58,7 @@
 				<swiper-slide v-for="(item, cat) in categories">
 					<div class="balance_block" v-show="item.subcats.length">
 						<div class="bb_header_line flex sb aic">
-							<div class="bb_header">{{ item.layout_name || item.name }}</div>
+							<div class="bb_header">{{ item.layout_name || (item.verbose_name || item.name) }}</div>
 							<div class="bb_price">
 								{{ $format(item.market_value) }}
 								{{ store.settings.general.currency }}
@@ -394,8 +394,10 @@
 		chartProcced.value = true
 		detailSubcat.value = {}
 
+		console.log('route.query.tab', route.query.tab);
+
 		transactionsOpts.end_date = store.settings.general.date_to
-		transactionsOpts.portfolios = route.query.tab
+		transactionsOpts.portfolios = [route.query.tab]
 		transactionsOpts.filter_entry_user_code = null
 
 		let report = await fetchReport(store.layout.balance.fieldsToGroup)
@@ -444,7 +446,7 @@
 
 		let res = await useApi('balanceReport.post', {
 			body: {
-				account_mode: 1,
+				account_mode: 0, // Ignore Accounts, important
 				accounts: [],
 				accounts_cash: [],
 				accounts_position: [],

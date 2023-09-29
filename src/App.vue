@@ -46,12 +46,20 @@
 
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 
 	#main-content {
 		padding: 12px;
 		padding-left: env(safe-area-inset-left);
 		padding-right: env(safe-area-inset-right);
 	}
+
+	.safe--area, .ion-page {
+		–padding-top: var(–ion-safe-area-top, 0);
+		padding-top: env(safe-area-inset-top);
+		--ion-safe-area-top: 20px;
+		--ion-safe-area-bottom: 20px;
+	}
+
 
 </style>

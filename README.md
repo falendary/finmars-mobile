@@ -59,6 +59,8 @@ npx cap add ios
 npx cap open ios
 npx cap build ios
 
+# This one is required to force changes to Xcode builder
+ionic cap sync ios
 
 
 

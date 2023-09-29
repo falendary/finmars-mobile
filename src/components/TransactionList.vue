@@ -8,7 +8,7 @@
 			>
 				<div class="pi_first_line flex aic sb">
 					<div class="ti_date">
-						{{ dayjs(item.transaction_date).format('DD MMM YYYY') }}
+						{{ dayjs(item.accounting_date).format('DD MMM YYYY') }}
 					</div>
 					<div class="ti_header">
 						{{
@@ -61,8 +61,7 @@
 							$format(item.cash_consideration)
 						}}</span>
 						{{
-							item_currencies.find((o) => o.id == item.settlement_currency)
-								?.short_name
+							item['settlement_currency.short_name']
 						}}
 					</div>
 				</div>
@@ -153,7 +152,6 @@
 	// only columns that requested will be shown
 	const columns = [
 		{
-			"___column_id": "37573232cc8f8e871152adc27dd74d69",
 			"content_type": "transactions.complextransaction",
 			"isHidden": false,
 			"key": "complex_transaction.code",
@@ -170,7 +168,6 @@
 			"value_type": 20
 		},
 		{
-			"___column_id": "948dc4afb985f82517b70cd9eb17ab75",
 			"columns": true,
 			"content_type": "transactions.complextransaction",
 			"filters": false,
@@ -192,7 +189,6 @@
 			"value_type": 40
 		},
 		{
-			"___column_id": "3e6cb9f296d2f740b343f42f878bff4a",
 			"columns": true,
 			"content_type": "reports.transactionreport",
 			"filters": false,
@@ -226,7 +222,6 @@
 			"value_type": 20
 		},
 		{
-			"___column_id": "0371028dd282db3779a931a9f02769dd",
 			"columns": true,
 			"isHidden": false,
 			"key": "entry_amount",
@@ -259,7 +254,12 @@
 			"value_type": 20
 		},
 		{
-			"___column_id": "50c42e4144f3c1a5b8305d4356072569",
+			"key": "entry_item_user_code",
+			"layout_name": "Entry User Code",
+			"name": "Transaction. Entry User Code",
+			"value_type": 10
+		},
+		{
 			"content_type": "transactions.complextransaction",
 			"isHidden": false,
 			"key": "complex_transaction.text",
@@ -277,7 +277,6 @@
 			"value_type": 10
 		},
 		{
-			"___column_id": "71f240c427db93602d9f230d896c8d17",
 			"columns": true,
 			"content_type": "transactions.complextransaction",
 			"filters": false,
@@ -299,7 +298,6 @@
 			"value_type": 10
 		},
 		{
-			"___column_id": "a01c6a2c6d642e2fe2c6d35091616765",
 			"columns": true,
 			"content_type": "reports.transactionreport",
 			"filters": false,
@@ -332,7 +330,6 @@
 			"value_type": 20
 		},
 		{
-			"___column_id": "66d97c178f8747499a0083854a47eb8a",
 			"columns": true,
 			"content_type": "transactions.complextransaction",
 			"filters": false,
@@ -354,7 +351,6 @@
 			"value_type": 20
 		},
 		{
-			"___column_id": "92dca03a91a4f4c3a1d9a7c11de85a88",
 			"columns": true,
 			"content_type": "reports.transactionreport",
 			"filters": false,
@@ -387,7 +383,6 @@
 			"value_type": 20
 		},
 		{
-			"___column_id": "0af49b3b463f39bd4fb22430e6e291f1",
 			"columns": true,
 			"content_type": "reports.transactionreport",
 			"filters": false,
@@ -433,7 +428,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "87a4cb926d50b7687a839c23a3d8856a",
 			"isHidden": false
 		},
 		{
@@ -450,7 +444,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "a667a81021493950c387ed5f7d1a0758",
 			"isHidden": false
 		},
 		{
@@ -467,7 +460,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "eeea2c6d2ac359d7d69722b490612bb4",
 			"isHidden": false
 		},
 		{
@@ -484,7 +476,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "11a55d64c21f2d19219be5bc466e9c4b",
 			"isHidden": false
 		},
 		{
@@ -501,7 +492,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "c73258f2172b2a06e755cd4e09868506",
 			"isHidden": false
 		},
 		{
@@ -518,7 +508,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "c9b720b7eff12fb18859e39f52ecf843",
 			"isHidden": false
 		},
 		{
@@ -535,7 +524,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "89555b7793c994c10a889f5e658b2cef",
 			"isHidden": false
 		},
 		{
@@ -552,7 +540,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "ed20641495f114719de51375c1e0e3e1",
 			"isHidden": false
 		},
 		{
@@ -569,7 +556,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "423812693934475dd949d25d2ab1b0d3",
 			"isHidden": false
 		},
 		{
@@ -586,7 +572,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "71f86e841584effc81cb2d19762f40e3",
 			"isHidden": false
 		},
 		{
@@ -603,7 +588,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "b5a09ec6fddc70faf27f40e29598b01b",
 			"isHidden": false
 		},
 		{
@@ -620,7 +604,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "712bf5dd3fd74a12fa81dc6b20bf44ac",
 			"isHidden": false
 		},
 		{
@@ -637,7 +620,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "64c1935683aa2dd3e9cea4316cd9bf95",
 			"isHidden": false
 		},
 		{
@@ -654,7 +636,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "eefbe39a1180ef8de5864199e2ad82f7",
 			"isHidden": false
 		},
 		{
@@ -671,7 +652,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "9ca45c5a36f03ba266ee935c65981b95",
 			"isHidden": false
 		},
 		{
@@ -688,7 +668,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "ea9f9bdb0c5235831f29fa3aefa819db",
 			"isHidden": false
 		},
 		{
@@ -705,7 +684,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "920249d3099c4eca84ad805e427bc628",
 			"isHidden": false
 		},
 		{
@@ -722,7 +700,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "07d8cf4af4afb67c32742ae4bcd6475c",
 			"isHidden": false
 		},
 		{
@@ -739,7 +716,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "ee63cc30ef6d908e66635d90eea57b6e",
 			"isHidden": false
 		},
 		{
@@ -756,7 +732,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "547b7cebbfe2a8029363e13a9efbbed4",
 			"isHidden": false
 		},
 		{
@@ -773,7 +748,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "b3e83da41cfc899e6f3b17d0d09dd0a9",
 			"isHidden": false
 		},
 		{
@@ -790,7 +764,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "dbc67c6d18e2a31ad53b692d79619849",
 			"isHidden": false
 		},
 		{
@@ -807,7 +780,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "65b384b0591993e593537bfe1a1869fa",
 			"isHidden": false
 		},
 		{
@@ -824,7 +796,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "cb7ad20d286d474c0a35220b507b5592",
 			"isHidden": false
 		},
 		{
@@ -841,7 +812,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "01201907f54acf548904b687642b8dce",
 			"isHidden": false
 		},
 		{
@@ -858,7 +828,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "fc5cc04d6bc2ea8764e7f9053089a748",
 			"isHidden": false
 		},
 		{
@@ -875,7 +844,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "093f8eea7c53861044a80ce12231d9cc",
 			"isHidden": false
 		},
 		{
@@ -892,7 +860,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "c49c938c099529c02e27e81d0944a255",
 			"isHidden": false
 		},
 		{
@@ -909,7 +876,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "dc5ad025d0eb8ef6c897bd80aec18c1f",
 			"isHidden": false
 		},
 		{
@@ -926,7 +892,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "6c06d8f18b2769efddd01747cb4d372e",
 			"isHidden": false
 		},
 		{
@@ -943,7 +908,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "990a4bbed4c871cbe7913b465f69fa25",
 			"isHidden": false
 		},
 		{
@@ -960,7 +924,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "c699b46fdd278ea4e9cfb7078e95864e",
 			"isHidden": false
 		},
 		{
@@ -977,7 +940,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "2891025eb02c1efc1f00862a8dacfa11",
 			"isHidden": false
 		},
 		{
@@ -994,7 +956,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "20c04e48f33b8f5e780726c4895105dc",
 			"isHidden": false
 		},
 		{
@@ -1011,7 +972,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "03067e972936c2c2602e5390b06045f6",
 			"isHidden": false
 		},
 		{
@@ -1028,7 +988,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "31ef771df0f6f29d428bec2f0231c223",
 			"isHidden": false
 		},
 		{
@@ -1045,7 +1004,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "c27af5a39ee88e0f762940dab2705e84",
 			"isHidden": false
 		},
 		{
@@ -1062,7 +1020,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "91947ff4fd713389d1547f8d77521eb0",
 			"isHidden": false
 		},
 		{
@@ -1079,7 +1036,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "000777df695f76a10d69c196194c0794",
 			"isHidden": false
 		},
 		{
@@ -1096,7 +1052,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "5fe1d1f5fd99a614506a9314d73a509e",
 			"isHidden": false
 		},
 		{
@@ -1113,7 +1068,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "7583109a99f3a851ebba0e7b282c7449",
 			"isHidden": false
 		},
 		{
@@ -1130,7 +1084,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "be8beff11da425057e780f0c9d1b3c5d",
 			"isHidden": false
 		},
 		{
@@ -1147,7 +1100,6 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "316f2b511b5a31ff87f1a326407d5d56",
 			"isHidden": false
 		},
 		{
@@ -1164,7 +1116,57 @@
 			"style": {
 				"width": "100px"
 			},
-			"___column_id": "461c9a8efca7f842ceeaaa2b92c34126",
+			"isHidden": false
+		},
+		{
+			"key": "complex_transaction.date",
+			"groups": false,
+			"columns": true,
+			"filters": false,
+			"name": "Complex Transaction. Date",
+			"value_type": 40,
+			"options": {
+				"sort": null,
+				"sort_settings": {}
+			},
+			"style": {
+				"width": "100px"
+			},
+			"___column_id": "666649592bc77832533730bdebdbe52c",
+			"isHidden": false
+		},
+		{
+			"key": "accounting_date",
+			"groups": false,
+			"columns": true,
+			"filters": false,
+			"name": "Transaction. Accounting date",
+			"value_type": 40,
+			"options": {
+				"sort": null,
+				"sort_settings": {}
+			},
+			"style": {
+				"width": "100px"
+			},
+			"___column_id": "69f589c5396a46d6d1a46a8f3dc7cb6a",
+			"isHidden": false
+		},
+		{
+			"key": "cash_date",
+			"groups": false,
+			"columns": true,
+			"filters": false,
+			"name": "Transaction. Cash date",
+			"value_type": 40,
+			"options": {
+				"sort": null,
+				"sort_settings": {}
+			},
+			"style": {
+				"width": "100px"
+			},
+			"___column_id": "6f41d5d9f8f4752afb5e1aa9ea1b1236",
 			"isHidden": false
 		}
 	]
@@ -1189,17 +1191,61 @@
 				new Date(a.transaction_date).getTime()
 		)
 
-		res = await useApi('transactionUserField.get')
+		const transactionUserFieldsRes = await useApi('transactionUserField.get')
 
-		userFieldsMap.value = res.results.filter((o) => o.is_active)
+		userFieldsMap.value = transactionUserFieldsRes.results.filter((o) => o.is_active)
 	}
 
 
 
 	async function fetchReport() {
+
+		let filters = []
+
+		console.log('props.options.portfolios', props.options.portfolios);
+
+		if (props.options.filter_entry_user_code) {
+
+			filters = [
+				{
+					key: 'entry_item_user_code',
+					groups: false,
+					columns: true,
+					filters: true,
+					name: 'Transaction. Entry Item User Code',
+					value_type: 10,
+					options: {
+						filter_type: 'equal',
+						filter_values: [props.options.filter_entry_user_code],
+						exclude_empty_cells: false,
+						enabled: true,
+						use_from_above: {},
+					},
+				},
+
+				{
+					content_type: 'portfolios.portfolio',
+					filtersListIndex: 1,
+					key: 'portfolio.user_code',
+					name: 'Portfolio. User code',
+					options: {
+						enabled: true,
+						exclude_empty_cells: false,
+						filter_type: 'equal',
+						filter_values: props.options.portfolios,
+						use_from_above: {
+							attrs_entity_type: 'balance-report', // report
+							key: 'portfolio.user_code',
+						},
+					},
+					value_type: 10,
+				},
+			]
+
+		}
+
 		let res = await useApi('backendTransactionReportItems.post', {
 			body: {
-				account_mode: 1,
 				accounts: [],
 				accounts_cash: [],
 				accounts_object: [],
@@ -1220,41 +1266,7 @@
 					page: 1,
 					filter_settings: []
 				},
-				filters: [
-					{
-						key: 'entry_item_user_code',
-						groups: false,
-						columns: true,
-						filters: true,
-						name: 'Transaction. Entry Item User Code',
-						value_type: 10,
-						options: {
-							filter_type: 'equal',
-							filter_values: [props.options.filter_entry_user_code],
-							exclude_empty_cells: false,
-							enabled: true,
-							use_from_above: {},
-						},
-					},
-
-					{
-						content_type: 'portfolios.portfolio',
-						filtersListIndex: 1,
-						key: 'portfolio.user_code',
-						name: 'Portfolio. User code',
-						options: {
-							enabled: true,
-							exclude_empty_cells: false,
-							filter_type: 'equal',
-							filter_values: props.options.portfolios,
-							use_from_above: {
-								attrs_entity_type: 'balance-report', // report
-								key: 'portfolio.user_code',
-							},
-						},
-						value_type: 10,
-					},
-				],
+				filters: filters,
 				portfolio_mode: 1,
 				pricing_policy: 1,
 				portfolios: [],
@@ -1272,19 +1284,19 @@
 			date_field: 'transaction_date',
 		}
 
-		if (!props.options.filter_entry_user_code) return res
+		// if (!props.options.filter_entry_user_code) return res
 
 		//depricated
-		if (props.reportType != 'pl') {
-			res.items = res.items.filter(
-				(o) => o.entry_item_user_code == props.options.filter_entry_user_code
-			)
-		} else {
-			res.items = res.items.filter(
-				(o) =>
-					o.transaction_item_user_code == props.options.filter_entry_user_code
-			)
-		}
+		// if (props.reportType != 'pl') {
+		// 	res.items = res.items.filter(
+		// 		(o) => o.entry_item_user_code == props.options.filter_entry_user_code
+		// 	)
+		// } else {
+		// 	res.items = res.items.filter(
+		// 		(o) =>
+		// 			o.transaction_item_user_code == props.options.filter_entry_user_code
+		// 	)
+		// }
 
 		return res
 	}
