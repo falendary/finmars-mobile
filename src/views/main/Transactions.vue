@@ -57,7 +57,7 @@
 <style lang="scss" scoped>
 	.header {
 		padding: 0 15px;
-		color: #363636;
+		color: var(--ion-text-color);
 		font-weight: 500;
 		font-size: 1.1rem;
 		margin-bottom: 15px;
@@ -74,6 +74,5 @@
 		--padding-top: 16px;
 		--padding-bottom: 10px;
 		//--background: #fafafa;
-		--background: #eff4f7;
 	}
 </style>

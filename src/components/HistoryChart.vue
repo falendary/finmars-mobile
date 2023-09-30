@@ -325,7 +325,7 @@
 
 <style lang="scss" scoped>
 	.main_chart {
-		background: #fff;
+		background: var(--ion-card-background);
 		margin: 0 15px;
 		padding-top: 9px;
 		border-radius: 5px;

@@ -1,18 +1,19 @@
 <template>
 	<ion-page>
-		<ion-tabs>
+		<ion-tabs v-if="!processing">
+
 			<ion-router-outlet></ion-router-outlet>
 
 			<ion-tab-bar class="tab_bar" color="medium" slot="bottom">
 				<ion-tab-button class="tab" tab="balance" href="/main/balance">
-<!--					<ion-icon :icon="balanceIcon" />-->
-					<ion-icon :icon='icons.readerOutline' size='8'></ion-icon>
+					<!--					<ion-icon :icon="balanceIcon" />-->
+					<ion-icon :icon="icons.readerOutline" size="8"></ion-icon>
 					<ion-label>Balance</ion-label>
 				</ion-tab-button>
 
 				<ion-tab-button class="tab" tab="pnl" href="/main/pnl">
-<!--					<ion-icon :icon="iconTest" />-->
-					<ion-icon :icon='icons.barChartOutline' size='8'></ion-icon>
+					<!--					<ion-icon :icon="iconTest" />-->
+					<ion-icon :icon="icons.barChartOutline" size="8"></ion-icon>
 					<ion-label>P&L</ion-label>
 				</ion-tab-button>
 
@@ -40,18 +41,22 @@
 					tab="transactions"
 					href="/main/transactions"
 				>
-<!--					<ion-icon part="tab" :icon="iconTest" />-->
+					<!--					<ion-icon part="tab" :icon="iconTest" />-->
 					<ion-icon part="tab" :icon="icons.layersOutline" />
 					<ion-label part="tab">Transactions</ion-label>
 				</ion-tab-button>
 
 				<ion-tab-button class="tab" tab="settings" @click="isOpen = true">
-<!--					<ion-icon :icon="settingsSharp" />-->
+					<!--					<ion-icon :icon="settingsSharp" />-->
 					<ion-icon :icon="icons.settingsOutline" />
 					<ion-label>Settings</ion-label>
 				</ion-tab-button>
 			</ion-tab-bar>
 		</ion-tabs>
+
+		<div v-if="processing" class="display-flex align-center justify-center height-100">
+			<progress-circular bg="black" diameter="90"></progress-circular>
+		</div>
 
 		<ion-modal
 			v-if="tab"
@@ -84,16 +89,17 @@
 							<ion-select-option value="inception">
 								Inception
 							</ion-select-option>
-							<ion-select-option value="ytd"> YTD </ion-select-option>
-							<ion-select-option value="qtd"> QTD </ion-select-option>
-							<ion-select-option value="mtd"> MTD </ion-select-option>
+							<ion-select-option value="ytd"> YTD</ion-select-option>
+							<ion-select-option value="qtd"> QTD</ion-select-option>
+							<ion-select-option value="mtd"> MTD</ion-select-option>
 						</ion-select>
 					</ion-item>
 
 					<ion-item v-if="store.spaces[store.activeSpaceCode].settings.general.date_to">
 						<ion-label
-							>Date
-							{{ tab == 'pnl' || tab == 'transactions' ? 'to' : '' }}</ion-label
+						>Date
+							{{ tab == 'pnl' || tab == 'transactions' ? 'to' : '' }}
+						</ion-label
 						>
 
 						<ion-modal
@@ -150,7 +156,7 @@
 							:multiple="true"
 						>
 							<ion-select-option
-								v-for="item in store.portfolioListStock"
+								v-for="item in store.spaces[store.activeSpaceCode].portfolioListStock"
 								:value="item.user_code"
 							>
 								{{ item.name }}
@@ -165,7 +171,16 @@
 					class="ion-margin-horizontal"
 					fill="outline"
 					expand="block"
-					@click='changeSpace()'
+					@click="fetchPortfolios()"
+				>
+					RELOAD PORTFOLIOS
+				</ion-button>
+
+				<ion-button
+					class="ion-margin-horizontal"
+					fill="outline"
+					expand="block"
+					@click="changeSpace()"
 				>
 					CHANGE SPACE
 				</ion-button>
@@ -183,6 +198,13 @@
 					<div>{{ workspace }}</div>
 					<div>{{ username }}</div>
 				</div>
+
+				<div style="padding: 1rem">
+					<ion-toggle :checked="themeToggle" @ionChange="themeToggleChange($event)" justify="space-between"
+					>Dark Mode
+					</ion-toggle>
+				</div>
+
 			</ion-content>
 		</ion-modal>
 	</ion-page>
@@ -190,38 +212,42 @@
 
 <script>
 	import {
-		IonTabs,
-		IonRouterOutlet,
-		IonTabBar,
-		IonTabButton,
-		IonLabel,
-		IonIcon,
-		IonModal,
+		IonButton,
+		IonButtons,
 		IonContent,
-		IonList,
-		IonItem,
-		IonSelect,
-		IonSelectOption,
 		IonDatetime,
 		IonDatetimeButton,
-		IonToolbar,
-		IonButtons,
-		IonButton,
-		IonTitle, IonPage
+		IonIcon,
+		IonItem,
+		IonLabel,
+		IonList,
+		IonModal,
+		IonPage,
+		IonRouterOutlet,
+		IonSelect,
+		IonSelectOption,
+		IonTabBar,
+		IonTabButton,
+		IonTabs,
+		IonTitle,
+		IonToggle,
+		IonToolbar
 	} from '@ionic/vue'
-	import { settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline } from 'ionicons/icons'
-	import {  computed } from 'vue'
+	import { barChartOutline, close, layersOutline, readerOutline, settingsOutline, settingsSharp } from 'ionicons/icons'
+	import { computed, watch } from 'vue'
 	import { useRoute, useRouter } from 'vue-router'
 	import { Preferences } from '@capacitor/preferences'
 	import useStore from '@/composables/useStore'
 	import useApi from '@/composables/useApi'
-	import { watch } from 'vue'
 	import dayjs from 'dayjs'
 	import quarterOfYear from 'dayjs/plugin/quarterOfYear'
+	import ProgressCircular from '@/components/ProgressCircular.vue'
+
 	dayjs.extend(quarterOfYear)
 
 	export default {
 		components: {
+			ProgressCircular,
 			IonTabs,
 			IonRouterOutlet,
 			IonTabBar,
@@ -239,13 +265,15 @@
 			IonToolbar,
 			IonButtons,
 			IonButton,
-			IonTitle, IonPage,
+			IonToggle,
+			IonTitle, IonPage
 
 			// settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline
 		},
 
 		data() {
 			return {
+				processing: false,
 				currentYear: new Date().getFullYear(),
 				store: null,
 				spaceStore: null,
@@ -254,6 +282,7 @@
 				workspace: null,
 				username: null,
 				isOpen: false,
+				themeToggle: false,
 				tab: null,
 				dayjs: dayjs,
 				icons: {
@@ -267,8 +296,44 @@
 			}
 		},
 		methods: {
+			async initializeDarkTheme() {
+
+				let { value: darkTheme } = await Preferences.get({ key: 'darkTheme' })
+
+				console.log('from store darkTheme', darkTheme)
+
+				if (darkTheme == 'true') {
+					this.themeToggle = true
+				} else if (darkTheme == 'false') {
+					this.themeToggle = false
+				} else {
+					const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
+
+					if (prefersDark) {
+						this.themeToggle = true
+					}
+				}
+
+				this.toggleDarkTheme(this.themeToggle)
+			},
+			toggleDarkTheme(shouldAdd) {
+
+				console.log('shouldAdd', shouldAdd)
+
+				document.body.classList.toggle('dark', shouldAdd)
+
+				Preferences.set({ key: 'darkTheme', value: shouldAdd })
+
+			},
+			themeToggleChange(ev) {
+
+				console.log('themeToggleChange', ev)
+
+				this.toggleDarkTheme(ev.detail.checked)
+			},
+
 			changeSpace() {
-				this.isOpen = false;
+				this.isOpen = false
 				this.router.push('/workspaces')
 			},
 			async fetchPortfolios() {
@@ -283,8 +348,8 @@
 							price: '-',
 							change: {
 								price: '-',
-								percent: '-',
-							},
+								percent: '-'
+							}
 						}
 					})
 
@@ -297,6 +362,9 @@
 					this.spaceStore.portfolioListStock = []
 					this.spaceStore.portfolioList = []
 				}
+
+				console.log('fetchPortfolios.spaceStore', this.spaceStore)
+
 			},
 
 			async fetchCurrencies() {
@@ -319,7 +387,7 @@
 						this.spaceStore.settings.general.pricing_policy = res.results[0].user_code
 					}
 
-					console.log('this.spaceStore.settings.general.pricing_policy', this.spaceStore.settings.general.pricing_policy);
+					console.log('this.spaceStore.settings.general.pricing_policy', this.spaceStore.settings.general.pricing_policy)
 
 				} else {
 					this.pricingPolicies = []
@@ -349,7 +417,7 @@
 						this.spaceStore.settings.general.date_from = dayjs(this.spaceStore.settings.general.date_to)
 							.add(-1, 'month')
 							.format('YYYY-MM-DD')
-					},
+					}
 				}
 
 				funcs[this.spaceStore.settings.general.period]()
@@ -358,15 +426,20 @@
 		},
 		async created() {
 
+			this.processing = true
+
+			await this.initializeDarkTheme()
+
 			this.store = useStore()
+
 			this.route = useRoute()
 			this.router = useRouter()
 
-			await this.store.init()
-			this.spaceStore = computed(() => this.store.spaces[this.store.activeSpaceCode]);
+			await this.store.init() // TODO IMPORTANT! should be called only once
+			this.spaceStore = computed(() => this.store.spaces[this.store.activeSpaceCode])
 
-			console.log("Index.spaceStore", this.spaceStore);
-			console.log("Index.store.activeSpaceCode", this.store.activeSpaceCode);
+			console.log('Index.spaceStore', this.spaceStore)
+			console.log('Index.store.activeSpaceCode', this.store.activeSpaceCode)
 
 			await this.fetchCurrencies()
 			await this.fetchPortfolios()
@@ -388,7 +461,12 @@
 				}
 			)
 
+
+			console.log('INDEX_CONTROLLER: Store is ready')
+			this.processing = false
+
 			this.tab = computed(() => {
+				if (!this.route) return null
 				if (!this.route.path.includes('/main/')) return null
 				return this.route.path.replace('/main/', '')
 			})
@@ -406,6 +484,7 @@
 		--padding-start: 0;
 		--padding-end: 0;
 	}
+
 	.logo_btn {
 		padding: 5px;
 		padding-bottom: 4px;
@@ -419,6 +498,7 @@
 		border-top-left-radius: 15px;
 		padding: 0;
 	}
+
 	.tab {
 		width: 20%;
 		color: #fff;
@@ -431,22 +511,28 @@
 			font-size: 16px;
 		}
 	}
+
 	[role='tab'] {
 		padding: 0;
 	}
+
 	.tab_bar {
 		contain: none;
 		padding-bottom: 0;
 	}
+
 	.tab.tab-selected {
 		color: var(--ion-color-primary);
+
 		.logo_btn {
 			fill: var(--ion-color-primary);
 		}
 	}
+
 	.logout {
 		margin-top: 10px;
 	}
+
 	.info_bot {
 		color: #646464;
 		margin-top: 25px;

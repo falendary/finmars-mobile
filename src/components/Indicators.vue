@@ -1,10 +1,10 @@
 <template>
-	<swiper :slides-per-view="'auto'" :space-between="10" class="indicators">
+	<swiper :slides-per-view="'auto'" :space-between="16" class="indicators">
 		<swiper-slide class="indicators_items" v-for="item in indicators">
 			<div class="ii_header">{{ item.name }}</div>
 			<div class="ii_price">
 				<template v-if="item.price !== null">
-					{{ $format(item.price) }} {{ currency }}
+					<span class="ii_price_value">{{ $format(item.price) }}</span>  <span class="ii_price_currency">{{ currency }}</span>
 				</template>
 				<IonSkeletonText
 					v-else
@@ -126,30 +126,39 @@
 		padding: 15px;
 	}
 	.indicators_items {
-		background: #fff;
+		background: var(--ion-card-background);
 		padding: 9px;
 		padding-top: 6px;
-		border-radius: 5px;
+		//border-radius: 5px;
+		border-radius: 1.5rem;
 		//width: 132px;
 		width: 170px;
 		min-height: 170px;
 		padding: 1rem;
 		box-sizing: border-box;
-		box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.05);
+		box-shadow: var(--ion-card-box-shadow);
+		border: 1px solid var(--ion-card-border-color);
 	}
 	.ii_header {
 		font-size: 12px;
 		line-height: 16.5px;
 		font-weight: 500;
-		color: #747474;
+		color: var(--ion-text-color);
 		height: 33px;
 		margin-bottom: 5px;
 	}
 	.ii_price {
 		//font-size: 13px;
-		font-weight: 600;
+
 		line-height: 24px;
 		margin-bottom: 3px;
 		font-size: 0.8rem;
+	}
+	.ii_price_value {
+		font-weight: 600;
+	}
+	.ii_price_currency {
+		opacity: .7;
+		font-size: 0.6rem;
 	}
 </style>

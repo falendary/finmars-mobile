@@ -1314,7 +1314,7 @@
 
 	.transactions_item {
 		padding: 7px 13px;
-		background: #fff;
+		background: var(--ion-card-background);
 		transition: 0.3s;
 
 		&.active {
@@ -1329,14 +1329,14 @@
 	.transactions_desc_block {
 		padding: 15px 13px;
 		background: #fff;
-		border-top: 1px solid rgba(224, 224, 224, 1);
+		border-top: 1px solid var(--ion-card-border-color);
 	}
 
 	.ti_header {
 		font-weight: 500;
 		font-size: 14px;
 		line-height: 24px;
-		color: #747474;
+		color: var(--ion-text-color);
 	}
 
 	.ti_date {
@@ -1395,6 +1395,6 @@
 	}
 
 	.transactions_wrap + .transactions_wrap {
-		border-top: 1px solid rgba(224, 224, 224, 1);
+		border-top: 1px solid var(--ion-transaction-card-border-color);
 	}
 </style>

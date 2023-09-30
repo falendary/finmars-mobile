@@ -1,7 +1,7 @@
 <template>
 	<ion-app>
 		<Suspense>
-			<ion-router-outlet id='main-content' />
+			<ion-router-outlet id="main-content" />
 		</Suspense>
 	</ion-app>
 </template>
@@ -49,7 +49,7 @@
 				}
 			} catch (e) {
 
-				console.log("APP_INIT: keycloak.error", e)
+				console.log('APP_INIT: keycloak.error', e)
 
 				await Preferences.remove({ key: 'kcTokens' })
 
@@ -82,7 +82,7 @@
 
 </script>
 
-<style lang='scss'>
+<style lang="scss">
 
 	#main-content {
 		//padding: 12px;
@@ -154,6 +154,17 @@
 
 	ion-content {
 		--background: transparent;
+	}
+
+	ion-app ion-content {
+
+		--dot-size: 1px;
+		--dot-space: 22px;
+		--background: var(--ion-content-background), linear-gradient(90deg, var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center / var(--dot-space) var(--dot-space), linear-gradient(var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center / var(--dot-space) var(--dot-space), var(--dot-color);
+	}
+
+	ion-modal ion-content {
+		--background: var(--ion-card-background);
 	}
 
 </style>

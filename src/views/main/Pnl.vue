@@ -411,10 +411,9 @@
 		--padding-top: 16px;
 		--padding-bottom: 10px;
 		//--background: #fafafa;
-		--background: #eff4f7;
 	}
 	.header {
-		color: #363636;
+		color: var(--ion-text-color);
 		padding: 0 15px;
 		font-weight: 500;
 		font-size: 1.1rem;
@@ -435,7 +434,7 @@
 	.balance_block {
 		margin: 0 15px;
 		padding: 15px 0;
-		background: #fff;
+		background: var(--ion-card-background);
 		border-radius: 5px;
 	}
 	.balance_labels {
@@ -471,7 +470,7 @@
 	.bb_header {
 		font-size: 18px;
 		line-height: 22px;
-		color: #747474;
+		color: var(--ion-text-color);
 		width: 50%;
 	}
 	.bb_price {

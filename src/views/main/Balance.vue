@@ -597,7 +597,7 @@
 
 <style lang="scss" scoped>
 	.header {
-		color: #363636;
+		color: var(--ion-text-color);
 		padding: 0 15px;
 		font-weight: 500;
 		font-size: 1.1rem;
@@ -614,7 +614,7 @@
 		--padding-top: 16px;
 		--padding-bottom: 20px;
 		//--background: #fafafa;
-		--background: #eff4f7;
+		//--background: #eff4f7;
 	}
 	ion-skeleton-text {
 		margin: 0;
@@ -633,7 +633,7 @@
 	.balance_block {
 		margin: 0 15px;
 		padding: 15px 13px 12px;
-		background: #fff;
+		background: var(--ion-card-background);
 		border-radius: 5px;
 	}
 	.instr_block {
@@ -645,7 +645,7 @@
 	.bb_header {
 		font-size: 18px;
 		line-height: 22px;
-		color: #747474;
+		color: var(--ion-text-color);
 		width: 50%;
 	}
 	.bb_price {
@@ -747,7 +747,7 @@
 	}
 	.nodata_wrap {
 		text-align: center;
-		background: #eee;
+		background: var(--ion-card-background);
 		height: 200px;
 		h3 {
 			font-size: 18px;

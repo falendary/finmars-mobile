@@ -19,6 +19,12 @@ export default {
 	balanceReport: {
 		post: prefix + '/reports/balance-report/',
 	},
+	backendBalanceReportItems: {
+		post: prefix + '/reports/backend-balance-report/items/',
+	},
+	backendBalanceReportGroups: {
+		post: prefix + '/reports/backend-balance-report/groups/',
+	},
 	pnlReport: {
 		post: prefix + '/reports/pl-report/',
 	},

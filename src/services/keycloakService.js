@@ -13,8 +13,6 @@ export async function initKeycloak() {
 
 	const region = await getRegion()
 
-	console.log('==== initKeycloak ==== ')
-
 	let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
 
 	window.keycloak = Keycloak(region.keycloakOpts)
@@ -53,7 +51,7 @@ export async function initKeycloak() {
 
 	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))
 
-	console.log('kcOpts', kcOpts)
+	// console.log('kcOpts', kcOpts)
 
 	await window.keycloak.init(kcOpts)
 
