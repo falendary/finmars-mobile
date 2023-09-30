@@ -4,9 +4,7 @@
 
 npm install
 sudo npm i -g @ionic/cli
-
-npm install ionic-plugin-deeplinks
-npm install @awesome-cordova-plugins/deeplinks
+npm install ionic-plugin-deeplinks // this one is extremely important
 ionic cap sync
 
 ### Build and run Server

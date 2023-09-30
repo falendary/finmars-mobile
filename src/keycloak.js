@@ -1519,10 +1519,16 @@
 		}
 
 		kc.createLogoutUrl = function (options) {
-			var url = kc.endpoints.logout() + '?redirectUri='
-			encodeURIComponent(adapter.redirectUri(options, false))
+			var url = kc.endpoints.logout()
+				+ '?client_id=' + encodeURIComponent(kc.clientId)
+				+ '&post_logout_redirect_uri=' + encodeURIComponent(adapter.redirectUri(options, false));
 
-			return url
+			if (kc.idToken) {
+				url += '&id_token_hint=' + encodeURIComponent(kc.idToken);
+			}
+
+			return url;
+
 		}
 
 		kc.register = function (options) {
@@ -2815,6 +2821,15 @@
 								promise.setSuccess()
 							}
 						)
+						window.Capacitor.Plugins.App.addListener('appUrlOpen', (data) => {
+
+							console.log('appUrlOpen got callback')
+
+							window.Capacitor.Plugins.App.removeAllListeners()
+							window.Capacitor.Plugins.Browser.close();
+
+							promise.setSuccess()
+						})
 
 						window.Capacitor.Plugins.Browser.open({ url: logoutUrl })
 

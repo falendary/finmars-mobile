@@ -48,7 +48,7 @@ export async function initKeycloak() {
 
 		kcOpts['adapter'] = 'capacitor'
 		kcOpts['responseMode'] = 'query'
-		kcOpts['redirectUri'] = 'https://finmars.com/' + appDestinationPath
+		kcOpts['redirectUri'] = 'finmars://' + appDestinationPath
 	}
 
 	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))
@@ -73,14 +73,15 @@ export async function logoutKeycloak() {
 	if (window.Cordova) {
 
 		console.log('window.Cordova', window.Cordova)
-		logoutOptions['redirectUri'] = 'https://finmars.com/welcome'
+		logoutOptions['redirectUri'] = 'finmars://welcome'
 	}
-
-	await window.keycloak.logout(logoutOptions)
 
 	Preferences.remove({
 		key: 'kcTokens'
 	})
+
+	await window.keycloak.logout(logoutOptions)
+
 
 }
 

@@ -1,7 +1,7 @@
 <template>
 	<ion-app>
 		<Suspense>
-			<ion-router-outlet id="main-content"  />
+			<ion-router-outlet id='main-content' />
 		</Suspense>
 	</ion-app>
 </template>
@@ -9,13 +9,9 @@
 <script setup>
 	import { IonApp, IonRouterOutlet } from '@ionic/vue'
 	import { onMounted, ref } from 'vue'
-
-	import { App } from '@capacitor/app'
 	import { useRouter } from 'vue-router'
 	import { Preferences } from '@capacitor/preferences'
 	import { initKeycloak } from '@/services/keycloakService.js'
-	import ProgressCircular from '@/components/ProgressCircular.vue'
-	import useStore from '@/composables/useStore.js'
 
 	const router = useRouter()
 
@@ -37,29 +33,34 @@
 
 		if (tokens) {
 
-			console.log("Has tokens in Storage, trying to reinit Keycloak")
+			console.log('APP_INIT: Has tokens in Storage, trying to reinit Keycloak')
 
 			processing.value = true
 
-			await initKeycloak()
+			try {
+				await initKeycloak()
 
-			processing.value = false
+				processing.value = false
 
+				if (activeSpaceCode) {
+					router.push('/main/dashboard')
+				} else {
+					router.push('/workspaces')
+				}
+			} catch (e) {
 
+				console.log("APP_INIT: keycloak.error", e)
 
-			if (activeSpaceCode) {
-				router.push('/main/dashboard')
-			} else {
-				router.push('/workspaces')
+				await Preferences.remove({ key: 'kcTokens' })
+
 			}
 
 
 		} else {
 
-
 			if (window.location.href.indexOf('state=') !== -1) {
 
-				console.log("Probably got redirect from keycloak, trying to parse query parameters")
+				console.log('APP_INIT: Probably got redirect from keycloak, trying to parse query parameters')
 
 
 				processing.value = true
@@ -71,17 +72,17 @@
 					router.push('/workspaces')
 				}
 			} else {
-				console.log("Nothing, its first open, wait until user select region")
+				console.log('APP_INIT: Nothing, its first open, wait until user select region')
 			}
 
-		// 	user should pick region and after that login
+			// 	user should pick region and after that login
 		}
 
-	});
+	})
 
 </script>
 
-<style lang="scss">
+<style lang='scss'>
 
 	#main-content {
 		//padding: 12px;
@@ -103,6 +104,7 @@
 	.text-error {
 		color: crimson;
 	}
+
 	.text-fs-extra-small {
 		font-size: 0.5rem;
 	}
@@ -128,11 +130,12 @@
 		--margin-top: 0;
 		margin-top: 0 !important;
 	}
+
 	.display-flex {
 		display: flex;
 	}
 
-	.align-center  {
+	.align-center {
 		align-items: center;
 
 	}

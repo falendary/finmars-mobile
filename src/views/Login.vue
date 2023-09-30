@@ -14,6 +14,7 @@
 
 	import { useRouter } from 'vue-router'
 	import { initKeycloak } from '@/services/keycloakService.js'
+	import { Preferences } from '@capacitor/preferences'
 
 	const router = useRouter()
 
@@ -25,7 +26,13 @@
 		console.log('keycloak inited, redirect to /workspaces')
 
 		router.push('/workspaces')
+
 	} catch (e) {
+
+		await Preferences.remove({ key: 'kcTokens' })
+
+		console.log("login.keycloak.error", e)
+
 		router.push('/welcome')
 	}
 
