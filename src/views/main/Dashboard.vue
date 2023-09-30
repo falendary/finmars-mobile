@@ -12,7 +12,7 @@
 			<div class="header flex sb aic">
 				<div>All Portfolios</div>
 				<div class="header_info">
-					{{ dayjs(store.settings.general.date_to).format('DD MMM YYYY') }}
+					{{ dayjs(spaceStore.settings.general.date_to).format('DD MMM YYYY') }}
 				</div>
 			</div>
 
@@ -22,7 +22,7 @@
 			>
 				<div class="main_chart_h">Net Asset Value (NAV)</div>
 				<div class="main_chart_price">
-					- {{ store.settings.general.currency }}
+					- {{ spaceStore.settings.general.currency }}
 				</div>
 
 				<div
@@ -41,8 +41,8 @@
 			</div>
 
 			<Indicators
-				:currency="store.settings.general.currency"
-				:date="store.settings.general.date_to"
+				:currency="spaceStore.settings.general.currency"
+				:date="spaceStore.settings.general.date_to"
 			/>
 
 			<div class="header">Portfolios</div>
@@ -73,7 +73,7 @@
 							/>
 							<template v-else
 								>{{ $format(item.price) }}
-								{{ store.settings.general.currency }}</template
+								{{ spaceStore.settings.general.currency }}</template
 							>
 						</div>
 
@@ -161,9 +161,9 @@
 		Decimation,
 		Filler,
 	} from 'chart.js'
-	import { onMounted, ref, reactive, watch } from 'vue'
+	import { onMounted, ref, reactive, watch, computed } from 'vue'
 	import useApi from '@/composables/useApi.js'
-	import useMiniStore from '@/composables/useMiniStore'
+	import useStore from '@/composables/useStore'
 	import { Preferences } from '@capacitor/preferences'
 	// Stores the controller so that the chart initialization routine can look it up
 	Chart.register(
@@ -184,14 +184,18 @@
 	let username = ref(result.first_name || result.username)
 
 	const portfolios = ref(null)
-	const store = useMiniStore()
+	const store = useStore()
+	const spaceStore = computed(() => store.spaces[store.activeSpaceCode]);
+
+	console.log('dashboard.store.activeSpaceCode', store.activeSpaceCode);
+	console.log('dashboard.spaceStore', spaceStore.value);
 
 	const transactionsOpts = reactive({
-		end_date: store.settings.general.date_to,
-		begin_date: dayjs(store.settings.general.date_to)
+		end_date: spaceStore.value.settings.general.date_to,
+		begin_date: dayjs(spaceStore.value.settings.general.date_to)
 			.add(-3, 'month')
 			.format('YYYY-MM-DD'),
-		portfolios: store.settings.general.portfolios || [],
+		portfolios: spaceStore.value.settings.general.portfolios || [],
 		filter_entry_user_code: null,
 	})
 
@@ -200,9 +204,9 @@
 
 	init()
 
-	watch([store.settings.dashboard, store.settings.general], () => {
-		transactionsOpts.end_date = store.settings.general.date_to
-		transactionsOpts.begin_date = dayjs(store.settings.general.date_to)
+	watch([spaceStore.value.settings.dashboard, spaceStore.value.settings.general], () => {
+		transactionsOpts.end_date = spaceStore.value.settings.general.date_to
+		transactionsOpts.begin_date = dayjs(spaceStore.value.settings.general.date_to)
 			.add(-3, 'month')
 			.format('YYYY-MM-DD')
 
@@ -224,12 +228,12 @@
 	})
 
 	async function fetchPortfolios() {
-		portfolios.value = store.portfolioList.map((o, k) => {
+		portfolios.value = spaceStore.value.portfolioList.map((o, k) => {
 			useApi('reportsSummary.get', {
 				filters: {
 					portfolios: o.user_code,
-					currency: store.settings.general.currency,
-					date_to: store.settings.general.date_to,
+					currency: spaceStore.value.settings.general.currency,
+					date_to: spaceStore.value.settings.general.date_to,
 				},
 			}).then((stats) => {
 				if (stats.error) {
@@ -264,7 +268,7 @@
 		// 	provider: null,
 		// 	filters: {
 		// 		portfolio: 2, // Need all
-		// 		date_to: store.settings.general.date_to,
+		// 		date_to: spaceStore.settings.general.date_to,
 		// 	},
 		// })
 		historyNav = undefined

@@ -23,12 +23,23 @@ export async function initKeycloak() {
 	window.keycloak.onAuthRefreshSuccess = setTokens
 	// window.keycloak.onTokenExpired = refreshTokens
 
+	let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
+
+	let appDestinationPath = 'workspaces'
+
+	if (activeSpaceCode) {
+		appDestinationPath = 'main/dashboard'
+	}
+
+	console.log('initKeycloak.activeSpaceCode', activeSpaceCode);
+	console.log('initKeycloak.appDestinationPath', appDestinationPath);
+
 	let kcOpts = {
 		onLoad: 'login-required',
 		checkLoginIframe: true,
 		// checkLoginIframeInterval: 60, // Seconds
 		timeSkew: 0, // fix bag with update token
-		redirectUri: window.location.origin + router.options.history.base + '/workspaces'
+		redirectUri: window.location.origin + router.options.history.base + '/' + appDestinationPath
 	}
 
 	if (window.Cordova) {
@@ -37,7 +48,7 @@ export async function initKeycloak() {
 
 		kcOpts['adapter'] = 'capacitor'
 		kcOpts['responseMode'] = 'query'
-		kcOpts['redirectUri'] = 'https://finmars.com/workspaces'
+		kcOpts['redirectUri'] = 'https://finmars.com/' + appDestinationPath
 	}
 
 	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))
@@ -55,6 +66,23 @@ export async function initKeycloak() {
 
 }
 
+export async function logoutKeycloak() {
+
+	var logoutOptions = { redirectUri: window.location.origin + router.options.history.base + '/welcome' }
+
+	if (window.Cordova) {
+
+		console.log('window.Cordova', window.Cordova)
+		logoutOptions['redirectUri'] = 'https://finmars.com/welcome'
+	}
+
+	await window.keycloak.logout(logoutOptions)
+
+	Preferences.remove({
+		key: 'kcTokens'
+	})
+
+}
 
 function setTokens() {
 

@@ -14,13 +14,13 @@
 				/>
 
 				<div class="header_info">
-					{{ dayjs(store.settings.general.date_to).format('DD MMM YYYY') }}
+					{{ dayjs(spaceStore.settings.general.date_to).format('DD MMM YYYY') }}
 				</div>
 			</div>
 
 			<HistoryChartComp
-				:date_to="store.settings.general.date_to"
-				:currency="store.settings.general.currency"
+				:date_to="spaceStore.settings.general.date_to"
+				:currency="spaceStore.settings.general.currency"
 				@portfolioChange="init($event)"
 				@refresher="portfoliosRefresher = $event"
 				:nav="total_nav"
@@ -28,8 +28,8 @@
 
 			<IndicatorsComp
 				:portfolioId="route.query.tab"
-				:currency="store.settings.general.currency"
-				:date="store.settings.general.date_to"
+				:currency="spaceStore.settings.general.currency"
+				:date="spaceStore.settings.general.date_to"
 				@refresher="indicatorsRefresher = $event"
 				@nav="total_nav = $event"
 			/>
@@ -61,7 +61,7 @@
 							<div class="bb_header">{{ item.layout_name || (item.verbose_name || item.name) }}</div>
 							<div class="bb_price">
 								{{ $format(item.market_value) }}
-								{{ store.settings.general.currency }}
+								{{ spaceStore.settings.general.currency }}
 							</div>
 						</div>
 
@@ -180,7 +180,7 @@
 						<div>
 							<div class="bb_price">
 								{{ $format(detailSubcat.market_value) }}
-								{{ store.settings.general.currency }}
+								{{ spaceStore.settings.general.currency }}
 							</div>
 							<!-- <div class="instr_block_change flex jcfe">
 								<div class="instr_change_percent instr_first minus">
@@ -246,7 +246,7 @@
 </template>
 
 <script setup>
-	import { onMounted, ref, reactive, watch, computed, nextTick } from 'vue'
+	import { ref, reactive, watch, computed } from 'vue'
 
 	import dayjs from 'dayjs'
 	import {
@@ -276,10 +276,10 @@
 
 	import { Swiper, SwiperSlide } from 'swiper/vue'
 	import { Pagination } from 'swiper'
-	import { useRoute, useRouter } from 'vue-router'
+	import { useRoute } from 'vue-router'
 
 	import useApi from '@/composables/useApi'
-	import useMiniStore from '@/composables/useMiniStore'
+	import useStore from '@/composables/useStore'
 	import { reportGroup } from '@/data-utils/reportAggs'
 
 	Chart.register(
@@ -296,16 +296,17 @@
 		Tooltip
 	)
 
-	const store = useMiniStore()
+	const store = useStore()
+	const spaceStore = computed(() => store.spaces[store.activeSpaceCode]);
 	const route = useRoute()
 
 	const portfolio = computed(() => {
-		return store.portfolioList.find((o) => o.user_code == route.query.tab)
+		return spaceStore.value.portfolioList.find((o) => o.user_code == route.query.tab)
 	})
 
 	let total_nav = ref(null)
 	const transactionsOpts = reactive({
-		end_date: store.settings.general.date_to,
+		end_date: spaceStore.value.settings.general.date_to,
 		begin_date: '0001-01-01',
 		portfolios: route.query.tab,
 		filter_entry_user_code: null,
@@ -376,7 +377,7 @@
 			Promise.all([init(), portfoliosRefresher(), indicatorsRefresher()])
 		}
 	)
-	watch(store.settings.general, () => {
+	watch(spaceStore.value.settings.general, () => {
 		Promise.all([init(), portfoliosRefresher(), indicatorsRefresher()])
 	})
 
@@ -396,22 +397,22 @@
 
 		console.log('route.query.tab', route.query.tab);
 
-		transactionsOpts.end_date = store.settings.general.date_to
+		transactionsOpts.end_date = spaceStore.value.settings.general.date_to
 		transactionsOpts.portfolios = [route.query.tab]
 		transactionsOpts.filter_entry_user_code = null
 
-		let report = await fetchReport(store.layout.balance.fieldsToGroup)
+		let report = await fetchReport(spaceStore.value.layout.balance.fieldsToGroup)
 
 		if (report && !report.error) {
 			if (
-				store.layout.balance.fieldToAggrigate &&
-				store.layout.balance.fieldsToGroup
+				spaceStore.value.layout.balance.fieldToAggrigate &&
+				spaceStore.value.layout.balance.fieldsToGroup
 			) {
 				categories.value = reportGroup({
 					report,
-					sum_field: store.layout.balance.fieldToAggrigate[0].key,
+					sum_field: spaceStore.value.layout.balance.fieldToAggrigate[0].key,
 					colorsCat,
-					fieldsToGroup: store.layout.balance.fieldsToGroup,
+					fieldsToGroup: spaceStore.value.layout.balance.fieldsToGroup,
 				})
 			} else {
 				chartError.value = ERROR_STATUSES['NO_LAYOUT']
@@ -465,9 +466,9 @@
 				pl_include_zero: false,
 				portfolio_mode: 1,
 				portfolios: [route.query.tab],
-				pricing_policy: store.settings.general.pricing_policy,
-				report_currency: store.settings.general.currency,
-				report_date: store.settings.general.date_to,
+				pricing_policy: spaceStore.value.settings.general.pricing_policy,
+				report_currency: spaceStore.value.settings.general.currency,
+				report_date: spaceStore.value.settings.general.date_to,
 				report_type: 1,
 				show_balance_exposure_details: false,
 				show_transaction_details: true,
@@ -549,7 +550,7 @@
 		let plusColors = []
 		let plus = cat.subcats
 			.filter((item) => item.market_value >= 0)
-			.map((item, k) => {
+			.map((item) => {
 				plusColors.push(colorByCat(catName + item.name))
 				return item.market_value
 			})
@@ -559,7 +560,7 @@
 		let minusColors = []
 		let minus = cat.subcats
 			.filter((item) => item.market_value < 0)
-			.map((item, k) => {
+			.map((item) => {
 				minusColors.push(colorByCat(catName + item.name))
 
 				return item.market_value

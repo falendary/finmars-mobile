@@ -14,25 +14,25 @@
 				/>
 
 				<div class="header_info">
-					{{ dayjs(store.settings.general.date_from).format('DD MMM YYYY') }}
+					{{ dayjs(store.spaces[store.activeSpaceCode].settings.general.date_from).format('DD MMM YYYY') }}
 					<ion-icon style='position: relative; top: 3px;' :icon="removeOutline"></ion-icon>
-					{{ dayjs(store.settings.general.date_to).format('DD MMM YYYY') }}
+					{{ dayjs(store.spaces[store.activeSpaceCode].settings.general.date_to).format('DD MMM YYYY') }}
 				</div>
 			</div>
 
 			<HistoryChartComp
 				type="pl"
-				:date_from="store.settings.general.date_from"
-				:date_to="store.settings.general.date_to"
-				:currency="store.settings.general.currency"
+				:date_from="store.spaces[store.activeSpaceCode].settings.general.date_from"
+				:date_to="store.spaces[store.activeSpaceCode].settings.general.date_to"
+				:currency="store.spaces[store.activeSpaceCode].settings.general.currency"
 				@refresher="portfoliosRefresher = $event"
 				:nav="total_nav"
 			/>
 
 			<IndicatorsComp
 				:portfolioId="portfolio?.user_code"
-				:currency="store.settings.general.currency"
-				:date="store.settings.general.date_to"
+				:currency="store.spaces[store.activeSpaceCode].settings.general.currency"
+				:date="store.spaces[store.activeSpaceCode].settings.general.date_to"
 				@refresher="indicatorsRefresher = $event"
 			/>
 
@@ -61,7 +61,7 @@
 							<div class="bb_header">{{ item.layout_name || item.name }}</div>
 							<div class="bb_price">
 								{{ $format(item.total) }}
-								{{ store.settings.general.currency }}
+								{{ store.spaces[store.activeSpaceCode].settings.general.currency }}
 							</div>
 						</div>
 
@@ -163,7 +163,7 @@
 						<div>
 							<div class="bb_price">
 								{{ $format(detailSubcat.total) }}
-								{{ store.settings.general.currency }}
+								{{ store.spaces[store.activeSpaceCode].settings.general.currency }}
 							</div>
 							<!-- <div class="instr_block_change flex jcfe">
 								<div class="instr_change_percent instr_first minus">
@@ -240,21 +240,21 @@
 	import { Pagination } from 'swiper'
 
 	import useApi from '@/composables/useApi'
-	import useMiniStore from '@/composables/useMiniStore'
+	import useStore from '@/composables/useStore'
 	import { reportGroupPL } from '@/data-utils/reportAggs'
 	import { useRoute } from 'vue-router'
 	import { removeOutline } from 'ionicons/icons'
 
-	const store = useMiniStore()
+	const store = useStore()
 	const route = useRoute()
 
 	const portfolio = computed(() => {
-		return store.portfolioList.find((o) => o.user_code == route.query.tab)
+		return store.spaces[store.activeSpaceCode].portfolioList.find((o) => o.user_code == route.query.tab)
 	})
 	let total_nav = ref(null)
 
 	const transactionsOpts = reactive({
-		end_date: store.settings.general.date_to,
+		end_date: store.spaces[store.activeSpaceCode].settings.general.date_to,
 		begin_date: '0001-01-01',
 		portfolios: portfolio.value?.user_code,
 		filter_entry_user_code: null,
@@ -287,7 +287,7 @@
 			Promise.all([init(), portfoliosRefresher(), indicatorsRefresher()])
 		}
 	)
-	watch([store.settings.general, store.settings.pnl], () => {
+	watch([store.spaces[store.activeSpaceCode].settings.general, store.spaces[store.activeSpaceCode].settings.pnl], () => {
 		init()
 	})
 
@@ -307,15 +307,15 @@
 		detailSubcat.value = {}
 		chartError.value = ''
 
-		transactionsOpts.begin_date = store.settings.general.date_from
-		transactionsOpts.end_date = store.settings.general.date_to
+		transactionsOpts.begin_date = store.spaces[store.activeSpaceCode].settings.general.date_from
+		transactionsOpts.end_date = store.spaces[store.activeSpaceCode].settings.general.date_to
 		transactionsOpts.portfolios = route.query.tab
 		transactionsOpts.filter_entry_user_code = null
 
-		let report = await fetchReport(store.layout.pnl.fieldsToGroup)
+		let report = await fetchReport(store.spaces[store.activeSpaceCode].layout.pnl.fieldsToGroup)
 
 		if (report && !report.error) {
-			if (store.layout.pnl.fieldToAggrigate && store.layout.pnl.fieldsToGroup) {
+			if (store.spaces[store.activeSpaceCode].layout.pnl.fieldToAggrigate && store.spaces[store.activeSpaceCode].layout.pnl.fieldsToGroup) {
 				total_nav.value = report.items.reduce(
 					(res, val) => res + (val.total || 0),
 					0
@@ -323,9 +323,9 @@
 
 				categories.value = reportGroupPL({
 					report,
-					sum_field: store.layout.pnl.fieldToAggrigate[0]?.key,
+					sum_field: store.spaces[store.activeSpaceCode].layout.pnl.fieldToAggrigate[0]?.key,
 					colorsCat,
-					fieldsToGroup: store.layout.pnl.fieldsToGroup,
+					fieldsToGroup: store.spaces[store.activeSpaceCode].layout.pnl.fieldsToGroup,
 				})
 
 				Object.keys(categories.value).forEach((item) => {
@@ -376,13 +376,13 @@
 				depth_level: 'base_transaction',
 				expression_iterations_count: 1,
 				filters: [],
-				pl_first_date: store.settings.general.date_from,
+				pl_first_date: store.spaces[store.activeSpaceCode].settings.general.date_from,
 				pl_include_zero: false,
 				portfolio_mode: 1,
 				portfolios: route.query.tab && [route.query.tab],
-				pricing_policy: store.settings.general.pricing_policy,
-				report_currency: store.settings.general.currency,
-				report_date: store.settings.general.date_to,
+				pricing_policy: store.spaces[store.activeSpaceCode].settings.general.pricing_policy,
+				report_currency: store.spaces[store.activeSpaceCode].settings.general.currency,
+				report_date: store.spaces[store.activeSpaceCode].settings.general.date_to,
 				report_type: 1,
 				show_balance_exposure_details: false,
 				show_transaction_details: false,

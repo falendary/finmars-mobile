@@ -1,6 +1,6 @@
 <template>
 	<swiper
-		v-if="store.portfolioList.length"
+		v-if="store.spaces[store.activeSpaceCode].portfolioList.length"
 		v-bind="$attrs"
 		:pagination="true"
 		:modules="[Pagination]"
@@ -9,7 +9,7 @@
 		@swiper="onSwiper"
 		@slideChangeTransitionEnd="onPortfolioChange"
 	>
-		<swiper-slide v-for="(item, k) in store.portfolioList">
+		<swiper-slide v-for="(item, k) in store.spaces[store.activeSpaceCode].portfolioList">
 			<div class="main_chart">
 				<div class="main_chart_h">
 					{{ type == 'nav' ? 'Net Asset Value (NAV)' : 'Profit & Loss (P&L)' }}
@@ -17,7 +17,7 @@
 
 				<div class="main_chart_price" v-if="nav !== null">
 					{{ $format(nav) }}
-					{{ store.settings.general.currency }}
+					{{ store.spaces[store.activeSpaceCode].settings.general.currency }}
 				</div>
 				<div class="main_chart_price" v-else>
 					<IonSkeletonText :animated="true" style="width: 30%; height: 24px" />
@@ -45,7 +45,7 @@
 		</swiper-slide>
 	</swiper>
 
-	<div v-bind="$attrs" style="height: 179px" v-if="!store.portfolioList.length">
+	<div v-bind="$attrs" style="height: 179px" v-if="!store.spaces[store.activeSpaceCode].portfolioList.length">
 		<div class="main_chart">
 			<div class="main_chart_h">
 				{{ type == 'nav' ? 'Net Asset Value (NAV)' : 'Profit & Loss (P&L)' }}
@@ -96,7 +96,7 @@
 	import 'swiper/css'
 
 	import useApi from '@/composables/useApi'
-	import useMiniStore from '@/composables/useMiniStore'
+	import useStore from '@/composables/useStore'
 
 	Chart.register(
 		LineElement,
@@ -124,7 +124,7 @@
 			default: 'nav',
 		},
 	})
-	const store = useMiniStore()
+	const store = useStore()
 	const router = useRouter()
 	const route = useRoute()
 
@@ -132,7 +132,7 @@
 
 	// This function is init
 	const onSwiper = (swiper) => {
-		let slideIndex = store.portfolioList.findIndex(
+		let slideIndex = store.spaces[store.activeSpaceCode].portfolioList.findIndex(
 			(o) => o.user_code == route.query.tab
 		)
 
@@ -141,7 +141,7 @@
 			init()
 		} else {
 			// if no portfolio
-			router.push({ query: { tab: store.portfolioList[0].user_code } })
+			router.push({ query: { tab: store.spaces[store.activeSpaceCode].portfolioList[0].user_code } })
 		}
 	}
 
@@ -313,7 +313,7 @@
 	}
 
 	function onPortfolioChange(swiper) {
-		let userCode = store.portfolioList[swiper.realIndex]?.user_code
+		let userCode = store.spaces[store.activeSpaceCode].portfolioList[swiper.realIndex]?.user_code
 
 		router.push({
 			query: {

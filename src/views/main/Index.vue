@@ -6,13 +6,13 @@
 			<ion-tab-bar class="tab_bar" color="medium" slot="bottom">
 				<ion-tab-button class="tab" tab="balance" href="/main/balance">
 <!--					<ion-icon :icon="balanceIcon" />-->
-					<ion-icon :icon='readerOutline' size='8'></ion-icon>
+					<ion-icon :icon='icons.readerOutline' size='8'></ion-icon>
 					<ion-label>Balance</ion-label>
 				</ion-tab-button>
 
 				<ion-tab-button class="tab" tab="pnl" href="/main/pnl">
 <!--					<ion-icon :icon="iconTest" />-->
-					<ion-icon :icon='barChartOutline' size='8'></ion-icon>
+					<ion-icon :icon='icons.barChartOutline' size='8'></ion-icon>
 					<ion-label>P&L</ion-label>
 				</ion-tab-button>
 
@@ -41,13 +41,13 @@
 					href="/main/transactions"
 				>
 <!--					<ion-icon part="tab" :icon="iconTest" />-->
-					<ion-icon part="tab" :icon="layersOutline" />
+					<ion-icon part="tab" :icon="icons.layersOutline" />
 					<ion-label part="tab">Transactions</ion-label>
 				</ion-tab-button>
 
 				<ion-tab-button class="tab" tab="settings" @click="isOpen = true">
 <!--					<ion-icon :icon="settingsSharp" />-->
-					<ion-icon :icon="settingsOutline" />
+					<ion-icon :icon="icons.settingsOutline" />
 					<ion-label>Settings</ion-label>
 				</ion-tab-button>
 			</ion-tab-bar>
@@ -65,7 +65,7 @@
 
 				<ion-buttons slot="end">
 					<ion-button @click="isOpen = false">
-						<ion-icon slot="icon-only" :ios="close" :md="close"></ion-icon>
+						<ion-icon slot="icon-only" :ios="icons.close" :md="close"></ion-icon>
 					</ion-button>
 				</ion-buttons>
 			</ion-toolbar>
@@ -74,8 +74,8 @@
 				<ion-list lines="full">
 					<ion-item>
 						<ion-select
-							v-model="store.settings.general.period"
-							:label="`Period [${dayjs(store.settings.general.date_from).format(
+							v-model="store.spaces[store.activeSpaceCode].settings.general.period"
+							:label="`Period [${dayjs(store.spaces[store.activeSpaceCode].settings.general.date_from).format(
 								'DD MMM YYYY'
 							)}]`"
 							placeholder="Period"
@@ -90,7 +90,7 @@
 						</ion-select>
 					</ion-item>
 
-					<ion-item v-if="store.settings.general.date_to">
+					<ion-item v-if="store.spaces[store.activeSpaceCode].settings.general.date_to">
 						<ion-label
 							>Date
 							{{ tab == 'pnl' || tab == 'transactions' ? 'to' : '' }}</ion-label
@@ -103,7 +103,7 @@
 							<ion-datetime
 								style="color: #000"
 								id="datetime_date_to"
-								v-model="store.settings.general.date_to"
+								v-model="store.spaces[store.activeSpaceCode].settings.general.date_to"
 								:prefer-wheel="true"
 								presentation="date"
 								show-default-buttons
@@ -114,7 +114,7 @@
 
 					<ion-item v-if="pricingPolicies?.length">
 						<ion-select
-							v-model="store.settings.general.pricing_policy"
+							v-model="store.spaces[store.activeSpaceCode].settings.general.pricing_policy"
 							label="Pricing policy"
 							placeholder="Policy"
 						>
@@ -129,7 +129,7 @@
 
 					<ion-item v-if="currencies?.length">
 						<ion-select
-							v-model="store.settings.general.currency"
+							v-model="store.spaces[store.activeSpaceCode].settings.general.currency"
 							label="Reporting currency"
 							placeholder="Currency"
 						>
@@ -144,7 +144,7 @@
 
 					<ion-item>
 						<ion-select
-							v-model="store.settings.general.portfolios"
+							v-model="store.spaces[store.activeSpaceCode].settings.general.portfolios"
 							label="Portfolios"
 							placeholder="Portfolios"
 							:multiple="true"
@@ -165,7 +165,7 @@
 					class="ion-margin-horizontal"
 					fill="outline"
 					expand="block"
-					router-link="/workspaces"
+					@click='changeSpace()'
 				>
 					CHANGE SPACE
 				</ion-button>
@@ -188,7 +188,7 @@
 	</ion-page>
 </template>
 
-<script setup>
+<script>
 	import {
 		IonTabs,
 		IonRouterOutlet,
@@ -204,150 +204,198 @@
 		IonSelectOption,
 		IonDatetime,
 		IonDatetimeButton,
-		IonHeader,
 		IonToolbar,
 		IonButtons,
 		IonButton,
-		IonTitle,
+		IonTitle, IonPage
 	} from '@ionic/vue'
 	import { settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline } from 'ionicons/icons'
-	import { ref, inject, computed } from 'vue'
-	import { useRoute } from 'vue-router'
+	import {  computed } from 'vue'
+	import { useRoute, useRouter } from 'vue-router'
 	import { Preferences } from '@capacitor/preferences'
-	import useMiniStore from '@/composables/useMiniStore'
+	import useStore from '@/composables/useStore'
 	import useApi from '@/composables/useApi'
 	import { watch } from 'vue'
 	import dayjs from 'dayjs'
 	import quarterOfYear from 'dayjs/plugin/quarterOfYear'
 	dayjs.extend(quarterOfYear)
 
-	const store = useMiniStore()
-	const route = useRoute()
+	export default {
+		components: {
+			IonTabs,
+			IonRouterOutlet,
+			IonTabBar,
+			IonTabButton,
+			IonLabel,
+			IonIcon,
+			IonModal,
+			IonContent,
+			IonList,
+			IonItem,
+			IonSelect,
+			IonSelectOption,
+			IonDatetime,
+			IonDatetimeButton,
+			IonToolbar,
+			IonButtons,
+			IonButton,
+			IonTitle, IonPage,
 
-	let currencies = ref(null)
-	let pricingPolicies = ref(null)
+			// settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline
+		},
 
-	await store.init()
+		data() {
+			return {
+				currentYear: new Date().getFullYear(),
+				store: null,
+				spaceStore: null,
+				currencies: [],
+				pricingPolicies: [],
+				workspace: null,
+				username: null,
+				isOpen: false,
+				tab: null,
+				dayjs: dayjs,
+				icons: {
+					settingsSharp,
+					close,
+					barChartOutline,
+					layersOutline,
+					readerOutline,
+					settingsOutline
+				}
+			}
+		},
+		methods: {
+			changeSpace() {
+				this.isOpen = false;
+				this.router.push('/workspaces')
+			},
+			async fetchPortfolios() {
+				let res = await useApi('portfolioLight.get')
 
-	let { value } = await Preferences.get({ key: 'workspace' })
-	let workspace = ref(value)
+				if (res && !res.error) {
+					this.spaceStore.portfolioListStock = res.results.map((o) => {
+						return {
+							id: o.id,
+							name: o.name,
+							user_code: o.user_code,
+							price: '-',
+							change: {
+								price: '-',
+								percent: '-',
+							},
+						}
+					})
 
-	let { value: valUser } = await Preferences.get({ key: 'username' })
-	let username = ref(valUser)
+					this.spaceStore.portfolioList = this.spaceStore.settings.general.portfolios?.length
+						? this.spaceStore.portfolioListStock.filter((o) =>
+							this.spaceStore.settings.general.portfolios.includes(o.user_code)
+						)
+						: this.spaceStore.portfolioListStock
+				} else {
+					this.spaceStore.portfolioListStock = []
+					this.spaceStore.portfolioList = []
+				}
+			},
 
-	await fetchCurrencies()
-	await fetchPortfolios()
-	await fetchPolicies()
+			async fetchCurrencies() {
+				let res = await useApi('currencyLight.get')
 
-	async function fetchPortfolios() {
-		let res = await useApi('portfolioLight.get')
+				if (res && !res.error) {
+					this.currencies = res.results
+				} else {
+					this.currencies.value = []
+				}
+			},
 
-		if (res && !res.error) {
-			store.portfolioListStock = res.results.map((o, k) => {
-				return {
-					id: o.id,
-					name: o.name,
-					user_code: o.user_code,
-					price: '-',
-					change: {
-						price: '-',
-						percent: '-',
+			async fetchPolicies() {
+				let res = await useApi('pricingPolicies.get')
+
+				if (res && !res.error) {
+					this.pricingPolicies = res.results
+
+					if (!this.spaceStore.settings.general.pricing_policy) {
+						this.spaceStore.settings.general.pricing_policy = res.results[0].user_code
+					}
+
+					console.log('this.spaceStore.settings.general.pricing_policy', this.spaceStore.settings.general.pricing_policy);
+
+				} else {
+					this.pricingPolicies = []
+				}
+			},
+
+			changeDataFrom() {
+				const funcs = {
+					inception: () => {
+						this.spaceStore.settings.general.date_from = '0001-01-01'
+					},
+					ytd: () => {
+						this.spaceStore.settings.general.date_from = dayjs(this.spaceStore.settings.general.date_to)
+							.add(-1, 'year')
+							.format('YYYY-MM-DD')
+					},
+					qtd: () => {
+						console.log(
+							'dayjs(this.spaceStore.settings.general.date_to).quarter():',
+							dayjs(this.spaceStore.settings.general.date_to).quarter()
+						)
+						this.spaceStore.settings.general.date_from = dayjs(this.spaceStore.settings.general.date_to)
+							.quarter(dayjs(this.spaceStore.settings.general.date_to).quarter() - 1)
+							.format('YYYY-MM-DD')
+					},
+					mtd: () => {
+						this.spaceStore.settings.general.date_from = dayjs(this.spaceStore.settings.general.date_to)
+							.add(-1, 'month')
+							.format('YYYY-MM-DD')
 					},
 				}
-			})
 
-			store.portfolioList = store.settings.general.portfolios?.length
-				? store.portfolioListStock.filter((o) =>
-						store.settings.general.portfolios.includes(o.user_code)
-				  )
-				: store.portfolioListStock
-		} else {
-			store.portfolioListStock = []
-			store.portfolioList = []
-		}
-	}
-	watch(
-		() => store.settings.general.portfolios,
-		() => {
-			store.portfolioList = store.portfolioListStock.filter((o) =>
-				store.settings.general.portfolios.includes(o.user_code)
-			)
-		}
-	)
-	async function fetchCurrencies() {
-		let res = await useApi('currencyLight.get')
-
-		if (res && !res.error) {
-			currencies.value = res.results
-		} else {
-			currencies.value = []
-		}
-	}
-
-	async function fetchPolicies() {
-		let res = await useApi('pricingPolicies.get')
-
-		if (res && !res.error) {
-			pricingPolicies.value = res.results
-
-			if (!store.settings.general.pricing_policy) {
-				store.settings.general.pricing_policy = res.results[0].user_code
+				funcs[this.spaceStore.settings.general.period]()
 			}
 
-			console.log('store.settings.general.pricing_policy', store.settings.general.pricing_policy);
+		},
+		async created() {
 
-		} else {
-			pricingPolicies.value = []
+			this.store = useStore()
+			this.route = useRoute()
+			this.router = useRouter()
+
+			await this.store.init()
+			this.spaceStore = computed(() => this.store.spaces[this.store.activeSpaceCode]);
+
+			console.log("Index.spaceStore", this.spaceStore);
+			console.log("Index.store.activeSpaceCode", this.store.activeSpaceCode);
+
+			await this.fetchCurrencies()
+			await this.fetchPortfolios()
+			await this.fetchPolicies()
+
+
+			let { value } = await Preferences.get({ key: 'activeSpaceCode' })
+			this.workspace = value
+
+			let { value: valUser } = await Preferences.get({ key: 'username' })
+			this.username = valUser
+
+			watch(
+				() => this.spaceStore.settings.general.portfolios,
+				() => {
+					this.spaceStore.portfolioList = this.spaceStore.portfolioListStock.filter((o) =>
+						this.spaceStore.settings.general.portfolios.includes(o.user_code)
+					)
+				}
+			)
+
+			this.tab = computed(() => {
+				if (!this.route.path.includes('/main/')) return null
+				return this.route.path.replace('/main/', '')
+			})
+
 		}
 	}
-	function changeDataFrom() {
-		const funcs = {
-			inception: () => {
-				store.settings.general.date_from = '0001-01-01'
-			},
-			ytd: () => {
-				store.settings.general.date_from = dayjs(store.settings.general.date_to)
-					.add(-1, 'year')
-					.format('YYYY-MM-DD')
-			},
-			qtd: () => {
-				console.log(
-					'dayjs(store.settings.general.date_to).quarter():',
-					dayjs(store.settings.general.date_to).quarter()
-				)
-				store.settings.general.date_from = dayjs(store.settings.general.date_to)
-					.quarter(dayjs(store.settings.general.date_to).quarter() - 1)
-					.format('YYYY-MM-DD')
-			},
-			mtd: () => {
-				store.settings.general.date_from = dayjs(store.settings.general.date_to)
-					.add(-1, 'month')
-					.format('YYYY-MM-DD')
-			},
-		}
 
-		funcs[store.settings.general.period]()
-	}
-
-	const tab = computed(() => {
-		if (!route.path.includes('/main/')) return null
-		return route.path.replace('/main/', '')
-	})
-
-	let iconTest = `data:image/svg+xml;utf8,<svg class='ionicon' xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.25 2.52.77-1.28-3.52-2.09V8z"/></svg>`
-
-	let balanceIcon = `data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_1_2437)">
-<path d="M11 5.08V2C6 2.5 2 6.81 2 12C2 17.19 6 21.5 11 22V18.92C8 18.44 5 15.52 5 12C5 8.48 8 5.56 11 5.08ZM18.97 11H22C21.53 6 18 2.47 13 2V5.08C16 5.51 18.54 8 18.97 11ZM13 18.92V22C18 21.53 21.53 18 22 13H18.97C18.54 16 16 18.49 13 18.92Z" />
-</g>
-<defs>
-<clipPath id="clip0_1_2437">
-<rect width="24" height="24" fill="white"/>
-</clipPath>
-</defs>
-</svg>`
-
-	let isOpen = ref(false)
 </script>
 
 <style lang="scss" scoped>
@@ -388,6 +436,7 @@
 	}
 	.tab_bar {
 		contain: none;
+		padding-bottom: 0;
 	}
 	.tab.tab-selected {
 		color: var(--ion-color-primary);

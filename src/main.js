@@ -28,6 +28,7 @@ import '@/assets/main.scss'
 
 import NumberFormat from '@/plugins/NumberFormat.js'
 import { createPinia } from 'pinia'
+import Particles from "vue3-particles";
 
 let pinia, app
 
@@ -40,7 +41,7 @@ window.restartVueApp = () => {
 
 function createAppVue() {
 	pinia = createPinia()
-	app = createApp(App).use(router).use(IonicVue).use(NumberFormat).use(pinia)
+	app = createApp(App).use(router).use(IonicVue).use(NumberFormat).use(pinia).use(Particles);
 
 	app.component('IonPage', IonPage).component('IonContent', IonContent)
 

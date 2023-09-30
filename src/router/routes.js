@@ -21,6 +21,7 @@ export default [
 	},
 	{
 		path: '/logout',
+		component: () => import('@/views/Logout.vue'),
 	},
 	{
 		path: '/main',

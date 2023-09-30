@@ -2784,10 +2784,16 @@
 						var promise = createPromise()
 						var loginUrl = kc.createLoginUrl(options)
 
+						console.log('appUrlOpen inited in keycloak on login')
+
 						window.Capacitor.Plugins.App.addListener('appUrlOpen', (data) => {
+
+							console.log('appUrlOpen got callback')
+
 							var oauth = parseCallback(data.url)
 
 							window.Capacitor.Plugins.App.removeAllListeners()
+							window.Capacitor.Plugins.Browser.close();
 
 							processCallback(oauth, promise)
 						})
