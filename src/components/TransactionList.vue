@@ -1328,7 +1328,7 @@
 
 	.transactions_desc_block {
 		padding: 15px 13px;
-		background: #fff;
+		background: var(--ion-card-background);
 		border-top: 1px solid var(--ion-card-border-color);
 	}
 

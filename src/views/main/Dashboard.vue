@@ -57,6 +57,7 @@
 					<div
 						class="portfolios_item"
 						v-for="item in portfolios"
+						v-bind:key="item.id"
 						@click="$router.push('/main/balance?tab=' + item.user_code)"
 					>
 						<div class="pi_first_line flex aic sb">
@@ -165,7 +166,7 @@
 		PointElement,
 		ScatterController
 	} from 'chart.js'
-	import { computed,  reactive, ref, watch } from 'vue'
+	import { computed, watch } from 'vue'
 	import useApi from '@/composables/useApi.js'
 	import useStore from '@/composables/useStore'
 	// Stores the controller so that the chart initialization routine can look it up
@@ -204,7 +205,7 @@
 		methods: {
 			async init() {
 
-				console.log("Dashboard.init")
+				console.log('Dashboard.init')
 
 				this.processing = true
 
@@ -262,14 +263,14 @@
 		created() {
 
 			this.store = useStore()
-			this.spaceStore = computed(() => this.store.spaces[this.store.activeSpaceCode]);
+			this.spaceStore = computed(() => this.store.spaces[this.store.activeSpaceCode])
 
-			this.fetchUser();
+			this.fetchUser()
 
-			console.log("DASHBOARD_CONTROLLER: storeIsReady change")
+			console.log('DASHBOARD_CONTROLLER: storeIsReady change')
 
 			this.init()
-			this.storeIsReady = true;
+			this.storeIsReady = true
 
 			watch([this.spaceStore.settings.dashboard, this.spaceStore.settings.general], () => {
 				this.transactionsOpts.end_date = this.spaceStore.settings.general.date_to
@@ -290,17 +291,11 @@
 			}
 
 
-
-
-
 		},
 		mounted() {
 
 		}
 	}
-
-
-
 
 
 </script>
@@ -382,7 +377,7 @@
 		//padding: 7px 10px;
 		//box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.05);
 		border-radius: 0.5rem;
-	  box-shadow: var(--ion-card-box-shadow);
+		box-shadow: var(--ion-card-box-shadow);
 		padding: 1rem;
 
 		& + & {

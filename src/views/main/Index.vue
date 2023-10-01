@@ -59,7 +59,7 @@
 		</div>
 
 		<ion-modal
-			v-if="tab"
+
 			:is-open="isOpen"
 			:initial-breakpoint="0.75"
 			:breakpoints="[0, 0.75, 0.95]"

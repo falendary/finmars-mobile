@@ -34,6 +34,8 @@
 				@nav="total_nav = $event"
 			/>
 
+<!--			Pie Chart below-->
+
 			<div class="header flex aic sb">
 				Balance
 
@@ -101,7 +103,7 @@
 											}"
 										>
 											{{
-												Math.round(
+												Math.floor(
 													(subcat.market_value / Math.abs(item.market_value)) *
 														100
 												)
@@ -128,14 +130,6 @@
 					</div>
 				</swiper-slide>
 			</swiper>
-
-			<div class="nodata_wrap center aic" v-else-if="!chartProcced">
-				<div>
-<!--					<h3>Configuration error</h3>-->
-
-<!--					<p>{{ chartError }}</p>-->
-				</div>
-			</div>
 
 			<div v-else class="balance_block">
 				<div class="bb_header_line flex sb aic">
@@ -170,6 +164,8 @@
 					</div>
 				</div>
 			</div>
+
+<!--			Transactions below-->
 
 			<template v-if="detailSubcat.name">
 				<div class="header flex aic sb">Details</div>
@@ -549,7 +545,7 @@
 
 		let plusColors = []
 		let plus = cat.subcats
-			.filter((item) => item.market_value >= 0)
+			.filter((item) => Math.floor(item.market_value) >= 0)
 			.map((item) => {
 				plusColors.push(colorByCat(catName + item.name))
 				return item.market_value
