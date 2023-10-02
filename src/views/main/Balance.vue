@@ -496,6 +496,7 @@
 			},
 			async init() {
 
+				this.activeCategory = null;
 
 				console.log('route.query.tab', this.$route.query.tab)
 
