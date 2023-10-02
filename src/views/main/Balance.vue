@@ -67,7 +67,7 @@
 			/>
 
 			<IndicatorsComp
-				:portfolioId="route.query.tab"
+				:portfolioId="$route.query.tab"
 				:currency="spaceStore.settings.general.currency"
 				:date="spaceStore.settings.general.date_to"
 				@refresher="indicatorsRefresher = $event"
@@ -97,7 +97,7 @@
 				@slideChangeTransitionEnd="onBalanceChange"
 				@swiper="onSwiper"
 			>
-				<swiper-slide v-for="(item, cat) in categories">
+				<swiper-slide v-for="(item, cat) in categories" v-bind:key="cat">
 					<div class="balance_block" v-show="item.subcats.length">
 						<div class="bb_header_line flex sb aic">
 							<div class="bb_header">{{ item.layout_name || (item.verbose_name || item.name) }}</div>
@@ -129,7 +129,8 @@
 							>
 								<div
 									class="balance_labels_item flex aic sb"
-									v-for="subcat in item.subcats"
+									v-for="(subcat, index) in item.subcats"
+									v-bind:key="index"
 									:class="{ active: detailSubcat.name == subcat.name }"
 									@click="
 										;(detailSubcat = subcat), (isOpenTransactions = false)
@@ -197,7 +198,7 @@
 					<div class="balance_labels">
 						<div
 							class="balance_labels_item flex aic"
-							v-for="subcat in [3, 3, 3]"
+							v-for="(subcat, index) in [3, 3, 3]" v-bind:key="index"
 						>
 							<IonSkeletonText style="height: 32px" :animated="true" />
 						</div>
@@ -229,7 +230,8 @@
 
 					<div
 						class="instruments"
-						v-for="item in detailSubcat.items"
+						v-for="(item, index) in detailSubcat.items"
+						v-bind:key="index"
 						:class="{
 							active: transactionsOpts.filter_entry_user_code == item.user_code,
 						}"
@@ -281,13 +283,13 @@
 	</ion-page>
 </template>
 
-<script setup>
-	import { computed, reactive, ref, watch } from 'vue'
+<script>
+	import { computed,  watch } from 'vue'
 	import {
 		IonCheckbox,
 		IonDatetime,
-		IonDatetimeButton,
-		IonModal,
+		IonDatetimeButton, IonHeader,
+		IonModal, IonPage,
 		IonRefresher,
 		IonRefresherContent,
 		IonSelect,
@@ -315,12 +317,11 @@
 	import TransactionListComp from '@/components/TransactionList.vue'
 
 	import { Swiper, SwiperSlide } from 'swiper/vue'
-	import { Pagination } from 'swiper'
-	import { useRoute } from 'vue-router'
 
 	import useApi from '@/composables/useApi'
 	import useStore from '@/composables/useStore'
 	import { reportGroup } from '@/data-utils/reportAggs'
+	import { Pagination } from 'swiper'
 
 	Chart.register(
 		LineElement,
@@ -336,303 +337,320 @@
 		Tooltip
 	)
 
-	const store = useStore()
-	const spaceStore = computed(() => store.spaces[store.activeSpaceCode])
-	const route = useRoute()
+	export default {
+		components: {
+			IndicatorsComp,
+			HistoryChartComp,
+			TransactionListComp,
+			IonSkeletonText,
+			Swiper, SwiperSlide,
+			IonCheckbox,
+			IonSelectOption,
+			IonSelect,
+			IonRefresherContent,
+			IonRefresher,
+			IonHeader,
+			IonPage,
+			IonToolbar,
+			IonModal, IonDatetimeButton, IonDatetime,
 
-	const portfolio = computed(() => {
-		return spaceStore.value.portfolioList.find((o) => o.user_code == route.query.tab)
-	})
+		},
+		data() {
+			return {
+				Pagination: Pagination,
+				store: null,
+				spaceStore: null,
+				portfolio: null,
+				total_nav: 0,
+				transactionsOpts: null,
+				isOpenTransactions: false,
+				chartProcced: false,
+				colorsCat: {},
+				portfoliosRefresher: null,
+				indicatorsRefresher: null,
+				categories: null,
+				activeCategory: '',
+				isChartView: true,
+				detailSubcat: {  }
+			}
+		},
+		methods: {
 
-	let total_nav = ref(null)
-	const transactionsOpts = reactive({
-		end_date: spaceStore.value.settings.general.date_to,
-		begin_date: '0001-01-01',
-		portfolios: route.query.tab,
-		filter_entry_user_code: null
-	})
-	let isOpenTransactions = ref(false)
+			async init() {
+				this.chartProcced = true
+				this.detailSubcat = {}
 
-	let balanceChartObj
-	let chartProcced = ref(false)
+				console.log('route.query.tab', this.$route.query.tab)
 
-	let data = {
-		labels: [],
-		datasets: [
-			{
-				data: [],
-				hoverOffset: 4
+				this.transactionsOpts.end_date = this.spaceStore.settings.general.date_to
+				this.transactionsOpts.portfolios = [this.$route.query.tab]
+				this.transactionsOpts.filter_entry_user_code = null
+
+				let report = await this.fetchReport(this.spaceStore.layout.balance.fieldsToGroup)
+
+				if (report && !report.error) {
+					if (
+						this.spaceStore.layout.balance.fieldToAggrigate &&
+						this.spaceStore.layout.balance.fieldsToGroup
+					) {
+						this.categories = reportGroup({
+							report,
+							sum_field: this.spaceStore.layout.balance.fieldToAggrigate[0].key,
+							colorsCat: this.colorsCat,
+							fieldsToGroup: this.spaceStore.layout.balance.fieldsToGroup
+						})
+					}
+				}
+
+				if (this.balanceChartObj && !this.balanceSwiper?.destroyed) {
+					console.log('balanceSwiper:', this.balanceSwiper)
+					this.balanceSwiper.slideTo(0)
+					let catName = Object.keys(this.categories)[0]
+					this.activeCategory = this.categories[catName]
+
+					this.balanceChartObj.data = this.createBalanceDataset(this.activeCategory, catName)
+					this.balanceChartObj.update()
+				}
+
+				this.chartProcced = false
 			},
-			{
-				data: [],
-				circumference: 180
-			}
-		]
-	}
-	let isChartView = ref(true)
-	let detailSubcat = ref({})
 
-	let categories = ref({})
-	let activeCategory = ''
+			createBalanceDataset(cat, catName) {
+				if (!cat) return false
 
-	let colorsCat = {}
+				let plusColors = []
+				let plus = cat.subcats
+					.filter((item) => Math.floor(item.market_value) >= 0)
+					.map((item) => {
+						plusColors.push(this.colorByCat(catName + item.name))
+						return item.market_value
+					})
 
-	let indicatorsRefresher = null
-	let portfoliosRefresher = null
+				let totalPlus = plus.length ? plus.reduce((a, b) => a + b) : 0
 
-	if (route.query.tab) init()
+				let minusColors = []
+				let minus = cat.subcats
+					.filter((item) => item.market_value < 0)
+					.map((item) => {
+						minusColors.push(this.colorByCat(catName + item.name))
 
-	let balanceSwiper = null
+						return item.market_value
+					})
 
-	const ERROR_STATUSES = {
-		NO_LAYOUT: 'No columns to aggrigate',
-		NO_REPORT: 'No data'
-	}
-	const chartError = ref('')
+				let totalMinus = Math.abs(minus.length ? minus.reduce((a, b) => a + b) : 1)
 
-	// This function is init balanceChart
-	const onSwiper = (swiper) => {
-		balanceSwiper = swiper
-		createChart()
+				let data = {}
 
-		let catName = Object.keys(categories.value)[0]
-		activeCategory = categories.value[catName]
+				data.labels = cat.subcats.map((item) => item.name)
+				data.datasets = [
+					{
+						data: plus,
+						backgroundColor: plusColors,
+						hoverOffset: 4,
+						circumference:
+							totalPlus >= totalMinus
+								? 360
+								: Math.floor((totalPlus / totalMinus) * 360)
+					},
+					{
+						data: minus,
+						backgroundColor: minusColors,
+						circumference:
+							totalMinus >= totalPlus
+								? 360
+								: Math.floor((totalMinus / totalPlus) * 360)
+					}
+				]
 
-		if (!activeCategory) {
-			console.error('No categories')
-			return false
-		}
+				return data
+			},
+			colorByCat(item) {
+				return this.colorsCat[item]
+			},
+			createChart(cat) {
+				console.log('cat:', cat)
+				if (this.balanceChartObj) this.balanceChartObj.destroy()
 
-		balanceChartObj.data = createBalanceDataset(activeCategory, catName)
-		balanceChartObj.update()
-	}
+				this.balanceChartObj = new Chart(
+					(cat || Object.keys(this.categories)[0]) + '_balanceChart',
+					{
+						type: 'doughnut',
+						data: this.chartData,
+						options: {
+							cutout: '35%',
+							responsive: true,
+							maintainAspectRatio: false,
+							plugins: {
+								legend: {
+									display: false
+								},
 
-	watch(
-		() => route.query.tab,
-		(newVal, oldVal) => {
-			if (!route.path.includes('/main/balance') || newVal == oldVal)
-				return false
+								tooltip: {
+									callbacks: {
+										label: function(context) {
+											let labelIndex = context.dataIndex
 
-			total_nav.value = null
-			Promise.all([init(), portfoliosRefresher(), indicatorsRefresher()])
-		}
-	)
-	watch(spaceStore.value.settings.general, () => {
-		Promise.all([init(), portfoliosRefresher(), indicatorsRefresher()])
-	})
+											if (context.datasetIndex === 1) {
+												labelIndex =
+													context.chart.data.datasets[0].data.length + labelIndex
+											}
 
-	async function refresh(event) {
-		await Promise.all([
-			init(),
-			portfoliosRefresher(true),
-			indicatorsRefresher()
-		])
-
-		if (event) event.target.complete()
-	}
-
-	async function init() {
-		chartProcced.value = true
-		detailSubcat.value = {}
-
-		console.log('route.query.tab', route.query.tab)
-
-		transactionsOpts.end_date = spaceStore.value.settings.general.date_to
-		transactionsOpts.portfolios = [route.query.tab]
-		transactionsOpts.filter_entry_user_code = null
-
-		let report = await fetchReport(spaceStore.value.layout.balance.fieldsToGroup)
-
-		if (report && !report.error) {
-			if (
-				spaceStore.value.layout.balance.fieldToAggrigate &&
-				spaceStore.value.layout.balance.fieldsToGroup
-			) {
-				categories.value = reportGroup({
-					report,
-					sum_field: spaceStore.value.layout.balance.fieldToAggrigate[0].key,
-					colorsCat,
-					fieldsToGroup: spaceStore.value.layout.balance.fieldsToGroup
-				})
-			} else {
-				chartError.value = ERROR_STATUSES['NO_LAYOUT']
-			}
-		} else {
-			chartError.value = ERROR_STATUSES['NO_REPORT']
-		}
-
-		if (balanceChartObj && !balanceSwiper?.destroyed) {
-			console.log('balanceSwiper:', balanceSwiper)
-			balanceSwiper.slideTo(0)
-			let catName = Object.keys(categories.value)[0]
-			activeCategory = categories.value[catName]
-
-			balanceChartObj.data = createBalanceDataset(activeCategory, catName)
-			balanceChartObj.update()
-		}
-
-		chartProcced.value = false
-	}
-
-	async function fetchReport(fieldsToGroup) {
-		let filters = []
-		let customFields = ''
-
-		if (fieldsToGroup) {
-			customFields = fieldsToGroup
-				.filter((o) => o.custom_field)
-				.map((item) => item.custom_field.name)
-				.join(',')
-		}
-
-		let res = await useApi('balanceReport.post', {
-			body: {
-				account_mode: 0, // Ignore Accounts, important
-				accounts: [],
-				accounts_cash: [],
-				accounts_position: [],
-				allocation_detailing: true,
-				allocation_mode: 0,
-				approach_multiplier: 0.5,
-				calculate_pl: true,
-				calculationGroup: 'portfolio',
-				complex_transaction_statuses_filter: 'booked',
-				cost_method: 1,
-				custom_fields_to_calculate: customFields,
-				date_field: 'transaction_date',
-				depth_level: 'base_transaction',
-				expression_iterations_count: 1,
-				filters,
-				pl_include_zero: false,
-				portfolio_mode: 1,
-				portfolios: [route.query.tab],
-				pricing_policy: spaceStore.value.settings.general.pricing_policy,
-				report_currency: spaceStore.value.settings.general.currency,
-				report_date: spaceStore.value.settings.general.date_to,
-				report_type: 1,
-				show_balance_exposure_details: false,
-				show_transaction_details: true,
-				strategies1: [],
-				strategies2: [],
-				strategies3: [],
-				strategy1_mode: 0,
-				strategy2_mode: 0,
-				strategy3_mode: 0,
-				table_font_size: 'small',
-				transaction_classes: [],
-				pl_first_date: null,
-				task_id: null
-			}
-		})
-
-		return res
-	}
-
-	function onBalanceChange(swiper) {
-		let catName = Object.keys(categories.value)[swiper.realIndex]
-		activeCategory = categories.value[catName]
-
-		createChart(catName)
-
-		balanceChartObj.data = createBalanceDataset(activeCategory, catName)
-		balanceChartObj.update()
-	}
-
-	function createChart(cat) {
-		console.log('cat:', cat)
-		if (balanceChartObj) balanceChartObj.destroy()
-
-		balanceChartObj = new Chart(
-			(cat || Object.keys(categories.value)[0]) + '_balanceChart',
-			{
-				type: 'doughnut',
-				data: data,
-				options: {
-					cutout: '35%',
-					responsive: true,
-					maintainAspectRatio: false,
-					plugins: {
-						legend: {
-							display: false
-						},
-
-						tooltip: {
-							callbacks: {
-								label: function(context) {
-									let labelIndex = context.dataIndex
-
-									if (context.datasetIndex === 1) {
-										labelIndex =
-											context.chart.data.datasets[0].data.length + labelIndex
+											return (
+												context.chart.data.labels[labelIndex] +
+												': ' +
+												context.formattedValue
+											)
+										}
 									}
-
-									return (
-										context.chart.data.labels[labelIndex] +
-										': ' +
-										context.formattedValue
-									)
 								}
 							}
 						}
 					}
-				}
-			}
-		)
-	}
-
-	function colorByCat(item) {
-		return colorsCat[item]
-	}
-
-	function createBalanceDataset(cat, catName) {
-		if (!cat) return false
-
-		let plusColors = []
-		let plus = cat.subcats
-			.filter((item) => Math.floor(item.market_value) >= 0)
-			.map((item) => {
-				plusColors.push(colorByCat(catName + item.name))
-				return item.market_value
-			})
-
-		let totalPlus = plus.length ? plus.reduce((a, b) => a + b) : 0
-
-		let minusColors = []
-		let minus = cat.subcats
-			.filter((item) => item.market_value < 0)
-			.map((item) => {
-				minusColors.push(colorByCat(catName + item.name))
-
-				return item.market_value
-			})
-
-		let totalMinus = Math.abs(minus.length ? minus.reduce((a, b) => a + b) : 1)
-
-		let data = {}
-
-		data.labels = cat.subcats.map((item) => item.name)
-		data.datasets = [
-			{
-				data: plus,
-				backgroundColor: plusColors,
-				hoverOffset: 4,
-				circumference:
-					totalPlus >= totalMinus
-						? 360
-						: Math.floor((totalPlus / totalMinus) * 360)
+				)
 			},
-			{
-				data: minus,
-				backgroundColor: minusColors,
-				circumference:
-					totalMinus >= totalPlus
-						? 360
-						: Math.floor((totalMinus / totalPlus) * 360)
-			}
-		]
+			onBalanceChange(swiper) {
+				let catName = Object.keys(this.categories)[swiper.realIndex]
+				this.activeCategory = this.categories[catName]
 
-		return data
+				this.createChart(catName)
+
+				this.balanceChartObj.data = this.createBalanceDataset(this.activeCategory, catName)
+				this.balanceChartObj.update()
+			},
+			async fetchReport(fieldsToGroup) {
+				let filters = []
+				let customFields = ''
+
+				if (fieldsToGroup) {
+					customFields = fieldsToGroup
+						.filter((o) => o.custom_field)
+						.map((item) => item.custom_field.name)
+						.join(',')
+				}
+
+				let res = await useApi('balanceReport.post', {
+					body: {
+						account_mode: 0, // Ignore Accounts, important
+						accounts: [],
+						accounts_cash: [],
+						accounts_position: [],
+						allocation_detailing: true,
+						allocation_mode: 0,
+						approach_multiplier: 0.5,
+						calculate_pl: true,
+						calculationGroup: 'portfolio',
+						complex_transaction_statuses_filter: 'booked',
+						cost_method: 1,
+						custom_fields_to_calculate: customFields,
+						date_field: 'transaction_date',
+						depth_level: 'base_transaction',
+						expression_iterations_count: 1,
+						filters,
+						pl_include_zero: false,
+						portfolio_mode: 1,
+						portfolios: [this.$route.query.tab],
+						pricing_policy: this.spaceStore.settings.general.pricing_policy,
+						report_currency: this.spaceStore.settings.general.currency,
+						report_date: this.spaceStore.settings.general.date_to,
+						report_type: 1,
+						show_balance_exposure_details: false,
+						show_transaction_details: true,
+						strategies1: [],
+						strategies2: [],
+						strategies3: [],
+						strategy1_mode: 0,
+						strategy2_mode: 0,
+						strategy3_mode: 0,
+						table_font_size: 'small',
+						transaction_classes: [],
+						pl_first_date: null,
+						task_id: null
+					}
+				})
+
+				return res
+			},
+			async refresh(event) {
+				await Promise.all([
+					this.init(),
+					this.portfoliosRefresher(true),
+					this.indicatorsRefresher()
+				])
+
+				if (event) event.target.complete()
+			},
+			onSwiper(swiper) {
+				this.balanceSwiper = swiper
+				this.createChart()
+
+				let catName = Object.keys(this.categories)[0]
+				this.activeCategory = this.categories[catName]
+
+				if (!this.activeCategory) {
+					console.error('No categories')
+					return false
+				}
+
+				this.balanceChartObj.data = this.createBalanceDataset(this.activeCategory, catName)
+				this.balanceChartObj.update()
+			}
+
+		},
+		created() {
+
+			this.store = useStore()
+			this.spaceStore = computed(() => this.store.spaces[this.store.activeSpaceCode])
+
+
+		},
+		mounted() {
+
+			this.portfolio = computed(() => {
+				return this.spaceStore.portfolioList.find((o) => o.user_code == this.$route.query.tab)
+			})
+
+			this.transactionsOpts = {
+				end_date: this.spaceStore.settings.general.date_to,
+				begin_date: '0001-01-01',
+				portfolios: this.$route.query.tab,
+				filter_entry_user_code: null
+			}
+
+			this.chartData = {
+				labels: [],
+				datasets: [
+					{
+						data: [],
+						hoverOffset: 4
+					},
+					{
+						data: [],
+						circumference: 180
+					}
+				]
+			}
+
+
+			if (this.$route.query.tab) this.init()
+
+			watch(
+				() => this.$route.query.tab,
+				(newVal, oldVal) => {
+					if (!this.$route.path.includes('/main/balance') || newVal == oldVal)
+						return false
+
+					this.total_nav = null
+					Promise.all([this.init(), this.portfoliosRefresher(), this.indicatorsRefresher()])
+				}
+			)
+			watch(this.spaceStore.settings.general, () => {
+				Promise.all([this.init(), this.portfoliosRefresher(), this.indicatorsRefresher()])
+			})
+
+		}
 	}
+
+
 </script>
 
 <style lang="scss" scoped>
