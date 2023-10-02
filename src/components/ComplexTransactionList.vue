@@ -28,7 +28,7 @@
 
 							<div class="transaction-content-footer-date">
 								<ion-icon :icon="icons.calendarOutline" size="8" style="margin-right: 4px"></ion-icon>
-								{{ item.date }}
+								{{ item.first_transaction_accounting_date }}
 							</div>
 
 							<div class="transaction-content-footer-transaction-type">
