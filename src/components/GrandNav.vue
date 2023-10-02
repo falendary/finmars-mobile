@@ -1,6 +1,5 @@
 <template>
 
-
 	<div class="grand-nav">
 
 		<div v-if="!processing">
@@ -138,8 +137,13 @@ export default {
 
 					})
 
-					this.grandTotalVerbose = this.grandTotal.toLocaleString('de-CH', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+					if (isNaN(this.grandTotal)) {
 
+						this.errorMessage = 'Could not calculate NAV. (Check prices)'
+
+					} else {
+						this.grandTotalVerbose = this.grandTotal.toLocaleString('de-CH', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+					}
 				} catch (e) {
 					this.errorMessage = 'Could not calculate NAV. (Check prices)'
 				}

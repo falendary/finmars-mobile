@@ -18,30 +18,30 @@
 <script>
 
 	/**
-	 * Created by szhitenev on 30.09.2023.
-	 */
+				 * Created by szhitenev on 30.09.2023.
+				 */
 
-	export default {
+				export default {
 
-		props: {
-			diameter: {
-				type: Number,
-				required: true,
-				default: 10
-			},
-			bg: {
-				type: String,
-				required: false,
-				default: 'white'
-			}
-		},
+					props: {
+						diameter: {
+							type: Number,
+							required: true,
+							default: 10
+						},
+						bg: {
+							type: String,
+							required: false,
+							default: 'white'
+						}
+					},
 
-		data() {
-			return {
-				progressInterval: null,
-				frontLineColor: 'default',
-				backLineColor: 'default',
-				color: '#F05A22',
+					data() {
+						return {
+							progressInterval: null,
+							frontLineColor: 'default',
+							backLineColor: 'default',
+							color: '#F05A22',
 				brightColors: [
 					'#FF5733', '#FFC300', '#36D7B7', '#3399FF', '#FF33FF', // Original colors
 					'#FF6666', '#FF9900', '#66FF66', '#33CCFF', '#FF66CC', // Additional colors

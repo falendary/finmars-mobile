@@ -16,6 +16,9 @@ export default {
 	complexTransaction: {
 		get: prefix + '/transactions/complex-transaction/light/',
 	},
+	complexTransactionItem: {
+		get: prefix + '/transactions/complex-transaction/{id}/',
+	},
 	balanceReport: {
 		post: prefix + '/reports/balance-report/',
 	},

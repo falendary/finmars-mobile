@@ -9,18 +9,18 @@
 				Welcome Back, {{ username }}
 			</div>
 
-			<div class="dashboard-content" v-if="!processing && storeIsReady">
+			<div class="dashboard-content" v-if="!processing">
 
 				<div class="header">Grand Total</div>
 
 				<grand-nav></grand-nav>
 
-				<div class="header flex sb aic">
-					<div>All Portfolios</div>
-					<div class="header_info">
-						{{ dayjs(spaceStore.settings.general.date_to).format('DD MMM YYYY') }}
-					</div>
-				</div>
+				<!--				<div class="header flex sb aic">-->
+				<!--					<div>All Portfolios</div>-->
+				<!--					<div class="header_info">-->
+				<!--						{{ dayjs(spaceStore.settings.general.date_to).format('DD MMM YYYY') }}-->
+				<!--					</div>-->
+				<!--				</div>-->
 
 				<div
 					class="main_chart"
@@ -130,11 +130,9 @@
 					No portfolios
 				</div>
 
-				<div class="header">Last transactions for 3 Month</div>
+				<div class="header" v-if="currentMonth">Transactions in {{ currentMonth }}</div>
 
-				<TransactionList
-					reportType="pl"
-					displayMode="compact"
+				<ComplexTransactionList
 					:options="transactionsOpts"
 				/>
 
@@ -152,7 +150,6 @@
 
 	import Indicators from '@/components/Indicators.vue'
 	import ChangePrice from '@/components/ChangePrice.vue'
-	import TransactionList from '@/components/TransactionList.vue'
 	import GrandNav from '@/components/GrandNav.vue'
 
 	import {
@@ -169,6 +166,7 @@
 	import { computed, watch } from 'vue'
 	import useApi from '@/composables/useApi.js'
 	import useStore from '@/composables/useStore'
+	import ComplexTransactionList from '@/components/ComplexTransactionList.vue'
 	// Stores the controller so that the chart initialization routine can look it up
 	Chart.register(
 		LineElement,
@@ -186,10 +184,11 @@
 			IonRefresher, IonRefresherContent, IonSkeletonText, IonSpinner,
 			Indicators,
 			ChangePrice,
-			TransactionList,
+			ComplexTransactionList,
 			GrandNav
 
 		},
+
 		data() {
 			return {
 				processing: false,
@@ -199,7 +198,12 @@
 				transactionsOpts: null,
 				username: null,
 				storeIsReady: false
-
+			}
+		},
+		computed: {
+			currentMonth() {
+				const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+				return monthNames[new Date(this.spaceStore.settings.general.date_to).getMonth()]
 			}
 		},
 		methods: {
@@ -275,7 +279,7 @@
 			watch([this.spaceStore.settings.dashboard, this.spaceStore.settings.general], () => {
 				this.transactionsOpts.end_date = this.spaceStore.settings.general.date_to
 				this.transactionsOpts.begin_date = dayjs(this.spaceStore.settings.general.date_to)
-					.add(-3, 'month')
+					.add(-1, 'month')
 					.format('YYYY-MM-DD')
 
 				this.refresh()

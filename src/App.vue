@@ -167,4 +167,8 @@
 		--background: var(--ion-card-background);
 	}
 
+	.text-nowrap {
+		white-space: nowrap;
+	}
+
 </style>
