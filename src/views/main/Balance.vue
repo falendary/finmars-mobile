@@ -4,10 +4,9 @@
 		<ion-header>
 			<ion-toolbar class="app-header">
 
-
 				<div class="app-header-inner">
 
-					{{ store.activeSpaceName || 'Finmars'}}
+					{{ store.activeSpaceName || 'Finmars' }}
 
 					<div class="display-flex flex-end flex-align-center">
 
@@ -17,6 +16,7 @@
 						>
 							<ion-select-option
 								v-for="item in spaceStore.currencies"
+								v-bind:key="item.user_code"
 								:value="item.user_code"
 							>
 								{{ item.short_name }}
@@ -37,7 +37,6 @@
 					</div>
 
 				</div>
-
 
 			</ion-toolbar>
 
@@ -66,12 +65,12 @@
 				:nav="total_nav"
 			/>
 
-			<IndicatorsComp
-				:portfolioId="$route.query.tab"
-				:currency="spaceStore.settings.general.currency"
-				:date="spaceStore.settings.general.date_to"
-				@refresher="indicatorsRefresher = $event"
-				@nav="total_nav = $event"
+			<IndicatorsComp v-if="$route.query.tab"
+											:portfolioId="$route.query.tab"
+											:currency="spaceStore.settings.general.currency"
+											:date="spaceStore.settings.general.date_to"
+											@refresher="indicatorsRefresher = $event"
+											@nav="total_nav = $event"
 			/>
 
 			<!--			Pie Chart below-->
@@ -79,100 +78,83 @@
 			<div class="header flex aic sb">
 				Balance
 
-				<ion-checkbox
-					v-model="isChartView"
-					labelPlacement="start"
-					class="chart_view"
-				>
-					Chart view
-				</ion-checkbox>
+				<ion-icon :icon="icons.cogOutline" size="large" @click="chartSettingsModalIsOpen = true"></ion-icon>
+
 			</div>
 
-			<swiper
-				v-if="categories && Object.keys(categories).length"
-				:pagination="true"
-				:modules="[Pagination]"
-				class=""
-				:loop="true"
-				@slideChangeTransitionEnd="onBalanceChange"
-				@swiper="onSwiper"
-			>
-				<swiper-slide v-for="(item, cat) in categories" v-bind:key="cat">
-					<div class="balance_block" v-show="item.subcats.length">
-						<div class="bb_header_line flex sb aic">
-							<div class="bb_header">{{ item.layout_name || (item.verbose_name || item.name) }}</div>
-							<div class="bb_price">
-								{{ $format(item.market_value) }}
-								{{ spaceStore.settings.general.currency }}
-							</div>
+			<div v-if="!chartProcessing">
+
+				<div class="balance_block">
+					<div class="bb_header_line flex sb aic">
+						<div class="bb_header">{{ groupByName }}</div>
+						<div class="bb_price">
+							{{ $format(total_nav) }}
+							{{ spaceStore.settings.general.currency }}
+						</div>
+					</div>
+
+					<div class="flex sb">
+						<div
+							class="balance_chart_wrap"
+							style="width: 145px; height: 145px"
+							v-show="spaceStore.settings.balance.isChartView"
+						>
+
+							<canvas :id="`balanceChart`"><p>Chart</p></canvas>
+
 						</div>
 
-						<div class="flex sb">
+						<div
+							class="balance_labels"
+							:style="!spaceStore.settings.balance.isChartView ? 'margin-left: 0;' : ''"
+						>
 							<div
-								class="balance_chart_wrap"
-								style="width: 145px; height: 145px"
-								v-show="isChartView && !chartProcced"
-							>
-								<canvas :id="`${cat}_balanceChart`"><p>Chart</p></canvas>
-							</div>
-
-							<ion-skeleton-text
-								v-if="chartProcced"
-								class="balance_chart_wrap balance_chart_wrap_skeleton"
-								:animated="true"
-								style="width: 145px; height: 145px"
-							/>
-
-							<div
-								class="balance_labels"
-								:style="!isChartView ? 'margin-left: 0;' : ''"
-							>
-								<div
-									class="balance_labels_item flex aic sb"
-									v-for="(subcat, index) in item.subcats"
-									v-bind:key="index"
-									:class="{ active: detailSubcat.name == subcat.name }"
-									@click="
-										;(detailSubcat = subcat), (isOpenTransactions = false)
+								class="balance_labels_item flex aic sb"
+								v-for="(item, index) in categories"
+								v-bind:key="index"
+								:class="{ active: activeCategory && activeCategory.___group_name == item.___group_name }"
+								@click="
+										;(activeCategory = item), (isOpenTransactions = false), (fetchPositions())
 									"
-								>
-									<div class="flex aic">
-										<div
-											class="balance_labels_percent"
-											:style="{
-												backgroundColor: colorByCat(cat + subcat.name),
+							>
+								<div class="flex aic">
+									<div
+										class="balance_labels_percent"
+										:style="{
+												backgroundColor: colorByCat(item.___group_name, index),
 											}"
-										>
-											{{
-												Math.floor(
-													(subcat.market_value / Math.abs(item.market_value)) *
-													100
-												)
-											}}%
-										</div>
-										<div class="balance_labels_text">{{ subcat.name }}</div>
+									>
+										{{
+											Math.floor(
+												(Math.abs(item.subtotal[spaceStore.settings.balance.sumByKey]) / total_nav) *
+												100
+											)
+										}}%
 									</div>
+									<div class="balance_labels_text">{{ item.___group_name }}</div>
+								</div>
 
-									<div class="balance_labels_price" v-show="!isChartView">
-										{{ $format(subcat.market_value) }}
-									</div>
+								<div class="balance_labels_price" v-show="!spaceStore.settings.balance.isChartView">
+									{{ $format(item.subtotal[spaceStore.settings.balance.sumByKey]) }}
 								</div>
 							</div>
 						</div>
 					</div>
-					<div v-show="!item.subcats.length">
-						<div class="nodata_wrap center aic">
-							<div>
-								<h3>No data</h3>
+				</div>
+				<div v-show="!categories.length">
+					<div class="nodata_wrap center aic">
+						<div>
+							<h3>No data</h3>
 
-								<p>No data</p>
-							</div>
+							<p>No data</p>
 						</div>
 					</div>
-				</swiper-slide>
-			</swiper>
+				</div>
 
-			<div v-else class="balance_block">
+			</div>
+
+			<div v-if="chartProcessing" class="balance_block">
+
 				<div class="bb_header_line flex sb aic">
 					<div class="bb_header">
 						<IonSkeletonText
@@ -201,22 +183,24 @@
 							v-for="(subcat, index) in [3, 3, 3]" v-bind:key="index"
 						>
 							<IonSkeletonText style="height: 32px" :animated="true" />
+
 						</div>
 					</div>
 				</div>
+
 			</div>
 
-			<!--			Transactions below-->
+			<!-- Positions below-->
 
-			<template v-if="detailSubcat.name">
+			<div v-if="!positionsProcessing && activeCategory">
 				<div class="header flex aic sb">Details</div>
 
 				<div class="balance_block instr_block">
 					<div class="bb_header_line instr_block_header flex sb aifs">
-						<div class="bb_header">{{ detailSubcat.name }}</div>
+						<div class="bb_header">{{ activeCategory.___group_name }}</div>
 						<div>
 							<div class="bb_price">
-								{{ $format(detailSubcat.market_value) }}
+								{{ $format(activeCategory.subtotal[spaceStore.settings.balance.sumByKey]) }}
 								{{ spaceStore.settings.general.currency }}
 							</div>
 							<!-- <div class="instr_block_change flex jcfe">
@@ -230,7 +214,7 @@
 
 					<div
 						class="instruments"
-						v-for="(item, index) in detailSubcat.items"
+						v-for="(item, index) in positions"
 						v-bind:key="index"
 						:class="{
 							active: transactionsOpts.filter_entry_user_code == item.user_code,
@@ -255,21 +239,43 @@
 						<div class="flex sb">
 							<div class="instr_pos">{{ $format(item.position_size) }}</div>
 
-							<div class="flex" v-if="item.item_type != 2">
-								<div class="instr_change_percent instr_first">
-									{{ $format(item.change.value) }}
-								</div>
-								<div
-									class="instr_change_percent instr_second"
-									:class="[item.change.percent > 0 ? 'plus' : 'minus']"
-								>
-									{{ item.change.percent }}%
-								</div>
-							</div>
+							<!--							<div class="flex" v-if="item.item_type != 2">-->
+							<!--								<div class="instr_change_percent instr_first">-->
+							<!--									{{ $format(item.change.value) }}-->
+							<!--								</div>-->
+							<!--								<div-->
+							<!--									class="instr_change_percent instr_second"-->
+							<!--									:class="[item.change.percent > 0 ? 'plus' : 'minus']"-->
+							<!--								>-->
+							<!--									{{ item.change.percent }}%-->
+							<!--								</div>-->
+							<!--							</div>-->
 						</div>
 					</div>
 				</div>
-			</template>
+
+			</div>
+
+			<div v-if="positionsProcessing" class="balance_block" style="margin-top: 1rem">
+
+				<IonSkeletonText
+					:animated="true"
+					style="width: 240px; height: 24px; margin-bottom: 0.3rem"
+				/>
+
+				<IonSkeletonText
+					:animated="true"
+					style="width: 160px; height: 24px; margin-bottom: 0.3rem"
+				/>
+
+				<IonSkeletonText
+					:animated="true"
+					style="width: 240px; height: 24px; margin-bottom: 0.3rem"
+				/>
+
+			</div>
+
+			<!-- Transactions below-->
 
 			<template v-if="isOpenTransactions">
 				<div class="header flex aic sb">Transactions</div>
@@ -279,22 +285,93 @@
 					:options="transactionsOpts"
 				/>
 			</template>
+
+			<ion-modal ref="modal" :is-open="chartSettingsModalIsOpen">
+				<ion-header>
+					<ion-toolbar>
+						<ion-title>Chart Settings</ion-title>
+						<ion-buttons slot="end">
+							<ion-button @click="saveChartSettings()">Save</ion-button>
+						</ion-buttons>
+					</ion-toolbar>
+				</ion-header>
+				<ion-content class="ion-padding" style="padding-bottom: 1rem;">
+
+					<div>
+
+						<div style="margin-bottom: 1rem">
+							<ion-checkbox
+								v-model="spaceStore.settings.balance.isChartView"
+								labelPlacement="start"
+								class="chart_view"
+							>
+								Chart view
+							</ion-checkbox>
+						</div>
+
+
+						<ion-item v-if="numericBalanceReportAttributes?.length">
+							<ion-select
+								v-model="spaceStore.settings.balance.sumByKey"
+								label="Sum By"
+								placeholder="Market Value"
+							>
+								<ion-select-option
+									v-for="item in numericBalanceReportAttributes"
+									v-bind:key="item.key"
+									:value="item.key"
+								>
+									{{ item.name }}
+								</ion-select-option>
+							</ion-select>
+						</ion-item>
+
+						<ion-item v-if="groupByAttributes?.length">
+							<ion-select
+								v-model="spaceStore.settings.balance.groupByKey"
+								label="Group By"
+								placeholder="Instrument Type"
+							>
+								<ion-select-option
+									v-for="item in groupByAttributes"
+									v-bind:key="item.key"
+									:value="item.key"
+								>
+									{{ item.name }}
+								</ion-select-option>
+							</ion-select>
+						</ion-item>
+
+
+					</div>
+
+				</ion-content>
+			</ion-modal>
+
 		</ion-content>
 	</ion-page>
 </template>
 
 <script>
-	import { computed,  watch } from 'vue'
+	import { computed, watch } from 'vue'
 	import {
+		IonButton,
+		IonButtons,
 		IonCheckbox,
+		IonContent,
 		IonDatetime,
-		IonDatetimeButton, IonHeader,
-		IonModal, IonPage,
+		IonDatetimeButton,
+		IonHeader,
+		IonIcon,
+		IonItem,
+		IonModal,
+		IonPage,
 		IonRefresher,
 		IonRefresherContent,
 		IonSelect,
 		IonSelectOption,
 		IonSkeletonText,
+		IonTitle,
 		IonToolbar
 	} from '@ionic/vue'
 	import {
@@ -320,8 +397,8 @@
 
 	import useApi from '@/composables/useApi'
 	import useStore from '@/composables/useStore'
-	import { reportGroup } from '@/data-utils/reportAggs'
 	import { Pagination } from 'swiper'
+	import { cogOutline } from 'ionicons/icons'
 
 	Chart.register(
 		LineElement,
@@ -339,6 +416,12 @@
 
 	export default {
 		components: {
+			IonItem,
+			IonContent,
+			IonTitle,
+			IonButton,
+			IonButtons,
+			IonIcon,
 			IndicatorsComp,
 			HistoryChartComp,
 			TransactionListComp,
@@ -352,33 +435,67 @@
 			IonHeader,
 			IonPage,
 			IonToolbar,
-			IonModal, IonDatetimeButton, IonDatetime,
+			IonModal, IonDatetimeButton, IonDatetime
 
 		},
 		data() {
 			return {
+				icons: {
+					cogOutline
+				},
 				Pagination: Pagination,
 				store: null,
 				spaceStore: null,
-				portfolio: null,
 				total_nav: 0,
 				transactionsOpts: null,
 				isOpenTransactions: false,
-				chartProcced: false,
+				chartProcessing: true,
+				positionsProcessing: false,
 				colorsCat: {},
 				portfoliosRefresher: null,
 				indicatorsRefresher: null,
-				categories: null,
-				activeCategory: '',
-				isChartView: true,
-				detailSubcat: {  }
+				categories: [],
+				positions: [],
+				activeCategory: null,
+				detailSubcat: {},
+				chartSettingsModalIsOpen: false,
+
+				numericBalanceReportAttributes: [],
+				groupByAttributes: []
+			}
+		},
+		computed: {
+			groupByName() {
+
+				let result = null
+
+				this.groupByAttributes.forEach((item) => {
+
+					if (item.key === this.spaceStore.settings.balance.groupByKey) {
+						result = item
+					}
+
+				})
+
+				if (!result) {
+					return this.spaceStore.settings.balance.groupByKey
+				} else {
+					return result.name
+				}
+
+			},
+
+			portfolio() {
+				return this.spaceStore.portfolioList.find((o) => o.user_code == this.$route.query.tab)
 			}
 		},
 		methods: {
-
+			saveChartSettings() {
+				this.chartSettingsModalIsOpen = false
+				this.createChart()
+			},
 			async init() {
-				this.chartProcced = true
-				this.detailSubcat = {}
+
 
 				console.log('route.query.tab', this.$route.query.tab)
 
@@ -386,149 +503,249 @@
 				this.transactionsOpts.portfolios = [this.$route.query.tab]
 				this.transactionsOpts.filter_entry_user_code = null
 
-				let report = await this.fetchReport(this.spaceStore.layout.balance.fieldsToGroup)
+				await this.createChart()
 
-				if (report && !report.error) {
-					if (
-						this.spaceStore.layout.balance.fieldToAggrigate &&
-						this.spaceStore.layout.balance.fieldsToGroup
-					) {
-						this.categories = reportGroup({
-							report,
-							sum_field: this.spaceStore.layout.balance.fieldToAggrigate[0].key,
-							colorsCat: this.colorsCat,
-							fieldsToGroup: this.spaceStore.layout.balance.fieldsToGroup
-						})
-					}
-				}
-
-				if (this.balanceChartObj && !this.balanceSwiper?.destroyed) {
-					console.log('balanceSwiper:', this.balanceSwiper)
-					this.balanceSwiper.slideTo(0)
-					let catName = Object.keys(this.categories)[0]
-					this.activeCategory = this.categories[catName]
-
-					this.balanceChartObj.data = this.createBalanceDataset(this.activeCategory, catName)
-					this.balanceChartObj.update()
-				}
-
-				this.chartProcced = false
 			},
+			async fetchBalanceReportAttributes() {
 
-			createBalanceDataset(cat, catName) {
-				if (!cat) return false
+				this.groupByAttributes = []
 
-				let plusColors = []
-				let plus = cat.subcats
-					.filter((item) => Math.floor(item.market_value) >= 0)
-					.map((item) => {
-						plusColors.push(this.colorByCat(catName + item.name))
-						return item.market_value
-					})
+				let res = await useApi('balanceReportAttributes.get')
 
-				let totalPlus = plus.length ? plus.reduce((a, b) => a + b) : 0
+				this.numericBalanceReportAttributes = res.results.filter((item) => {
+					return item.value_type == 20
+				})
 
-				let minusColors = []
-				let minus = cat.subcats
-					.filter((item) => item.market_value < 0)
-					.map((item) => {
-						minusColors.push(this.colorByCat(catName + item.name))
+				res = await useApi('instrumentAttributes.get')
 
-						return item.market_value
-					})
+				const instrumentAttributes = res.results.filter((item) => {
+					return item.key.indexOf('attributes') !== -1 && item.name.indexOf('Pricing Policy') === -1
+				}).map(function(item) {
+					item.key = 'instrument.' + item.key
+					return item
+				})
 
-				let totalMinus = Math.abs(minus.length ? minus.reduce((a, b) => a + b) : 1)
+				this.groupByAttributes = [...this.groupByAttributes, ...instrumentAttributes]
 
-				let data = {}
+				this.groupByAttributes.push({
+					key: 'currency.name',
+					name: 'Currency',
+					value_type: 10
+				})
+				this.groupByAttributes.push({
+					key: 'account.name',
+					name: 'Account',
+					value_type: 10
+				})
+				this.groupByAttributes.push({
+					key: 'instrument.instrument_type.name',
+					name: 'Instrument Type',
+					value_type: 10
+				})
+				this.groupByAttributes.push({
+					key: 'instrument.country.name',
+					name: 'Country',
+					value_type: 10
+				})
 
-				data.labels = cat.subcats.map((item) => item.name)
-				data.datasets = [
-					{
-						data: plus,
-						backgroundColor: plusColors,
-						hoverOffset: 4,
-						circumference:
-							totalPlus >= totalMinus
-								? 360
-								: Math.floor((totalPlus / totalMinus) * 360)
-					},
-					{
-						data: minus,
-						backgroundColor: minusColors,
-						circumference:
-							totalMinus >= totalPlus
-								? 360
-								: Math.floor((totalMinus / totalPlus) * 360)
-					}
+				// console.log('this.groupByAttributes', this.groupByAttributes);
+
+			},
+			colorByCat(item, index) {
+
+				let colors = [
+					'#577590CC',
+					'#43AA8BCC',
+					'#F9AB4B',
+					'#FA6769',
+					'#F9C74F',
+					'#979BFF',
+					'#D9ED92',
+					'#C8D7F9',
+					'#96B5B4',
+					'#AB7967',
+					'#577590CC',
+					'#43AA8BCC',
+					'#F9AB4B',
+					'#FA6769',
+					'#F9C74F',
+					'#979BFF',
+					'#D9ED92',
+					'#C8D7F9',
+					'#96B5B4',
+					'#AB7967',
+					'#577590CC',
+					'#43AA8BCC',
+					'#F9AB4B',
+					'#FA6769',
+					'#F9C74F',
+					'#979BFF',
+					'#D9ED92',
+					'#C8D7F9',
+					'#96B5B4',
+					'#AB7967',
+					'#577590CC',
+					'#43AA8BCC',
+					'#F9AB4B',
+					'#FA6769',
+					'#F9C74F',
+					'#979BFF',
+					'#D9ED92',
+					'#C8D7F9',
+					'#96B5B4',
+					'#AB7967'
 				]
 
-				return data
+				return colors[index]
 			},
-			colorByCat(item) {
-				return this.colorsCat[item]
-			},
-			createChart(cat) {
-				console.log('cat:', cat)
-				if (this.balanceChartObj) this.balanceChartObj.destroy()
+			async createChart() {
 
-				this.balanceChartObj = new Chart(
-					(cat || Object.keys(this.categories)[0]) + '_balanceChart',
-					{
-						type: 'doughnut',
-						data: this.chartData,
-						options: {
-							cutout: '35%',
-							responsive: true,
-							maintainAspectRatio: false,
-							plugins: {
-								legend: {
-									display: false
-								},
+				this.chartProcessing = true
 
-								tooltip: {
-									callbacks: {
-										label: function(context) {
-											let labelIndex = context.dataIndex
+				const res = await this.fetchReport()
 
-											if (context.datasetIndex === 1) {
-												labelIndex =
-													context.chart.data.datasets[0].data.length + labelIndex
+				this.categories = res.items
+
+				console.log('res', res)
+
+
+
+				console.log('createChart.categories', this.categories)
+
+				this.chartProcessing = false
+
+				setTimeout(() => {
+
+					if (this.balanceChartObj) {
+						this.balanceChartObj.destroy()
+					}
+
+					this.balanceChartObj = new Chart('balanceChart',
+						{
+							type: 'doughnut',
+							data: {
+								labels: this.categories.map((item) => {
+									return item.___group_name
+								}),
+								datasets: [
+									{
+										data: this.categories.map((item) => {
+											return item.subtotal[this.spaceStore.settings.balance.sumByKey]
+										}),
+										backgroundColor: this.categories.map((item, index) => {
+											return this.colorByCat(item, index)
+										}),
+										borderWidth: 0
+									}
+								]
+							},
+							options: {
+								cutout: '35%',
+								responsive: true,
+								maintainAspectRatio: false,
+								plugins: {
+									legend: {
+										display: false
+									},
+
+									tooltip: {
+										callbacks: {
+											label: function(context) {
+												let labelIndex = context.dataIndex
+
+												if (context.datasetIndex === 1) {
+													labelIndex =
+														context.chart.data.datasets[0].data.length + labelIndex
+												}
+
+												return (
+													context.chart.data.labels[labelIndex] +
+													': ' +
+													context.formattedValue
+												)
 											}
-
-											return (
-												context.chart.data.labels[labelIndex] +
-												': ' +
-												context.formattedValue
-											)
 										}
 									}
 								}
 							}
 						}
-					}
-				)
-			},
-			onBalanceChange(swiper) {
-				let catName = Object.keys(this.categories)[swiper.realIndex]
-				this.activeCategory = this.categories[catName]
+					)
+				}, 0) // just to get element after
 
-				this.createChart(catName)
 
-				this.balanceChartObj.data = this.createBalanceDataset(this.activeCategory, catName)
-				this.balanceChartObj.update()
+				console.log('createChart.balanceChartObj', this.balanceChartObj)
+				console.log('createChart.chartProcessing', this.chartProcessing)
+
 			},
-			async fetchReport(fieldsToGroup) {
+			async fetchReport() {
 				let filters = []
-				let customFields = ''
 
-				if (fieldsToGroup) {
-					customFields = fieldsToGroup
-						.filter((o) => o.custom_field)
-						.map((item) => item.custom_field.name)
-						.join(',')
-				}
+				let res = await useApi('backendBalanceReportGroups.post', {
+					body: {
+						account_mode: 0, // Ignore Accounts, important
+						accounts: [],
+						accounts_cash: [],
+						accounts_position: [],
+						allocation_detailing: true,
+						allocation_mode: 0,
+						approach_multiplier: 0.5,
+						calculate_pl: true,
+						calculationGroup: 'portfolio',
+						cost_method: 1,
+						custom_fields_to_calculate: '',
+						expression_iterations_count: 1,
+						filters,
+						frontend_request_options: {
+							columns: [
+								{
+									'key': this.spaceStore.settings.balance.groupByKey,
+									'value_type': 10
+								},
+								{
+									'key': this.spaceStore.settings.balance.sumByKey,
+									'report_settings': {
+										'subtotal_formula_id': 1 // sum
+									},
+									'value_type': 20
+								}
+							],
+							groups_types: [
+								{
+									'key': this.spaceStore.settings.balance.groupByKey,
+									'value_type': 10
+								}
+							],
+							page: 1,
+							filter_settings: []
+						},
+						pl_include_zero: false,
+						portfolio_mode: 1,
+						portfolios: [this.$route.query.tab],
+						pricing_policy: this.spaceStore.settings.general.pricing_policy,
+						report_currency: this.spaceStore.settings.general.currency,
+						report_date: this.spaceStore.settings.general.date_to,
+						report_type: 1,
+						show_balance_exposure_details: false,
+						show_transaction_details: true,
+						strategies1: [],
+						strategies2: [],
+						strategies3: [],
+						strategy1_mode: 0,
+						strategy2_mode: 0,
+						strategy3_mode: 0,
+						table_font_size: 'small',
+						task_id: null
+					}
+				})
 
-				let res = await useApi('balanceReport.post', {
+				return res
+			},
+
+			async fetchPositions() {
+
+				this.positionsProcessing = true
+
+				let res = await useApi('backendBalanceReportItems.post', {
 					body: {
 						account_mode: 0, // Ignore Accounts, important
 						accounts: [],
@@ -541,11 +758,23 @@
 						calculationGroup: 'portfolio',
 						complex_transaction_statuses_filter: 'booked',
 						cost_method: 1,
-						custom_fields_to_calculate: customFields,
+						custom_fields_to_calculate: '',
 						date_field: 'transaction_date',
 						depth_level: 'base_transaction',
 						expression_iterations_count: 1,
-						filters,
+						frontend_request_options: {
+							groups_types: [
+								{
+									'key': this.spaceStore.settings.balance.groupByKey,
+									'value_type': 10
+								}
+							],
+							groups_values: [
+								this.activeCategory.___group_identifier
+							],
+							page: 1,
+							filter_settings: []
+						},
 						pl_include_zero: false,
 						portfolio_mode: 1,
 						portfolios: [this.$route.query.tab],
@@ -568,7 +797,10 @@
 					}
 				})
 
-				return res
+				this.positions = res.items
+
+				this.positionsProcessing = false
+
 			},
 			async refresh(event) {
 				await Promise.all([
@@ -578,23 +810,7 @@
 				])
 
 				if (event) event.target.complete()
-			},
-			onSwiper(swiper) {
-				this.balanceSwiper = swiper
-				this.createChart()
-
-				let catName = Object.keys(this.categories)[0]
-				this.activeCategory = this.categories[catName]
-
-				if (!this.activeCategory) {
-					console.error('No categories')
-					return false
-				}
-
-				this.balanceChartObj.data = this.createBalanceDataset(this.activeCategory, catName)
-				this.balanceChartObj.update()
 			}
-
 		},
 		created() {
 
@@ -603,11 +819,11 @@
 
 
 		},
-		mounted() {
+		async mounted() {
 
-			this.portfolio = computed(() => {
-				return this.spaceStore.portfolioList.find((o) => o.user_code == this.$route.query.tab)
-			})
+			await this.fetchBalanceReportAttributes()
+
+
 
 			this.transactionsOpts = {
 				end_date: this.spaceStore.settings.general.date_to,
@@ -616,22 +832,11 @@
 				filter_entry_user_code: null
 			}
 
-			this.chartData = {
-				labels: [],
-				datasets: [
-					{
-						data: [],
-						hoverOffset: 4
-					},
-					{
-						data: [],
-						circumference: 180
-					}
-				]
+
+			console.log('this.$route.query.tab', this.$route.query.tab)
+			if (this.$route.query.tab) {
+				this.init()
 			}
-
-
-			if (this.$route.query.tab) this.init()
 
 			watch(
 				() => this.$route.query.tab,
@@ -649,7 +854,6 @@
 
 		}
 	}
-
 
 </script>
 

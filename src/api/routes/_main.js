@@ -19,6 +19,13 @@ export default {
 	complexTransactionItem: {
 		get: prefix + '/transactions/complex-transaction/{id}/',
 	},
+
+	instrumentAttributes:{
+		get: prefix + '/instruments/instrument/attributes/',
+	},
+	balanceReportAttributes:{
+		get: prefix + '/reports/balance-report/attributes/',
+	},
 	balanceReport: {
 		post: prefix + '/reports/balance-report/',
 	},
@@ -30,6 +37,15 @@ export default {
 	},
 	pnlReport: {
 		post: prefix + '/reports/pl-report/',
+	},
+	plReportAttributes:{
+		get: prefix + '/reports/pl-report/attributes/',
+	},
+	backendPLReportItems: {
+		post: prefix + '/reports/backend-pl-report/items/',
+	},
+	backendPLReportGroups: {
+		post: prefix + '/reports/backend-pl-report/groups/',
 	},
 	transactionReport: {
 		post: prefix + '/reports/transaction-report/',

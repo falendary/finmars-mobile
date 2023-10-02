@@ -12,7 +12,7 @@
 		<swiper-slide v-for="(item, k) in store.spaces[store.activeSpaceCode].portfolioList">
 			<div class="main_chart">
 				<div class="main_chart_h">
-					{{ type == 'nav' ? 'Net Asset Value (NAV)' : 'Profit & Loss (P&L)' }}
+					{{ type == 'nav' ? 'Net Asset Value' : 'Profit & Loss' }}
 				</div>
 
 				<div class="main_chart_price" v-if="nav !== null">
@@ -148,6 +148,7 @@
 	emits('refresher', refresh)
 
 	watch(props, () => {
+		createChart()
 		fetchHistory()
 	})
 

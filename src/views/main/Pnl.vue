@@ -11,11 +11,11 @@
 					<div class="display-flex flex-end flex-align-center">
 
 						<ion-select
-							v-model="store.spaces[store.activeSpaceCode].settings.general.currency"
+							v-model="spaceStore.settings.general.currency"
 							placeholder="Currency"
 						>
 							<ion-select-option
-								v-for="item in store.spaces[store.activeSpaceCode].currencies"
+								v-for="item in spaceStore.currencies"
 								:value="item.user_code"
 							>
 								{{ item.short_name }}
@@ -24,7 +24,7 @@
 
 						<ion-modal :keep-contents-mounted="true">
 							<ion-datetime id="datetime_date_from" displayFormat="YYYY-MM-DD"
-														v-model="store.spaces[store.activeSpaceCode].settings.general.date_from"
+														v-model="spaceStore.settings.general.date_from"
 														:prefer-wheel="true"
 														presentation="date"
 														show-default-buttons
@@ -33,7 +33,7 @@
 
 						<ion-modal :keep-contents-mounted="true">
 							<ion-datetime id="datetime_date_to" displayFormat="YYYY-MM-DD"
-														v-model="store.spaces[store.activeSpaceCode].settings.general.date_to"
+														v-model="spaceStore.settings.general.date_to"
 														:prefer-wheel="true"
 														presentation="date"
 														show-default-buttons
@@ -73,105 +73,104 @@
 
 			<HistoryChartComp
 				type="pl"
-				:date_from="store.spaces[store.activeSpaceCode].settings.general.date_from"
-				:date_to="store.spaces[store.activeSpaceCode].settings.general.date_to"
-				:currency="store.spaces[store.activeSpaceCode].settings.general.currency"
+				:date_from="spaceStore.settings.general.date_from"
+				:date_to="spaceStore.settings.general.date_to"
+				:currency="spaceStore.settings.general.currency"
+				@portfolioChange="init($event)"
 				@refresher="portfoliosRefresher = $event"
 				:nav="total_nav"
 			/>
 
-			<IndicatorsComp
-				:portfolioId="portfolio?.user_code"
-				:currency="store.spaces[store.activeSpaceCode].settings.general.currency"
-				:date="store.spaces[store.activeSpaceCode].settings.general.date_to"
-				@refresher="indicatorsRefresher = $event"
+			<IndicatorsComp v-if="$route.query.tab"
+											:portfolioId="$route.query.tab"
+											:currency="spaceStore.settings.general.currency"
+											:date="spaceStore.settings.general.date_to"
+											@refresher="indicatorsRefresher = $event"
+											@nav="total_nav = $event"
 			/>
+
+			<!--			Pie Chart below-->
 
 			<div class="header flex aic sb">
 				Profit & Loss
 
-				<!-- <ion-checkbox
-					v-model="isChartView"
-					labelPlacement="start"
-					class="chart_view"
-				>
-					Chart view
-				</ion-checkbox> -->
+				<ion-icon :icon="icons.cogOutline" size="large" @click="chartSettingsModalIsOpen = true"></ion-icon>
+
 			</div>
 
-			<swiper
-				v-if="categories && Object.keys(categories).length"
-				:pagination="true"
-				:modules="[Pagination]"
-				class="balance_swiper aic"
-				:loop="true"
-			>
-				<swiper-slide v-for="(item, cat) in categories">
-					<div class="balance_block">
-						<div class="bb_header_line flex sb aic">
-							<div class="bb_header">{{ item.layout_name || item.name }}</div>
-							<div class="bb_price">
-								{{ $format(item.total) }}
-								{{ store.spaces[store.activeSpaceCode].settings.general.currency }}
-							</div>
+			<div v-if="!chartProcessing">
+
+				<div class="balance_block">
+					<div class="bb_header_line flex sb aic">
+						<div class="bb_header">{{ groupByName }}</div>
+						<div class="bb_price">
+							{{ $format(total_nav) }}
+							{{ spaceStore.settings.general.currency }}
+						</div>
+					</div>
+
+					<div class="flex sb">
+						<div
+							class="balance_chart_wrap"
+							style="width: 145px; height: 145px"
+							v-show="spaceStore.settings.balance.isChartView"
+						>
+
+							<canvas :id="`balanceChart`"><p>Chart</p></canvas>
+
 						</div>
 
-						<div class="balance_labels">
+						<div
+							class="balance_labels"
+							:style="!spaceStore.settings.balance.isChartView ? 'margin-left: 0;' : ''"
+						>
 							<div
-								class="balance_labels_item flex sb"
-								v-for="subcat in item.subcats"
-								:class="{ active: detailSubcat.name == subcat.name }"
-								@click=";(detailSubcat = subcat), (isOpenTransactions = false)"
+								class="balance_labels_item flex aic sb"
+								v-for="(item, index) in categories"
+								v-bind:key="index"
+								:class="{ active: activeCategory && activeCategory.___group_name == item.___group_name }"
+								@click="
+										;(activeCategory = item), (isOpenTransactions = false), (fetchPositions())
+									"
 							>
-								<div class="balance_labels_text">{{ subcat.name }}</div>
-								<div class="balance_labels_total">
-									{{ $format(subcat.total) }}
+								<div class="flex aic">
 									<div
+										class="balance_labels_percent"
 										:style="{
-											height: '4px',
-											backgroundColor: colorByCat(cat + subcat.name),
-											marginTop: '3px',
-											marginLeft:
-												subcat.total < 0
-													? (subcat.total / maxTickStock[cat]) * 100 + '%'
-													: 0,
-											width:
-												Math.abs((subcat.total / maxTickStock[cat]) * 100) +
-												'%',
-										}"
-									></div>
+												backgroundColor: colorByCat(item.___group_name, index),
+											}"
+									>
+										{{
+											Math.floor(
+												(Math.abs(item.subtotal[spaceStore.settings.balance.sumByKey]) / total_nav) *
+												100
+											)
+										}}%
+									</div>
+									<div class="balance_labels_text">{{ item.___group_name }}</div>
+								</div>
+
+								<div class="balance_labels_price" v-show="!spaceStore.settings.balance.isChartView">
+									{{ $format(item.subtotal[spaceStore.settings.balance.sumByKey]) }}
 								</div>
 							</div>
-							<div
-								style="
-									height: 100%;
-									width: 1px;
-									background: rgb(203 203 203);
-									position: absolute;
-									top: 0;
-									left: calc(50% - 0.5px);
-								"
-							></div>
 						</div>
 					</div>
-				</swiper-slide>
-			</swiper>
+				</div>
+				<div v-show="!categories.length">
+					<div class="nodata_wrap center aic">
+						<div>
+							<h3>No data</h3>
 
-			<template
-				v-if="
-					categories && !chartProcessed && Object.keys(categories).length == 0
-				"
-			>
-				<div class="nodata_wrap center aic">
-					<div>
-						<h3>No data</h3>
-
-						<p>No data</p>
+							<p>No data</p>
+						</div>
 					</div>
 				</div>
-			</template>
 
-			<div v-if="chartProcessed" class="balance_block">
+			</div>
+
+			<div v-if="chartProcessing" class="balance_block">
+
 				<div class="bb_header_line flex sb aic">
 					<div class="bb_header">
 						<IonSkeletonText
@@ -187,24 +186,38 @@
 					</div>
 				</div>
 
-				<div v-for="subcat in [3, 3, 3]">
-					<IonSkeletonText
-						style="height: 32px; margin-bottom: 5px"
+				<div class="flex sb">
+					<ion-skeleton-text
+						class="balance_chart_wrap balance_chart_wrap_skeleton"
 						:animated="true"
+						style="width: 145px; height: 145px"
 					/>
+
+					<div class="balance_labels">
+						<div
+							class="balance_labels_item flex aic"
+							v-for="(subcat, index) in [3, 3, 3]" v-bind:key="index"
+						>
+							<IonSkeletonText style="height: 32px" :animated="true" />
+
+						</div>
+					</div>
 				</div>
+
 			</div>
 
-			<template v-if="detailSubcat.name">
+			<!-- Positions below-->
+
+			<div v-if="!positionsProcessing && activeCategory">
 				<div class="header flex aic sb">Details</div>
 
 				<div class="balance_block instr_block">
 					<div class="bb_header_line instr_block_header flex sb aifs">
-						<div class="bb_header">{{ detailSubcat.name }}</div>
+						<div class="bb_header">{{ activeCategory.___group_name }}</div>
 						<div>
 							<div class="bb_price">
-								{{ $format(detailSubcat.total) }}
-								{{ store.spaces[store.activeSpaceCode].settings.general.currency }}
+								{{ $format(activeCategory.subtotal[spaceStore.settings.balance.sumByKey]) }}
+								{{ spaceStore.settings.general.currency }}
 							</div>
 							<!-- <div class="instr_block_change flex jcfe">
 								<div class="instr_change_percent instr_first minus">
@@ -217,7 +230,8 @@
 
 					<div
 						class="instruments"
-						v-for="item in detailSubcat.items"
+						v-for="(item, index) in positions"
+						v-bind:key="index"
 						:class="{
 							active: transactionsOpts.filter_entry_user_code == item.user_code,
 						}"
@@ -235,228 +249,632 @@
 								}}
 							</div>
 							<div class="instr_market_value instr_first">
-								{{ $format(item.total) }}
+								{{ $format(item.market_value) }}
 							</div>
 						</div>
 						<div class="flex sb">
 							<div class="instr_pos">{{ $format(item.position_size) }}</div>
 
-							<div class="instr_pos">
-								{{ $format(item.change.value) }}
-							</div>
+							<!--							<div class="flex" v-if="item.item_type != 2">-->
+							<!--								<div class="instr_change_percent instr_first">-->
+							<!--									{{ $format(item.change.value) }}-->
+							<!--								</div>-->
+							<!--								<div-->
+							<!--									class="instr_change_percent instr_second"-->
+							<!--									:class="[item.change.percent > 0 ? 'plus' : 'minus']"-->
+							<!--								>-->
+							<!--									{{ item.change.percent }}%-->
+							<!--								</div>-->
+							<!--							</div>-->
 						</div>
 					</div>
 				</div>
-			</template>
+
+			</div>
+
+			<div v-if="positionsProcessing" class="balance_block" style="margin-top: 1rem">
+
+				<IonSkeletonText
+					:animated="true"
+					style="width: 240px; height: 24px; margin-bottom: 0.3rem"
+				/>
+
+				<IonSkeletonText
+					:animated="true"
+					style="width: 160px; height: 24px; margin-bottom: 0.3rem"
+				/>
+
+				<IonSkeletonText
+					:animated="true"
+					style="width: 240px; height: 24px; margin-bottom: 0.3rem"
+				/>
+
+			</div>
+
+			<!-- Transactions below-->
 
 			<template v-if="isOpenTransactions">
 				<div class="header flex aic sb">Transactions</div>
 
-				<TransactionList
+				<TransactionListComp
 					v-if="transactionsOpts.filter_entry_user_code"
-					reportType="pl"
 					:options="transactionsOpts"
 				/>
 			</template>
+
+			<ion-modal ref="modal" :is-open="chartSettingsModalIsOpen">
+				<ion-header>
+					<ion-toolbar>
+						<ion-title>Chart Settings</ion-title>
+						<ion-buttons slot="end">
+							<ion-button @click="saveChartSettings()">Save</ion-button>
+						</ion-buttons>
+					</ion-toolbar>
+				</ion-header>
+				<ion-content class="ion-padding" style="padding-bottom: 1rem;">
+
+					<div>
+
+						<div style="margin-bottom: 1rem">
+							<ion-checkbox
+								v-model="spaceStore.settings.balance.isChartView"
+								labelPlacement="start"
+								class="chart_view"
+							>
+								Chart view
+							</ion-checkbox>
+						</div>
+
+
+						<ion-item v-if="numericBalanceReportAttributes?.length">
+							<ion-select
+								v-model="spaceStore.settings.balance.sumByKey"
+								label="Sum By"
+								placeholder="Market Value"
+							>
+								<ion-select-option
+									v-for="item in numericBalanceReportAttributes"
+									v-bind:key="item.key"
+									:value="item.key"
+								>
+									{{ item.name }}
+								</ion-select-option>
+							</ion-select>
+						</ion-item>
+
+						<ion-item v-if="groupByAttributes?.length">
+							<ion-select
+								v-model="spaceStore.settings.balance.groupByKey"
+								label="Group By"
+								placeholder="Instrument Type"
+							>
+								<ion-select-option
+									v-for="item in groupByAttributes"
+									v-bind:key="item.key"
+									:value="item.key"
+								>
+									{{ item.name }}
+								</ion-select-option>
+							</ion-select>
+						</ion-item>
+
+
+					</div>
+
+				</ion-content>
+			</ion-modal>
+
 		</ion-content>
 	</ion-page>
 </template>
 
-<script setup>
+<script>
+	import { computed, watch } from 'vue'
 	import {
+		IonButton,
+		IonButtons,
+		IonCheckbox,
+		IonContent,
 		IonDatetime,
 		IonDatetimeButton,
+		IonHeader,
+		IonIcon,
+		IonItem,
 		IonModal,
+		IonPage,
 		IonRefresher,
 		IonRefresherContent,
 		IonSelect,
 		IonSelectOption,
 		IonSkeletonText,
+		IonTitle,
 		IonToolbar
 	} from '@ionic/vue'
-	import { computed, reactive, ref, watch } from 'vue'
+	import {
+		ArcElement,
+		CategoryScale,
+		Chart,
+		DoughnutController,
+		Filler,
+		Legend,
+		LinearScale,
+		LineController,
+		LineElement,
+		PieController,
+		PointElement,
+		Tooltip
+	} from 'chart.js'
 
 	import IndicatorsComp from '@/components/Indicators.vue'
 	import HistoryChartComp from '@/components/HistoryChart.vue'
-	import TransactionList from '@/components/TransactionList.vue'
+	import TransactionListComp from '@/components/TransactionList.vue'
 
 	import { Swiper, SwiperSlide } from 'swiper/vue'
-	import { Pagination } from 'swiper'
 
 	import useApi from '@/composables/useApi'
 	import useStore from '@/composables/useStore'
-	import { reportGroupPL } from '@/data-utils/reportAggs'
-	import { useRoute } from 'vue-router'
+	import { Pagination } from 'swiper'
+	import { cogOutline } from 'ionicons/icons'
 
-	const store = useStore()
-	const route = useRoute()
-
-	const portfolio = computed(() => {
-		return store.spaces[store.activeSpaceCode].portfolioList.find((o) => o.user_code == route.query.tab)
-	})
-	let total_nav = ref(null)
-
-	const transactionsOpts = reactive({
-		end_date: store.spaces[store.activeSpaceCode].settings.general.date_to,
-		begin_date: '0001-01-01',
-		portfolios: portfolio.value?.user_code,
-		filter_entry_user_code: null
-	})
-
-	let indicatorsRefresher = null
-	let portfoliosRefresher = null
-
-	let isOpenTransactions = ref(false)
-	let isChartView = ref(true)
-	let detailSubcat = ref({})
-	let categories = ref(null)
-	let colorsCat = {}
-	let maxTickStock = ref({})
-	let chartProcessed = ref(false)
-
-	const ERROR_STATUSES = {
-		NO_LAYOUT: 'No columns to aggrigate',
-		NO_REPORT: 'No data'
-	}
-	const chartError = ref('')
-
-	if (route.query.tab) init()
-
-	watch(
-		() => route.query.tab,
-		(newVal, oldVal) => {
-			if (!route.path.includes('/main/pnl') || newVal == oldVal) return false
-			total_nav.value = null
-			Promise.all([init(), portfoliosRefresher(), indicatorsRefresher()])
-		}
+	Chart.register(
+		LineElement,
+		PointElement,
+		ArcElement,
+		DoughnutController,
+		LineController,
+		PieController,
+		CategoryScale,
+		LinearScale,
+		Filler,
+		Legend,
+		Tooltip
 	)
-	watch([store.spaces[store.activeSpaceCode].settings.general, store.spaces[store.activeSpaceCode].settings.pnl], () => {
-		init()
-	})
 
-	async function refresh(event) {
-		await Promise.all([
-			init(),
-			portfoliosRefresher(true),
-			indicatorsRefresher()
-		])
+	export default {
+		components: {
+			IonItem,
+			IonContent,
+			IonTitle,
+			IonButton,
+			IonButtons,
+			IonIcon,
+			IndicatorsComp,
+			HistoryChartComp,
+			TransactionListComp,
+			IonSkeletonText,
+			Swiper, SwiperSlide,
+			IonCheckbox,
+			IonSelectOption,
+			IonSelect,
+			IonRefresherContent,
+			IonRefresher,
+			IonHeader,
+			IonPage,
+			IonToolbar,
+			IonModal, IonDatetimeButton, IonDatetime
 
-		if (event) event.target.complete()
-	}
+		},
+		data() {
+			return {
+				icons: {
+					cogOutline
+				},
+				Pagination: Pagination,
+				store: null,
+				spaceStore: null,
+				total_nav: 0,
+				transactionsOpts: null,
+				isOpenTransactions: false,
+				chartProcessing: true,
+				positionsProcessing: false,
+				colorsCat: {},
+				portfoliosRefresher: null,
+				indicatorsRefresher: null,
+				categories: [],
+				positions: [],
+				activeCategory: null,
+				detailSubcat: {},
+				chartSettingsModalIsOpen: false,
 
-	async function init() {
-		chartProcessed.value = true
+				numericBalanceReportAttributes: [],
+				groupByAttributes: []
+			}
+		},
+		computed: {
+			groupByName() {
 
-		detailSubcat.value = {}
-		chartError.value = ''
+				let result = null
 
-		transactionsOpts.begin_date = store.spaces[store.activeSpaceCode].settings.general.date_from
-		transactionsOpts.end_date = store.spaces[store.activeSpaceCode].settings.general.date_to
-		transactionsOpts.portfolios = route.query.tab
-		transactionsOpts.filter_entry_user_code = null
+				this.groupByAttributes.forEach((item) => {
 
-		let report = await fetchReport(store.spaces[store.activeSpaceCode].layout.pnl.fieldsToGroup)
+					if (item.key === this.spaceStore.settings.balance.groupByKey) {
+						result = item
+					}
 
-		if (report && !report.error) {
-			if (store.spaces[store.activeSpaceCode].layout.pnl.fieldToAggrigate && store.spaces[store.activeSpaceCode].layout.pnl.fieldsToGroup) {
-				total_nav.value = report.items.reduce(
-					(res, val) => res + (val.total || 0),
-					0
-				)
-
-				categories.value = reportGroupPL({
-					report,
-					sum_field: store.spaces[store.activeSpaceCode].layout.pnl.fieldToAggrigate[0]?.key,
-					colorsCat,
-					fieldsToGroup: store.spaces[store.activeSpaceCode].layout.pnl.fieldsToGroup
 				})
 
-				Object.keys(categories.value).forEach((item) => {
-					let arr = Object.values(categories.value[item].subcats).map(
-						(item) => item.total
+				if (!result) {
+					return this.spaceStore.settings.balance.groupByKey
+				} else {
+					return result.name
+				}
+
+			},
+
+			portfolio() {
+				return this.spaceStore.portfolioList.find((o) => o.user_code == this.$route.query.tab)
+			}
+		},
+		methods: {
+			saveChartSettings() {
+				this.chartSettingsModalIsOpen = false
+				this.createChart()
+			},
+			async init() {
+
+
+				console.log('route.query.tab', this.$route.query.tab)
+
+				this.transactionsOpts.end_date = this.spaceStore.settings.general.date_to
+				this.transactionsOpts.portfolios = [this.$route.query.tab]
+				this.transactionsOpts.filter_entry_user_code = null
+
+				await this.createChart()
+
+			},
+			async fetchPLReportAttributes() {
+
+				this.groupByAttributes = []
+
+				let res = await useApi('plReportAttributes.get')
+
+				this.numericBalanceReportAttributes = res.results.filter((item) => {
+					return item.value_type == 20
+				})
+
+				res = await useApi('instrumentAttributes.get')
+
+				const instrumentAttributes = res.results.filter((item) => {
+					return item.key.indexOf('attributes') !== -1 && item.name.indexOf('Pricing Policy') === -1
+				}).map(function(item) {
+					item.key = 'instrument.' + item.key
+					return item
+				})
+
+				this.groupByAttributes = [...this.groupByAttributes, ...instrumentAttributes]
+
+				this.groupByAttributes.push({
+					key: 'currency.name',
+					name: 'Currency',
+					value_type: 10
+				})
+				this.groupByAttributes.push({
+					key: 'account.name',
+					name: 'Account',
+					value_type: 10
+				})
+				this.groupByAttributes.push({
+					key: 'instrument.instrument_type.name',
+					name: 'Instrument Type',
+					value_type: 10
+				})
+				this.groupByAttributes.push({
+					key: 'instrument.country.name',
+					name: 'Country',
+					value_type: 10
+				})
+
+				// console.log('this.groupByAttributes', this.groupByAttributes);
+
+			},
+			colorByCat(item, index) {
+
+				let colors = [
+					'#577590CC',
+					'#43AA8BCC',
+					'#F9AB4B',
+					'#FA6769',
+					'#F9C74F',
+					'#979BFF',
+					'#D9ED92',
+					'#C8D7F9',
+					'#96B5B4',
+					'#AB7967',
+					'#577590CC',
+					'#43AA8BCC',
+					'#F9AB4B',
+					'#FA6769',
+					'#F9C74F',
+					'#979BFF',
+					'#D9ED92',
+					'#C8D7F9',
+					'#96B5B4',
+					'#AB7967',
+					'#577590CC',
+					'#43AA8BCC',
+					'#F9AB4B',
+					'#FA6769',
+					'#F9C74F',
+					'#979BFF',
+					'#D9ED92',
+					'#C8D7F9',
+					'#96B5B4',
+					'#AB7967',
+					'#577590CC',
+					'#43AA8BCC',
+					'#F9AB4B',
+					'#FA6769',
+					'#F9C74F',
+					'#979BFF',
+					'#D9ED92',
+					'#C8D7F9',
+					'#96B5B4',
+					'#AB7967'
+				]
+
+				return colors[index]
+			},
+			async createChart() {
+
+				this.chartProcessing = true
+
+				const res = await this.fetchReport()
+
+				this.categories = res.items
+
+				console.log('res', res)
+
+
+
+				console.log('createChart.categories', this.categories)
+
+				this.chartProcessing = false
+
+				setTimeout(() => {
+
+					if (this.balanceChartObj) {
+						this.balanceChartObj.destroy()
+					}
+
+					this.balanceChartObj = new Chart('balanceChart',
+						{
+							type: 'doughnut',
+							data: {
+								labels: this.categories.map((item) => {
+									return item.___group_name
+								}),
+								datasets: [
+									{
+										data: this.categories.map((item) => {
+											return item.subtotal[this.spaceStore.settings.balance.sumByKey]
+										}),
+										backgroundColor: this.categories.map((item, index) => {
+											return this.colorByCat(item, index)
+										}),
+										borderWidth: 0
+									}
+								]
+							},
+							options: {
+								cutout: '35%',
+								responsive: true,
+								maintainAspectRatio: false,
+								plugins: {
+									legend: {
+										display: false
+									},
+
+									tooltip: {
+										callbacks: {
+											label: function(context) {
+												let labelIndex = context.dataIndex
+
+												if (context.datasetIndex === 1) {
+													labelIndex =
+														context.chart.data.datasets[0].data.length + labelIndex
+												}
+
+												return (
+													context.chart.data.labels[labelIndex] +
+													': ' +
+													context.formattedValue
+												)
+											}
+										}
+									}
+								}
+							}
+						}
 					)
-					let tickMax = Math.max(...arr)
-					let tickMin = Math.min(...arr)
-					let tickTo =
-						Math.abs(tickMax) > Math.abs(tickMin)
-							? Math.abs(tickMax)
-							: Math.abs(tickMin)
+				}, 0) // just to get element after
 
-					maxTickStock.value[item] = tickTo
+
+				console.log('createChart.balanceChartObj', this.balanceChartObj)
+				console.log('createChart.chartProcessing', this.chartProcessing)
+
+			},
+			async fetchReport() {
+				let filters = []
+
+				let res = await useApi('backendPLReportGroups.post', {
+					body: {
+						account_mode: 0, // Ignore Accounts, important
+						accounts: [],
+						accounts_cash: [],
+						accounts_position: [],
+						allocation_detailing: true,
+						allocation_mode: 0,
+						approach_multiplier: 0.5,
+						calculate_pl: true,
+						calculationGroup: 'portfolio',
+						cost_method: 1,
+						custom_fields_to_calculate: '',
+						expression_iterations_count: 1,
+						filters,
+						frontend_request_options: {
+							columns: [
+								{
+									'key': this.spaceStore.settings.balance.groupByKey,
+									'value_type': 10
+								},
+								{
+									'key': this.spaceStore.settings.balance.sumByKey,
+									'report_settings': {
+										'subtotal_formula_id': 1 // sum
+									},
+									'value_type': 20
+								}
+							],
+							groups_types: [
+								{
+									'key': this.spaceStore.settings.balance.groupByKey,
+									'value_type': 10
+								}
+							],
+							page: 1,
+							filter_settings: []
+						},
+						pl_include_zero: false,
+						portfolio_mode: 1,
+						portfolios: [this.$route.query.tab],
+						pricing_policy: this.spaceStore.settings.general.pricing_policy,
+						report_currency: this.spaceStore.settings.general.currency,
+						report_date: this.spaceStore.settings.general.date_to,
+						pl_first_date: this.spaceStore.settings.general.date_from,
+						report_type: 1,
+						show_balance_exposure_details: false,
+						show_transaction_details: true,
+						strategies1: [],
+						strategies2: [],
+						strategies3: [],
+						strategy1_mode: 0,
+						strategy2_mode: 0,
+						strategy3_mode: 0,
+						table_font_size: 'small',
+						task_id: null
+					}
 				})
-			} else {
-				chartError.value = ERROR_STATUSES['NO_LAYOUT']
+
+				return res
+			},
+
+			async fetchPositions() {
+
+				this.positionsProcessing = true
+
+				let res = await useApi('backendPLReportItems.post', {
+					body: {
+						account_mode: 0, // Ignore Accounts, important
+						accounts: [],
+						accounts_cash: [],
+						accounts_position: [],
+						allocation_detailing: true,
+						allocation_mode: 0,
+						approach_multiplier: 0.5,
+						calculate_pl: true,
+						calculationGroup: 'portfolio',
+						complex_transaction_statuses_filter: 'booked',
+						cost_method: 1,
+						custom_fields_to_calculate: '',
+						date_field: 'transaction_date',
+						depth_level: 'base_transaction',
+						expression_iterations_count: 1,
+						frontend_request_options: {
+							groups_types: [
+								{
+									'key': this.spaceStore.settings.balance.groupByKey,
+									'value_type': 10
+								}
+							],
+							groups_values: [
+								this.activeCategory.___group_identifier
+							],
+							page: 1,
+							filter_settings: []
+						},
+						pl_include_zero: false,
+						portfolio_mode: 1,
+						portfolios: [this.$route.query.tab],
+						pricing_policy: this.spaceStore.settings.general.pricing_policy,
+						report_currency: this.spaceStore.settings.general.currency,
+						report_date: this.spaceStore.settings.general.date_to,
+						pl_first_date: this.spaceStore.settings.general.date_from,
+						report_type: 1,
+						show_balance_exposure_details: false,
+						show_transaction_details: true,
+						strategies1: [],
+						strategies2: [],
+						strategies3: [],
+						strategy1_mode: 0,
+						strategy2_mode: 0,
+						strategy3_mode: 0,
+						table_font_size: 'small',
+						transaction_classes: [],
+						task_id: null
+					}
+				})
+
+				this.positions = res.items
+
+				this.positionsProcessing = false
+
+			},
+			async refresh(event) {
+				await Promise.all([
+					this.init(),
+					this.portfoliosRefresher(true),
+					this.indicatorsRefresher()
+				])
+
+				if (event) event.target.complete()
 			}
-		} else {
-			chartError.value = ERROR_STATUSES['NO_REPORT']
-		}
-		chartProcessed.value = false
-	}
+		},
+		created() {
 
-	async function fetchReport(fieldsToGroup) {
-		let customFields = ''
+			this.store = useStore()
+			this.spaceStore = computed(() => this.store.spaces[this.store.activeSpaceCode])
 
-		if (fieldsToGroup) {
-			customFields = fieldsToGroup
-				.filter((o) => o.custom_field)
-				.map((item) => item.custom_field.name)
-				.join(',')
-		}
 
-		let res = await useApi('pnlReport.post', {
-			body: {
-				account_mode: 0,
-				accounts: [],
-				accounts_cash: [],
-				accounts_position: [],
-				allocation_detailing: true,
-				allocation_mode: 1,
-				approach_multiplier: 0.5,
-				calculationGroup: 'portfolio',
-				complex_transaction_statuses_filter: 'booked',
-				custom_fields_to_calculate: customFields,
-				cost_method: 1,
-				date_field: 'accounting_date',
-				depth_level: 'base_transaction',
-				expression_iterations_count: 1,
-				filters: [],
-				pl_first_date: store.spaces[store.activeSpaceCode].settings.general.date_from,
-				pl_include_zero: false,
-				portfolio_mode: 1,
-				portfolios: route.query.tab && [route.query.tab],
-				pricing_policy: store.spaces[store.activeSpaceCode].settings.general.pricing_policy,
-				report_currency: store.spaces[store.activeSpaceCode].settings.general.currency,
-				report_date: store.spaces[store.activeSpaceCode].settings.general.date_to,
-				report_type: 1,
-				show_balance_exposure_details: false,
-				show_transaction_details: false,
-				strategies1: [],
-				strategies2: [],
-				strategies3: [],
-				strategy1_mode: 0,
-				strategy2_mode: 0,
-				strategy3_mode: 0,
-				table_font_size: 'small',
-				transaction_classes: [],
-				task_id: null
+		},
+		async mounted() {
+
+			await this.fetchPLReportAttributes()
+
+
+
+			this.transactionsOpts = {
+				end_date: this.spaceStore.settings.general.date_to,
+				begin_date: '0001-01-01',
+				portfolios: this.$route.query.tab,
+				filter_entry_user_code: null
 			}
-		})
 
-		return res
+
+			console.log('this.$route.query.tab', this.$route.query.tab)
+			if (this.$route.query.tab) {
+				this.init()
+			}
+
+			watch(
+				() => this.$route.query.tab,
+				(newVal, oldVal) => {
+					if (!this.$route.path.includes('/main/balance') || newVal == oldVal)
+						return false
+
+					this.total_nav = null
+					Promise.all([this.init(), this.portfoliosRefresher(), this.indicatorsRefresher()])
+				}
+			)
+			watch(this.spaceStore.settings.general, () => {
+				Promise.all([this.init(), this.portfoliosRefresher(), this.indicatorsRefresher()])
+			})
+
+		}
 	}
 
-	function colorByCat(item) {
-		return colorsCat[item]
-	}
 </script>
 
 <style lang="scss" scoped>
-	ion-content {
-		--padding-top: 16px;
-		--padding-bottom: 10px;
-		//--background: #fafafa;
-	}
-
 	.header {
 		color: var(--ion-text-color);
 		padding: 0 15px;
@@ -473,56 +891,44 @@
 		font-size: 0.6rem;
 	}
 
-	.swiper-slide .balance_block {
-		height: 100%;
+	ion-content {
+		--padding-top: 16px;
+		--padding-bottom: 20px;
+		//--background: #fafafa;
+		//--background: #eff4f7;
+	}
+
+	ion-skeleton-text {
+		margin: 0;
+	}
+
+	.balance_chart_wrap_skeleton {
+		border-radius: 50%;
+		--background: rgba(255, 138, 0, 0.2);
+		--background-rgb: 255, 138, 0;
 	}
 
 	.balance_swiper {
 		padding-bottom: 10px;
 	}
 
+	.balance_chart_wrap {
+		flex-shrink: 0;
+	}
+
 	.balance_block {
 		margin: 0 15px;
-		padding: 15px 8px;
+		padding: 15px 13px 12px;
 		background: var(--ion-card-background);
 		border-radius: 5px;
 	}
 
-	.balance_labels {
-		position: relative;
-	}
-
-	.bb_header_line {
-		margin-bottom: 25px;
-		padding: 0 13px;
-	}
-
-	.balance_labels_item {
-		padding: 7px 13px 0;
-
-		& + & {
-			// margin-top: 10px;
-		}
-
-		&.active {
-			background: rgba(255, 138, 0, 0.2);
-		}
-	}
-
-	.balance_labels_text {
-		width: 50%;
-		font-size: 14px;
-		line-height: 16px;
-		color: #747474;
-	}
-
-	.balance_labels_total {
-		width: 50%;
-		text-align: right;
-	}
-
 	.instr_block {
 		margin-bottom: 10px;
+	}
+
+	.swiper-slide .balance_block {
+		height: 100%;
 	}
 
 	.bb_header {
@@ -539,6 +945,49 @@
 		text-align: right;
 	}
 
+	.bb_header_line {
+		margin-bottom: 25px;
+	}
+
+	.balance_labels {
+		margin-left: 10px;
+		width: 100%;
+	}
+
+	.balance_labels_item {
+		padding: 6px 8px;
+		padding-right: 4px;
+		transition: 0.3s;
+
+		&.active {
+			background: rgba(255, 138, 0, 0.2);
+		}
+	}
+
+	.balance_labels_price {
+		font-weight: 500;
+		font-size: 16px;
+		line-height: 22px;
+	}
+
+	.balance_labels_percent {
+		padding: 3px 0;
+		background: #747474;
+		flex-shrink: 0;
+		color: #fff;
+		font-size: 14px;
+		width: 50px;
+		text-align: center;
+		border-radius: 5px;
+		margin-right: 6px;
+	}
+
+	.balance_labels_text {
+		font-size: 14px;
+		line-height: 16px;
+		color: #747474;
+	}
+
 	.instr_block {
 		padding-left: 0;
 		padding-right: 0;
@@ -548,6 +997,9 @@
 		padding-left: 13px;
 		padding-right: 13px;
 		margin-bottom: 10px;
+	}
+
+	.instr_block_change {
 	}
 
 	.instruments {
@@ -606,7 +1058,7 @@
 
 	.nodata_wrap {
 		text-align: center;
-		background: #eee;
+		background: var(--ion-card-background);
 		height: 200px;
 
 		h3 {

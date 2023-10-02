@@ -35,9 +35,19 @@ export default defineStore('store', {
 					portfolioListStock: [],
 					currencyList: [],
 					settings: {
-						general: null,
+						general: {},
+						balance: {
+							isChartView: true,
+							groupByKey: 'instrument.instrument_type.name',
+							sumByKey: 'market_value'
+						},
+						pl: {
+							isChartView: true,
+							groupByKey: 'instrument.instrument_type.name',
+							sumByKey: 'total'
+						},
 					},
-					layout: null,
+					layout: null, // deprecated
 				}
 			}
 
