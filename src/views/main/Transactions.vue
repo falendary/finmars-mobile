@@ -1,57 +1,156 @@
 <template>
 	<ion-page>
-		<ion-content>
-			<div class="header flex sb aic">
-				<div>Transactions</div>
-				<div class="header_info">
-					{{ dayjs(store.spaces[store.activeSpaceCode].settings.general.date_from).format('DD MMM YYYY') }}
-					<ion-icon style='position: relative; top: 3px;' :icon="removeOutline"></ion-icon>
-					{{ dayjs(store.spaces[store.activeSpaceCode].settings.general.date_to).format('DD MMM YYYY') }}
-				</div>
-			</div>
-			<!-- <ion-searchbar animated="true" placeholder="Search..." /> -->
 
-			<TransactionList
-				reportType="pl"
-				displayMode="compact"
-				:options="transactionsOpts"
-			/>
+		<ion-header>
+			<ion-toolbar class="app-header">
+
+				<div class="app-header-inner">
+
+					{{ store.activeSpaceName }}
+
+					<div class="display-flex flex-end flex-align-center">
+
+						<ion-modal :keep-contents-mounted="true">
+							<ion-datetime id="datetime_date_from" displayFormat="YYYY-MM-DD"
+														v-model="spaceStore.settings.general.date_from"
+														:prefer-wheel="true"
+														presentation="date"
+														show-default-buttons
+							></ion-datetime>
+						</ion-modal>
+
+
+						<ion-modal :keep-contents-mounted="true">
+							<ion-datetime id="datetime_date_to" displayFormat="YYYY-MM-DD"
+														v-model="spaceStore.settings.general.date_to"
+														:prefer-wheel="true"
+														presentation="date"
+														show-default-buttons
+							></ion-datetime>
+						</ion-modal>
+
+						<ion-datetime-button class="header-date-button" datetime="datetime_date_from" />
+
+						<span style="margin: 0 4px;">-</span>
+
+						<ion-datetime-button class="header-date-button" datetime="datetime_date_to" />
+
+					</div>
+
+				</div>
+
+
+			</ion-toolbar>
+
+		</ion-header>
+
+
+		<ion-content>
+
+			<ion-refresher slot="fixed" @ionRefresh="refresh($event)">
+				<ion-refresher-content />
+			</ion-refresher>
+
+			<div v-if="!processing">
+
+
+				<div class="header flex sb aic">
+					<div>Transactions</div>
+				</div>
+				<!-- <ion-searchbar animated="true" placeholder="Search..." /> -->
+
+				<ComplexTransactionList
+					:options="transactionsOpts"
+				/>
+
+			</div>
+
 		</ion-content>
 	</ion-page>
 </template>
 
-<script setup>
+<script>
 	import {
-		IonButtons,
-		IonSearchbar,
+		IonDatetime,
+		IonDatetimeButton,
 		IonHeader,
-		IonMenuButton,
+		IonModal,
 		IonPage,
-		IonTitle,
-		IonToolbar,
-		IonFooter,
+		IonRefresher,
+		IonRefresherContent,
+		IonToolbar
 	} from '@ionic/vue'
-	import dayjs from 'dayjs'
 
-	import { reactive, watch } from 'vue'
-	import TransactionList from '@/components/TransactionList.vue'
+	import { computed, watch } from 'vue'
+	import ComplexTransactionList from '@/components/ComplexTransactionList.vue'
 	import useStore from '@/composables/useStore'
-	import { removeOutline } from 'ionicons/icons'
 
-	const store = useStore()
+	export default {
+		components: {
+			IonRefresherContent,
+			IonRefresher,
+			IonHeader,
+			IonPage,
+			IonToolbar,
+			IonModal, IonDatetimeButton, IonDatetime,
+			ComplexTransactionList
+		},
+		data() {
+			return {
+				spaceStore: null,
+				transactionsOpts: null,
+				processing: false
+			}
+		},
+		methods: {
+			refresh(event) {
 
-	const transactionsOpts = reactive({
-		end_date: store.spaces[store.activeSpaceCode].settings.general.date_to,
-		begin_date: store.spaces[store.activeSpaceCode].settings.general.date_from,
-		portfolios: store.spaces[store.activeSpaceCode].settings.general.portfolios,
-		filter_entry_user_code: null,
-	})
+				this.processing = true
 
-	watch([store.spaces[store.activeSpaceCode].settings.transactions, store.spaces[store.activeSpaceCode].settings.general], () => {
-		transactionsOpts.end_date = store.spaces[store.activeSpaceCode].settings.general.date_to
-		transactionsOpts.begin_date = store.spaces[store.activeSpaceCode].settings.general.date_from
-		transactionsOpts.portfolios = store.spaces[store.activeSpaceCode].settings.general.portfolios
-	})
+				this.transactionsOpts = {
+					end_date: this.spaceStore.settings.general.date_to,
+					begin_date: this.spaceStore.settings.general.date_from,
+					portfolios: this.spaceStore.settings.general.portfolios,
+					filter_entry_user_code: null
+				}
+
+				if (event) event.target.complete()
+
+				setTimeout(() => {
+					this.processing = false
+				}, 0) // required to trigger ComplexTransactionList reinit
+
+			}
+		},
+		created() {
+
+			this.store = useStore()
+			this.spaceStore = computed(() => this.store.spaces[this.store.activeSpaceCode])
+
+
+		},
+		mounted() {
+
+			this.transactionsOpts = {
+				end_date: this.spaceStore.settings.general.date_to,
+				begin_date: this.spaceStore.settings.general.date_from,
+				portfolios: this.spaceStore.settings.general.portfolios,
+				filter_entry_user_code: null
+			}
+
+			watch([this.spaceStore.settings.transactions, this.spaceStore.settings.general], () => {
+				this.transactionsOpts.end_date = this.spaceStore.settings.general.date_to
+				this.transactionsOpts.begin_date = this.spaceStore.settings.general.date_from
+				this.transactionsOpts.portfolios = this.spaceStore.settings.general.portfolios
+
+				this.refresh()
+			})
+
+
+		}
+	}
+
+
 </script>
 
 <style lang="scss" scoped>
@@ -62,14 +161,17 @@
 		font-size: 1.1rem;
 		margin-bottom: 15px;
 	}
+
 	.header_info {
 		font-size: 0.6rem;
 	}
+
 	ion-searchbar {
 		padding-left: 15px;
 		padding-right: 15px;
 		padding-bottom: 23px;
 	}
+
 	ion-content {
 		--padding-top: 16px;
 		--padding-bottom: 10px;

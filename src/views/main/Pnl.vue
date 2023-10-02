@@ -1,5 +1,61 @@
 <template>
 	<ion-page>
+
+		<ion-header>
+			<ion-toolbar class="app-header">
+
+				<div class="app-header-inner">
+
+					{{ store.activeSpaceName }}
+
+					<div class="display-flex flex-end flex-align-center">
+
+						<ion-select
+							v-model="store.spaces[store.activeSpaceCode].settings.general.currency"
+							placeholder="Currency"
+						>
+							<ion-select-option
+								v-for="item in store.spaces[store.activeSpaceCode].currencies"
+								:value="item.user_code"
+							>
+								{{ item.short_name }}
+							</ion-select-option>
+						</ion-select>
+
+						<ion-modal :keep-contents-mounted="true">
+							<ion-datetime id="datetime_date_from" displayFormat="YYYY-MM-DD"
+														v-model="store.spaces[store.activeSpaceCode].settings.general.date_from"
+														:prefer-wheel="true"
+														presentation="date"
+														show-default-buttons
+							></ion-datetime>
+						</ion-modal>
+
+						<ion-modal :keep-contents-mounted="true">
+							<ion-datetime id="datetime_date_to" displayFormat="YYYY-MM-DD"
+														v-model="store.spaces[store.activeSpaceCode].settings.general.date_to"
+														:prefer-wheel="true"
+														presentation="date"
+														show-default-buttons
+							></ion-datetime>
+						</ion-modal>
+
+						<ion-datetime-button class="header-date-button" datetime="datetime_date_from" />
+
+						<span style="margin: 0 4px;">-</span>
+
+						<ion-datetime-button class="header-date-button" datetime="datetime_date_to" />
+
+					</div>
+
+
+				</div>
+
+
+			</ion-toolbar>
+
+		</ion-header>
+
 		<ion-content>
 			<ion-refresher slot="fixed" @ionRefresh="refresh($event)">
 				<ion-refresher-content />
@@ -13,11 +69,6 @@
 					style="height: 24px; width: 80px"
 				/>
 
-				<div class="header_info">
-					{{ dayjs(store.spaces[store.activeSpaceCode].settings.general.date_from).format('DD MMM YYYY') }}
-					<ion-icon style='position: relative; top: 3px;' :icon="removeOutline"></ion-icon>
-					{{ dayjs(store.spaces[store.activeSpaceCode].settings.general.date_to).format('DD MMM YYYY') }}
-				</div>
 			</div>
 
 			<HistoryChartComp
@@ -105,16 +156,6 @@
 					</div>
 				</swiper-slide>
 			</swiper>
-
-			<template v-if="chartError">
-				<div class="nodata_wrap center aic">
-					<div>
-<!--						<h3>Configuration error</h3>-->
-
-<!--						<p>{{ chartError }}</p>-->
-					</div>
-				</div>
-			</template>
 
 			<template
 				v-if="
@@ -222,15 +263,18 @@
 </template>
 
 <script setup>
-	import dayjs from 'dayjs'
 	import {
-		IonCheckbox,
-		IonSkeletonText,
+		IonDatetime,
+		IonDatetimeButton,
+		IonModal,
 		IonRefresher,
 		IonRefresherContent,
-		onIonViewWillLeave,
+		IonSelect,
+		IonSelectOption,
+		IonSkeletonText,
+		IonToolbar
 	} from '@ionic/vue'
-	import { ref, reactive, watch, computed } from 'vue'
+	import { computed, reactive, ref, watch } from 'vue'
 
 	import IndicatorsComp from '@/components/Indicators.vue'
 	import HistoryChartComp from '@/components/HistoryChart.vue'
@@ -243,7 +287,6 @@
 	import useStore from '@/composables/useStore'
 	import { reportGroupPL } from '@/data-utils/reportAggs'
 	import { useRoute } from 'vue-router'
-	import { removeOutline } from 'ionicons/icons'
 
 	const store = useStore()
 	const route = useRoute()
@@ -257,7 +300,7 @@
 		end_date: store.spaces[store.activeSpaceCode].settings.general.date_to,
 		begin_date: '0001-01-01',
 		portfolios: portfolio.value?.user_code,
-		filter_entry_user_code: null,
+		filter_entry_user_code: null
 	})
 
 	let indicatorsRefresher = null
@@ -273,7 +316,7 @@
 
 	const ERROR_STATUSES = {
 		NO_LAYOUT: 'No columns to aggrigate',
-		NO_REPORT: 'No data',
+		NO_REPORT: 'No data'
 	}
 	const chartError = ref('')
 
@@ -295,7 +338,7 @@
 		await Promise.all([
 			init(),
 			portfoliosRefresher(true),
-			indicatorsRefresher(),
+			indicatorsRefresher()
 		])
 
 		if (event) event.target.complete()
@@ -325,7 +368,7 @@
 					report,
 					sum_field: store.spaces[store.activeSpaceCode].layout.pnl.fieldToAggrigate[0]?.key,
 					colorsCat,
-					fieldsToGroup: store.spaces[store.activeSpaceCode].layout.pnl.fieldsToGroup,
+					fieldsToGroup: store.spaces[store.activeSpaceCode].layout.pnl.fieldsToGroup
 				})
 
 				Object.keys(categories.value).forEach((item) => {
@@ -349,6 +392,7 @@
 		}
 		chartProcessed.value = false
 	}
+
 	async function fetchReport(fieldsToGroup) {
 		let customFields = ''
 
@@ -394,8 +438,8 @@
 				strategy3_mode: 0,
 				table_font_size: 'small',
 				transaction_classes: [],
-				task_id: null,
-			},
+				task_id: null
+			}
 		})
 
 		return res
@@ -412,6 +456,7 @@
 		--padding-bottom: 10px;
 		//--background: #fafafa;
 	}
+
 	.header {
 		color: var(--ion-text-color);
 		padding: 0 15px;
@@ -419,33 +464,42 @@
 		font-size: 1.1rem;
 		margin-bottom: 15px;
 	}
+
 	.chart_view {
 		font-size: 14px;
 	}
+
 	.header_info {
 		font-size: 0.6rem;
 	}
+
 	.swiper-slide .balance_block {
 		height: 100%;
 	}
+
 	.balance_swiper {
 		padding-bottom: 10px;
 	}
+
 	.balance_block {
 		margin: 0 15px;
-		padding: 15px 0;
+		padding: 15px 8px;
 		background: var(--ion-card-background);
 		border-radius: 5px;
 	}
+
 	.balance_labels {
 		position: relative;
 	}
+
 	.bb_header_line {
 		margin-bottom: 25px;
 		padding: 0 13px;
 	}
+
 	.balance_labels_item {
 		padding: 7px 13px 0;
+
 		& + & {
 			// margin-top: 10px;
 		}
@@ -454,68 +508,83 @@
 			background: rgba(255, 138, 0, 0.2);
 		}
 	}
+
 	.balance_labels_text {
 		width: 50%;
 		font-size: 14px;
 		line-height: 16px;
 		color: #747474;
 	}
+
 	.balance_labels_total {
 		width: 50%;
 		text-align: right;
 	}
+
 	.instr_block {
 		margin-bottom: 10px;
 	}
+
 	.bb_header {
 		font-size: 18px;
 		line-height: 22px;
 		color: var(--ion-text-color);
 		width: 50%;
 	}
+
 	.bb_price {
 		font-weight: 600;
 		font-size: 18px;
 		line-height: 22px;
 		text-align: right;
 	}
+
 	.instr_block {
 		padding-left: 0;
 		padding-right: 0;
 	}
+
 	.instr_block_header {
 		padding-left: 13px;
 		padding-right: 13px;
 		margin-bottom: 10px;
 	}
+
 	.instruments {
 		padding: 5px 13px;
 		transition: 0.3s;
+
 		&.active {
 			background: rgba(255, 138, 0, 0.2);
 		}
 	}
+
 	.instr_name {
 		line-height: 20px;
 	}
+
 	.instr_first {
 		text-align: right;
 		width: 85px;
 	}
+
 	.instr_second {
 		text-align: right;
 		width: 47px;
 	}
+
 	.instr_pos {
 		color: #747474;
 		font-size: 14px;
 		line-height: 24px;
 	}
+
 	.instr_market_value {
 		font-weight: 500;
 		font-size: 16px;
 		line-height: 20px;
 	}
+
 	.instr_change_percent {
 		font-weight: 600;
 		font-size: 12px;
@@ -525,20 +594,25 @@
 		&.plus {
 			color: rgba(52, 199, 89, 1);
 		}
+
 		&.minus {
 			color: #ff2d55;
 		}
+
 		&.neutral {
 			color: #747474;
 		}
 	}
+
 	.nodata_wrap {
 		text-align: center;
 		background: #eee;
 		height: 200px;
+
 		h3 {
 			font-size: 18px;
 		}
+
 		p {
 			color: #747474;
 		}

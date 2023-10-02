@@ -95,8 +95,11 @@ body {
 	--ion-card-background: white;
 	--ion-card-border-color: #ffffff;
 
+
 	--ion-card-box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.2);
 	--ion-transaction-card-border-color: #ddd;
+	--ion-transaction-transparent-bg: rgba(255,255,255,.7);
+	--ion-date-button-border-color: rgba(0,0,0,.5);
 
 }
 
@@ -210,12 +213,17 @@ body {
 
 		--ion-item-background: #000000;
 
+		--ion-color-light: #1a1a1a;
+		--ion-color-light-rgb: 110, 110, 110;
+
 		//--ion-card-background: #1c1c1d;
 		--ion-card-background: rgba(0,0,0,.3);
 		//--ion-card-border-color: #2c2a2a;
 		--ion-card-border-color: rgba(255,255,255,.03);
 		--ion-transaction-card-border-color: rgba(255,255,255,.03);
+		--ion-transaction-transparent-bg: rgba(0,0,0,.7);
 		--ion-content-background: linear-gradient(109.6deg, rgba(36, 45, 57, 0.2) 11.2%, rgba(16, 37, 60, 0.5) 51.2%, rgba(0, 0, 0, 0.5) 98.6%);
+		--ion-date-button-border-color: rgba(255,255,255,.5);
 	}
 
 	.ios ion-modal {
@@ -268,6 +276,8 @@ body {
 
 		--ion-card-background: #101117;
 		--ion-card-border-color: #2c2a2a;
+		--ion-transaction-transparent-bg: rgba(16,17,23,.7);
 		--ion-content-background: linear-gradient(109.6deg, rgba(36, 45, 57, 0.2) 11.2%, rgba(16, 37, 60, 0.5) 51.2%, rgba(0, 0, 0, 0.5) 98.6%);
+		--ion-date-button-border-color: rgba(255,255,255,.5);
 	}
 //}

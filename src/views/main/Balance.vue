@@ -1,5 +1,48 @@
 <template>
 	<ion-page>
+
+		<ion-header>
+			<ion-toolbar class="app-header">
+
+
+				<div class="app-header-inner">
+
+					{{ store.activeSpaceName }}
+
+					<div class="display-flex flex-end flex-align-center">
+
+						<ion-select
+							v-model="spaceStore.settings.general.currency"
+							placeholder="Currency"
+						>
+							<ion-select-option
+								v-for="item in spaceStore.currencies"
+								:value="item.user_code"
+							>
+								{{ item.short_name }}
+							</ion-select-option>
+						</ion-select>
+
+						<ion-modal :keep-contents-mounted="true">
+							<ion-datetime id="datetime_date" displayFormat="YYYY-MM-DD"
+														v-model="spaceStore.settings.general.date_to"
+														:prefer-wheel="true"
+														presentation="date"
+														show-default-buttons
+							></ion-datetime>
+						</ion-modal>
+
+						<ion-datetime-button class="header-date-button" datetime="datetime_date" />
+
+					</div>
+
+				</div>
+
+
+			</ion-toolbar>
+
+		</ion-header>
+
 		<ion-content>
 			<ion-refresher slot="fixed" @ionRefresh="refresh($event)">
 				<ion-refresher-content />
@@ -13,9 +56,6 @@
 					style="height: 24px; width: 80px"
 				/>
 
-				<div class="header_info">
-					{{ dayjs(spaceStore.settings.general.date_to).format('DD MMM YYYY') }}
-				</div>
 			</div>
 
 			<HistoryChartComp
@@ -34,7 +74,7 @@
 				@nav="total_nav = $event"
 			/>
 
-<!--			Pie Chart below-->
+			<!--			Pie Chart below-->
 
 			<div class="header flex aic sb">
 				Balance
@@ -105,7 +145,7 @@
 											{{
 												Math.floor(
 													(subcat.market_value / Math.abs(item.market_value)) *
-														100
+													100
 												)
 											}}%
 										</div>
@@ -165,7 +205,7 @@
 				</div>
 			</div>
 
-<!--			Transactions below-->
+			<!--			Transactions below-->
 
 			<template v-if="detailSubcat.name">
 				<div class="header flex aic sb">Details</div>
@@ -242,28 +282,32 @@
 </template>
 
 <script setup>
-	import { ref, reactive, watch, computed } from 'vue'
-
-	import dayjs from 'dayjs'
+	import { computed, reactive, ref, watch } from 'vue'
 	import {
 		IonCheckbox,
-		IonSkeletonText,
+		IonDatetime,
+		IonDatetimeButton,
+		IonModal,
 		IonRefresher,
 		IonRefresherContent,
+		IonSelect,
+		IonSelectOption,
+		IonSkeletonText,
+		IonToolbar
 	} from '@ionic/vue'
 	import {
-		Chart,
-		PointElement,
 		ArcElement,
-		DoughnutController,
-		LineController,
-		LineElement,
-		LinearScale,
-		PieController,
 		CategoryScale,
+		Chart,
+		DoughnutController,
 		Filler,
 		Legend,
-		Tooltip,
+		LinearScale,
+		LineController,
+		LineElement,
+		PieController,
+		PointElement,
+		Tooltip
 	} from 'chart.js'
 
 	import IndicatorsComp from '@/components/Indicators.vue'
@@ -293,7 +337,7 @@
 	)
 
 	const store = useStore()
-	const spaceStore = computed(() => store.spaces[store.activeSpaceCode]);
+	const spaceStore = computed(() => store.spaces[store.activeSpaceCode])
 	const route = useRoute()
 
 	const portfolio = computed(() => {
@@ -305,7 +349,7 @@
 		end_date: spaceStore.value.settings.general.date_to,
 		begin_date: '0001-01-01',
 		portfolios: route.query.tab,
-		filter_entry_user_code: null,
+		filter_entry_user_code: null
 	})
 	let isOpenTransactions = ref(false)
 
@@ -317,13 +361,13 @@
 		datasets: [
 			{
 				data: [],
-				hoverOffset: 4,
+				hoverOffset: 4
 			},
 			{
 				data: [],
-				circumference: 180,
-			},
-		],
+				circumference: 180
+			}
+		]
 	}
 	let isChartView = ref(true)
 	let detailSubcat = ref({})
@@ -342,7 +386,7 @@
 
 	const ERROR_STATUSES = {
 		NO_LAYOUT: 'No columns to aggrigate',
-		NO_REPORT: 'No data',
+		NO_REPORT: 'No data'
 	}
 	const chartError = ref('')
 
@@ -381,7 +425,7 @@
 		await Promise.all([
 			init(),
 			portfoliosRefresher(true),
-			indicatorsRefresher(),
+			indicatorsRefresher()
 		])
 
 		if (event) event.target.complete()
@@ -391,7 +435,7 @@
 		chartProcced.value = true
 		detailSubcat.value = {}
 
-		console.log('route.query.tab', route.query.tab);
+		console.log('route.query.tab', route.query.tab)
 
 		transactionsOpts.end_date = spaceStore.value.settings.general.date_to
 		transactionsOpts.portfolios = [route.query.tab]
@@ -408,7 +452,7 @@
 					report,
 					sum_field: spaceStore.value.layout.balance.fieldToAggrigate[0].key,
 					colorsCat,
-					fieldsToGroup: spaceStore.value.layout.balance.fieldsToGroup,
+					fieldsToGroup: spaceStore.value.layout.balance.fieldsToGroup
 				})
 			} else {
 				chartError.value = ERROR_STATUSES['NO_LAYOUT']
@@ -477,8 +521,8 @@
 				table_font_size: 'small',
 				transaction_classes: [],
 				pl_first_date: null,
-				task_id: null,
-			},
+				task_id: null
+			}
 		})
 
 		return res
@@ -509,12 +553,12 @@
 					maintainAspectRatio: false,
 					plugins: {
 						legend: {
-							display: false,
+							display: false
 						},
 
 						tooltip: {
 							callbacks: {
-								label: function (context) {
+								label: function(context) {
 									let labelIndex = context.dataIndex
 
 									if (context.datasetIndex === 1) {
@@ -527,11 +571,11 @@
 										': ' +
 										context.formattedValue
 									)
-								},
-							},
-						},
-					},
-				},
+								}
+							}
+						}
+					}
+				}
 			}
 		)
 	}
@@ -575,7 +619,7 @@
 				circumference:
 					totalPlus >= totalMinus
 						? 360
-						: Math.floor((totalPlus / totalMinus) * 360),
+						: Math.floor((totalPlus / totalMinus) * 360)
 			},
 			{
 				data: minus,
@@ -583,8 +627,8 @@
 				circumference:
 					totalMinus >= totalPlus
 						? 360
-						: Math.floor((totalMinus / totalPlus) * 360),
-			},
+						: Math.floor((totalMinus / totalPlus) * 360)
+			}
 		]
 
 		return data
@@ -599,9 +643,11 @@
 		font-size: 1.1rem;
 		margin-bottom: 15px;
 	}
+
 	.chart_view {
 		font-size: 14px;
 	}
+
 	.header_info {
 		font-size: 0.6rem;
 	}
@@ -612,64 +658,79 @@
 		//--background: #fafafa;
 		//--background: #eff4f7;
 	}
+
 	ion-skeleton-text {
 		margin: 0;
 	}
+
 	.balance_chart_wrap_skeleton {
 		border-radius: 50%;
 		--background: rgba(255, 138, 0, 0.2);
 		--background-rgb: 255, 138, 0;
 	}
+
 	.balance_swiper {
 		padding-bottom: 10px;
 	}
+
 	.balance_chart_wrap {
 		flex-shrink: 0;
 	}
+
 	.balance_block {
 		margin: 0 15px;
 		padding: 15px 13px 12px;
 		background: var(--ion-card-background);
 		border-radius: 5px;
 	}
+
 	.instr_block {
 		margin-bottom: 10px;
 	}
+
 	.swiper-slide .balance_block {
 		height: 100%;
 	}
+
 	.bb_header {
 		font-size: 18px;
 		line-height: 22px;
 		color: var(--ion-text-color);
 		width: 50%;
 	}
+
 	.bb_price {
 		font-weight: 600;
 		font-size: 18px;
 		line-height: 22px;
 		text-align: right;
 	}
+
 	.bb_header_line {
 		margin-bottom: 25px;
 	}
+
 	.balance_labels {
 		margin-left: 10px;
 		width: 100%;
 	}
+
 	.balance_labels_item {
 		padding: 6px 8px;
 		padding-right: 4px;
 		transition: 0.3s;
+
 		&.active {
 			background: rgba(255, 138, 0, 0.2);
 		}
 	}
+
 	.balance_labels_price {
 		font-weight: 500;
 		font-size: 16px;
 		line-height: 22px;
 	}
+
 	.balance_labels_percent {
 		padding: 3px 0;
 		background: #747474;
@@ -681,50 +742,62 @@
 		border-radius: 5px;
 		margin-right: 6px;
 	}
+
 	.balance_labels_text {
 		font-size: 14px;
 		line-height: 16px;
 		color: #747474;
 	}
+
 	.instr_block {
 		padding-left: 0;
 		padding-right: 0;
 	}
+
 	.instr_block_header {
 		padding-left: 13px;
 		padding-right: 13px;
 		margin-bottom: 10px;
 	}
+
 	.instr_block_change {
 	}
+
 	.instruments {
 		padding: 5px 13px;
 		transition: 0.3s;
+
 		&.active {
 			background: rgba(255, 138, 0, 0.2);
 		}
 	}
+
 	.instr_name {
 		line-height: 20px;
 	}
+
 	.instr_first {
 		text-align: right;
 		width: 85px;
 	}
+
 	.instr_second {
 		text-align: right;
 		width: 47px;
 	}
+
 	.instr_pos {
 		color: #747474;
 		font-size: 14px;
 		line-height: 24px;
 	}
+
 	.instr_market_value {
 		font-weight: 500;
 		font-size: 16px;
 		line-height: 20px;
 	}
+
 	.instr_change_percent {
 		font-weight: 600;
 		font-size: 12px;
@@ -734,20 +807,25 @@
 		&.plus {
 			color: rgba(52, 199, 89, 1);
 		}
+
 		&.minus {
 			color: #ff2d55;
 		}
+
 		&.neutral {
 			color: #747474;
 		}
 	}
+
 	.nodata_wrap {
 		text-align: center;
 		background: var(--ion-card-background);
 		height: 200px;
+
 		h3 {
 			font-size: 18px;
 		}
+
 		p {
 			color: #747474;
 		}

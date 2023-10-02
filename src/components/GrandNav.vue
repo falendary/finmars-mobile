@@ -196,7 +196,7 @@ export default {
 		text-align: right;
 		box-shadow: var(--ion-card-box-shadow);
 		margin: 1rem;
-		border: 1px solid var(--ion-card-border-color);
+		border: 1px dotted var(--ion-card-border-color);
 	}
 
 	.grand-nav-value {

@@ -78,6 +78,8 @@
 		})
 
 		let store = useStore()
+		store.activeSpace = workspaceObj
+		store.activeSpaceName = workspaceObj.name
 		store.activeSpaceCode = workspaceObj.base_api_url
 
 		router.push('/main')
@@ -94,7 +96,7 @@
 
 	ion-content {
 		//--background: #fafafa;
-		--background: #eff4f7;
+		//--background: ;
 	}
 
 </style>

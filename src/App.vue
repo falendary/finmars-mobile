@@ -135,6 +135,13 @@
 		display: flex;
 	}
 
+	.flex-end {
+		justify-content: end;
+	}
+	.flex-align-center {
+		align-items: center;
+	}
+
 	.align-center {
 		align-items: center;
 
@@ -169,6 +176,17 @@
 
 	.text-nowrap {
 		white-space: nowrap;
+	}
+
+	.header {
+		padding: 0 15px;
+		//color: #747474;
+		color: var(--ion-text-color);
+		font-weight: 400;
+		//font-size: 20px;
+		font-size: 1.1rem;
+		margin-bottom: 15px;
+		opacity: .8;
 	}
 
 </style>

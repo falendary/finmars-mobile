@@ -1,5 +1,48 @@
 <template>
 	<ion-page>
+
+		<ion-header>
+			<ion-toolbar class="app-header">
+
+				<div class="app-header-inner">
+
+					{{store.activeSpaceName}}
+
+					<div class="display-flex flex-end flex-align-center">
+
+					<ion-select
+						v-model="spaceStore.settings.general.currency"
+						placeholder="Currency"
+					>
+						<ion-select-option
+							v-for="item in spaceStore.currencies"
+							:value="item.user_code"
+						>
+							{{ item.short_name }}
+						</ion-select-option>
+					</ion-select>
+
+					<ion-modal 	:keep-contents-mounted="true">
+						<ion-datetime id="datetime_date" displayFormat="YYYY-MM-DD"
+													v-model="spaceStore.settings.general.date_to"
+													:prefer-wheel="true"
+													presentation="date"
+													show-default-buttons
+						></ion-datetime>
+					</ion-modal>
+
+					<ion-datetime-button class="header-date-button" datetime="datetime_date" />
+
+					</div>
+
+				</div>
+
+
+
+			</ion-toolbar>
+
+		</ion-header>
+
 		<ion-content class="content">
 			<ion-refresher slot="fixed" @ionRefresh="refresh($event)">
 				<ion-refresher-content />
@@ -146,7 +189,16 @@
 
 <script>
 	import dayjs from 'dayjs'
-	import { IonRefresher, IonRefresherContent, IonSkeletonText, IonSpinner } from '@ionic/vue'
+	import {
+		IonDatetime,
+		IonDatetimeButton,
+		IonModal,
+		IonRefresher,
+		IonRefresherContent, IonSelect, IonSelectOption,
+		IonSkeletonText,
+		IonSpinner,
+		IonToolbar
+	} from '@ionic/vue'
 
 	import Indicators from '@/components/Indicators.vue'
 	import ChangePrice from '@/components/ChangePrice.vue'
@@ -181,6 +233,12 @@
 
 	export default {
 		components: {
+			IonSelectOption,
+			IonSelect,
+			IonDatetime,
+			IonToolbar,
+			IonDatetimeButton,
+			IonModal,
 			IonRefresher, IonRefresherContent, IonSkeletonText, IonSpinner,
 			Indicators,
 			ChangePrice,
@@ -192,12 +250,12 @@
 		data() {
 			return {
 				processing: false,
+				store: null,
 				spaceStore: null,
 				portfolios: [],
 				dayjs: dayjs,
 				transactionsOpts: null,
 				username: null,
-				storeIsReady: false
 			}
 		},
 		computed: {
@@ -328,19 +386,11 @@
 		padding: 1rem;
 		margin-bottom: 1rem;
 		box-shadow: var(--ion-card-box-shadow);
+		margin-top: -0.5rem;
 		//margin-top: 0.3rem;
 	}
 
-	.header {
-		padding: 0 15px;
-		//color: #747474;
-		color: var(--ion-text-color);
-		font-weight: 400;
-		//font-size: 20px;
-		font-size: 1.1rem;
-		margin-bottom: 15px;
-		opacity: .8;
-	}
+
 
 	.header_info {
 		font-size: 0.6rem;
@@ -380,8 +430,9 @@
 		background: var(--ion-card-background);
 		//padding: 7px 10px;
 		//box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.05);
-		border-radius: 0.5rem;
+		border-radius: 1rem;
 		box-shadow: var(--ion-card-box-shadow);
+		border: 1px dotted var(--ion-card-border-color);
 		padding: 1rem;
 
 		& + & {

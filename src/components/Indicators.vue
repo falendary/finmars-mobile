@@ -137,7 +137,7 @@
 		padding: 1rem;
 		box-sizing: border-box;
 		box-shadow: var(--ion-card-box-shadow);
-		border: 1px solid var(--ion-card-border-color);
+		border: 1px dotted var(--ion-card-border-color);
 	}
 	.ii_header {
 		font-size: 12px;

@@ -1,5 +1,6 @@
 <template>
 	<ion-page>
+
 		<ion-tabs v-if="!processing">
 
 			<ion-router-outlet></ion-router-outlet>
@@ -107,7 +108,6 @@
 							@didDismiss="changeDataFrom"
 						>
 							<ion-datetime
-								style="color: #000"
 								id="datetime_date_to"
 								v-model="store.spaces[store.activeSpaceCode].settings.general.date_to"
 								:prefer-wheel="true"
@@ -207,6 +207,8 @@
 
 			</ion-content>
 		</ion-modal>
+
+
 	</ion-page>
 </template>
 
@@ -333,8 +335,14 @@
 			},
 
 			changeSpace() {
-				this.isOpen = false
-				this.router.push('/workspaces')
+
+				// this.router = useRouter()
+				//
+				// console.log('changeSpace.router', this.router);
+
+				this.isOpen = false;
+				this.$router.push('/workspaces')
+
 			},
 			async fetchPortfolios() {
 				let res = await useApi('portfolioLight.get')
@@ -375,6 +383,8 @@
 				} else {
 					this.currencies.value = []
 				}
+
+				this.store.spaces[this.store.activeSpaceCode].currencies = this.currencies
 			},
 
 			async fetchPolicies() {
@@ -476,7 +486,7 @@
 
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 	.tab_logo {
 		margin-top: -27px;
 		height: 70px;
@@ -537,4 +547,46 @@
 		color: #646464;
 		margin-top: 25px;
 	}
+
+	.app-header {
+		height: 1.5rem;
+		background: var(--ion-tab-bar-background);
+		padding-top: 0 !important;
+
+		position: relative;
+
+		.app-header-inner {
+
+			display: flex;
+			justify-content: space-between;
+			font-size: 0.6rem;
+			align-items: center;
+			height: 1.5rem;
+			top: 0;
+			position: absolute;
+			width: 100%;
+			left: 0;
+			padding: 0 0.5rem;
+
+			ion-select {
+				width: 60px;
+			}
+
+			ion-datetime-button::part(native) {
+				background: transparent;
+			}
+
+			ion-datetime-button.header-date-button {
+
+				display: inline-block;
+				font-size: .5rem;
+
+				//padding: 0.2rem;
+				border-bottom: 1px dotted var(--ion-date-button-border-color);
+
+			}
+		}
+
+	}
+
 </style>

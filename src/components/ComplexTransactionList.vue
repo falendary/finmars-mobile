@@ -49,7 +49,7 @@
 
 						<IonSkeletonText
 							:animated="true"
-							style="width: 240px; height: 48px"
+							style="width: 90%; height: 32px"
 						/>
 
 					</div>
@@ -290,7 +290,7 @@ import useApi from '@/composables/useApi.js'
 import {
 	IonButton,
 	IonButtons,
-	IonContent,
+	IonContent, IonDatetime, IonDatetimeButton,
 	IonHeader,
 	IonIcon,
 	IonModal,
@@ -303,6 +303,8 @@ import { formatNumber } from 'chart.js/helpers'
 
 export default {
 	components: {
+		IonDatetime,
+		IonDatetimeButton,
 		IonSkeletonText,
 		IonIcon,
 		IonButtons,
@@ -341,6 +343,7 @@ export default {
 
 			isTransactionModelOpen: false,
 			activeTransaction: {},
+			spaceStore: null
 
 		}
 	},
@@ -516,7 +519,11 @@ export default {
 	.transaction {
 
 		font-size: 0.8rem;
-		margin: 1rem 0;
+		font-size: 0.8rem;
+		margin: 0.4rem 0;
+		background: var(--ion-transaction-transparent-bg);
+		padding: 0.8rem 0.3rem;
+		border-radius: 1rem;
 	}
 
 	.transaction-inner {
@@ -580,6 +587,7 @@ export default {
 		padding-top: 1rem;
 		padding-bottom: 1rem;
 		padding-left: 2rem;
+		padding-right: 0.3rem;
 	}
 
 	.transaction-child-item-inner {
