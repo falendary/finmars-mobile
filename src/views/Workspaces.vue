@@ -77,6 +77,11 @@
 			value: workspaceObj.base_api_url
 		})
 
+		await Preferences.set({
+			key: 'activeSpaceName',
+			value: workspaceObj.name
+		})
+
 		let store = useStore()
 		store.activeSpace = workspaceObj
 		store.activeSpaceName = workspaceObj.name

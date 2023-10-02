@@ -24,8 +24,10 @@ export default defineStore('store', {
 		async init() {
 			let { value } = await Preferences.get({ key: 'layout' })
 			let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
+			let { value: activeSpaceName } = await Preferences.get({ key: 'activeSpaceName' })
 
 			this.activeSpaceCode = activeSpaceCode;
+			this.activeSpaceName = activeSpaceName;
 
 			if (!this.spaces[this.activeSpaceCode]) {
 				this.spaces[this.activeSpaceCode] = {

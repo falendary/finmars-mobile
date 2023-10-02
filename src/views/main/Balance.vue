@@ -7,7 +7,7 @@
 
 				<div class="app-header-inner">
 
-					{{ store.activeSpaceName }}
+					{{ store.activeSpaceName || 'Finmars'}}
 
 					<div class="display-flex flex-end flex-align-center">
 
