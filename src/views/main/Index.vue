@@ -189,7 +189,7 @@
 					class="ion-margin-horizontal logout"
 					fill="outline"
 					expand="block"
-					router-link="/logout"
+					@click="logout()"
 				>
 					LOGOUT
 				</ion-button>
@@ -334,6 +334,10 @@
 				this.toggleDarkTheme(ev.detail.checked)
 			},
 
+			logout() {
+				this.isOpen = false;
+				this.$router.push('/logout')
+			},
 			changeSpace() {
 
 				// this.router = useRouter()
