@@ -6,16 +6,16 @@ import { sentryVitePlugin } from '@sentry/vite-plugin'
 // https://vitejs.dev/config/
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => ({
-	build: {
-		sourcemap: true, // Source map generation must be turned on
-	},
+	// build: {
+	// 	sourcemap: true, // Source map generation must be turned on
+	// },
 	plugins: [vue(),
-		sentryVitePlugin({
-			authToken: process.env.SENTRY_AUTH_TOKEN,
-			org: "finmars",
-			project: "mobile",
-			url: "https://sentry.finmars.com/",
-		}),
+		// sentryVitePlugin({
+		// 	authToken: process.env.SENTRY_AUTH_TOKEN,
+		// 	org: "finmars",
+		// 	project: "mobile",
+		// 	url: "https://sentry.finmars.com/",
+		// }),
 	],
 	resolve: {
 		alias: {

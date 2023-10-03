@@ -486,13 +486,15 @@ export default {
 			const res = await useApi('complexTransaction.get', {
 				filters: {
 					transactions__accounting_date_after: this.options.begin_date,
-					transactions__accounting_date_before: this.options.end_date
+					transactions__accounting_date_before: this.options.end_date,
+					ordering: '-transactions__accounting_date'
 				}
 			})
 
 			this.transactions = res.results
 
 			console.log('ComplexTransactionList.transactions', this.transactions)
+			console.log('ComplexTransactionList.transactions len', this.transactions.length)
 
 		}
 
