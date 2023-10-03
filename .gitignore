@@ -35,3 +35,6 @@ npm-debug.log*
 
 android/app/release/
 ios
+
+# Sentry Auth Token
+.env.sentry-build-plugin

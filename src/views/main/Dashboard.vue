@@ -6,37 +6,36 @@
 
 				<div class="app-header-inner">
 
-					{{store.activeSpaceName || 'Finmars'}}
+					{{ store.activeSpaceName || 'Finmars' }}
 
 					<div class="display-flex flex-end flex-align-center">
 
-					<ion-select
-						v-model="spaceStore.settings.general.currency"
-						placeholder="Currency"
-					>
-						<ion-select-option
-							v-for="item in spaceStore.currencies"
-							:value="item.user_code"
+						<ion-select
+							v-model="spaceStore.settings.general.currency"
+							placeholder="Currency"
 						>
-							{{ item.short_name }}
-						</ion-select-option>
-					</ion-select>
+							<ion-select-option
+								v-for="item in spaceStore.currencies"
+								:value="item.user_code"
+							>
+								{{ item.short_name }}
+							</ion-select-option>
+						</ion-select>
 
-					<ion-modal 	:keep-contents-mounted="true">
-						<ion-datetime id="datetime_date" displayFormat="YYYY-MM-DD"
-													v-model="spaceStore.settings.general.date_to"
-													:prefer-wheel="true"
-													presentation="date"
-													show-default-buttons
-						></ion-datetime>
-					</ion-modal>
+						<ion-modal :keep-contents-mounted="true">
+							<ion-datetime id="datetime_date" displayFormat="YYYY-MM-DD"
+														v-model="spaceStore.settings.general.date_to"
+														:prefer-wheel="true"
+														presentation="date"
+														show-default-buttons
+							></ion-datetime>
+						</ion-modal>
 
-					<ion-datetime-button class="header-date-button" datetime="datetime_date" />
+						<ion-datetime-button class="header-date-button" datetime="datetime_date" />
 
 					</div>
 
 				</div>
-
 
 
 			</ion-toolbar>
@@ -51,8 +50,6 @@
 			<div class="welcome-block">
 				Welcome Back, {{ username }}
 			</div>
-
-			<button @click="throwError">Throw error</button>
 
 			<div class="dashboard-content" v-if="!processing">
 
@@ -196,7 +193,9 @@
 		IonDatetimeButton,
 		IonModal,
 		IonRefresher,
-		IonRefresherContent, IonSelect, IonSelectOption,
+		IonRefresherContent,
+		IonSelect,
+		IonSelectOption,
 		IonSkeletonText,
 		IonSpinner,
 		IonToolbar
@@ -257,7 +256,7 @@
 				portfolios: [],
 				dayjs: dayjs,
 				transactionsOpts: null,
-				username: null,
+				username: null
 			}
 		},
 		computed: {
@@ -267,9 +266,6 @@
 			}
 		},
 		methods: {
-			throwError() {
-				throw new Error('Sentry Error');
-			},
 			async init() {
 
 				console.log('Dashboard.init')
@@ -394,7 +390,6 @@
 		margin-top: -0.5rem;
 		//margin-top: 0.3rem;
 	}
-
 
 
 	.header_info {
