@@ -52,6 +52,8 @@
 				Welcome Back, {{ username }}
 			</div>
 
+			<button @click="throwError">Throw error</button>
+
 			<div class="dashboard-content" v-if="!processing">
 
 				<div class="header">Grand Total</div>
@@ -265,6 +267,9 @@
 			}
 		},
 		methods: {
+			throwError() {
+				throw new Error('Sentry Error');
+			},
 			async init() {
 
 				console.log('Dashboard.init')

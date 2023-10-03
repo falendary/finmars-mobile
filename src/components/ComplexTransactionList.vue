@@ -198,6 +198,10 @@
 
 	</div>
 
+	<div v-if="errorMessage" class="text-center" style="padding: 0 1rem">
+		{{ errorMessage }}
+	</div>
+
 	<ion-modal ref="modal" :is-open="isComplexTransactionModelOpen">
 		<ion-header>
 			<ion-toolbar>
@@ -290,7 +294,9 @@ import useApi from '@/composables/useApi.js'
 import {
 	IonButton,
 	IonButtons,
-	IonContent, IonDatetime, IonDatetimeButton,
+	IonContent,
+	IonDatetime,
+	IonDatetimeButton,
 	IonHeader,
 	IonIcon,
 	IonModal,
@@ -340,7 +346,7 @@ export default {
 			isComplexTransactionModelOpen: false,
 			activeComplexTransaction: {},
 			userFieldsMap: null,
-
+			errorMessage: null,
 			isTransactionModelOpen: false,
 			activeTransaction: {},
 			spaceStore: null
@@ -495,12 +501,19 @@ export default {
 
 		console.log('ComplexTransactionList.options', this.options)
 
-		this.processing = true;
+		this.processing = true
 
-		await this.getComplexTransactionUserFields()
-		await this.getTransactions()
-
-		this.processing = false;
+		try {
+			await this.getComplexTransactionUserFields()
+			await this.getTransactions()
+		} catch (error) {
+			console.error('An error occurred:', error)
+			// Optionally, set an error message to your component's data or show it to the user
+			this.errorMessage = 'An error occurred while processing the transactions.'
+			// If you have a method or way to display the error to the user, call or use it here.
+		} finally {
+			this.processing = false
+		}
 
 	}
 

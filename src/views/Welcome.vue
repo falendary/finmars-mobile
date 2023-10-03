@@ -150,7 +150,7 @@
 				customRegion: {
 					id: 'custom',
 					name: 'Custom',
-					domain: 'finmars.com',
+					domain: 'https://finmars.com',
 					keycloakOpts: {
 						url: 'https://eu-central.finmars.com',
 						realm: 'finmars',

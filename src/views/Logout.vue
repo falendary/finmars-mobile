@@ -19,6 +19,11 @@
 	console.log("Logout Page Init")
 
 	import {  logoutKeycloak } from '@/services/keycloakService.js'
+	import { Preferences } from '@capacitor/preferences'
+
+	await Preferences.remove({ key: 'region' })
+	await Preferences.remove({ key: 'activeSpaceCode' })
+	await Preferences.remove({ key: 'activeSpaceName' })
 
 	await logoutKeycloak()
 

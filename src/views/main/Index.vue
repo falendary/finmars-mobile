@@ -80,8 +80,8 @@
 				<ion-list lines="full">
 					<ion-item>
 						<ion-select
-							v-model="store.spaces[store.activeSpaceCode].settings.general.period"
-							:label="`Period [${dayjs(store.spaces[store.activeSpaceCode].settings.general.date_from).format(
+							v-model="spaceStore.settings.general.period"
+							:label="`Period [${dayjs(spaceStore.settings.general.date_from).format(
 								'DD MMM YYYY'
 							)}]`"
 							placeholder="Period"
@@ -96,7 +96,7 @@
 						</ion-select>
 					</ion-item>
 
-					<ion-item v-if="store.spaces[store.activeSpaceCode].settings.general.date_to">
+					<ion-item v-if="spaceStore.settings.general.date_to">
 						<ion-label
 						>Date
 							{{ tab == 'pnl' || tab == 'transactions' ? 'to' : '' }}
@@ -109,7 +109,7 @@
 						>
 							<ion-datetime
 								id="datetime_date_to"
-								v-model="store.spaces[store.activeSpaceCode].settings.general.date_to"
+								v-model="spaceStore.settings.general.date_to"
 								:prefer-wheel="true"
 								presentation="date"
 								show-default-buttons
@@ -120,7 +120,7 @@
 
 					<ion-item v-if="pricingPolicies?.length">
 						<ion-select
-							v-model="store.spaces[store.activeSpaceCode].settings.general.pricing_policy"
+							v-model="spaceStore.settings.general.pricing_policy"
 							label="Pricing policy"
 							placeholder="Policy"
 						>
@@ -135,7 +135,7 @@
 
 					<ion-item v-if="currencies?.length">
 						<ion-select
-							v-model="store.spaces[store.activeSpaceCode].settings.general.currency"
+							v-model="spaceStore.settings.general.currency"
 							label="Reporting currency"
 							placeholder="Currency"
 						>
@@ -150,13 +150,13 @@
 
 					<ion-item>
 						<ion-select
-							v-model="store.spaces[store.activeSpaceCode].settings.general.portfolios"
+							v-model="spaceStore.settings.general.portfolios"
 							label="Portfolios"
 							placeholder="Portfolios"
 							:multiple="true"
 						>
 							<ion-select-option
-								v-for="item in store.spaces[store.activeSpaceCode].portfolioListStock"
+								v-for="item in spaceStore.portfolioListStock"
 								:value="item.user_code"
 							>
 								{{ item.name }}
@@ -334,7 +334,8 @@
 				this.toggleDarkTheme(ev.detail.checked)
 			},
 
-			logout() {
+			async logout() {
+
 				this.isOpen = false;
 				this.$router.push('/logout')
 			},

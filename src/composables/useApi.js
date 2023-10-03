@@ -4,18 +4,34 @@ import { Preferences } from '@capacitor/preferences'
 
 
 import axios from 'axios';
-import { refreshToken } from '@/services/keycloakService.js'
+import { refreshToken, clearTokens } from '@/services/keycloakService.js'
 axios.interceptors.response.use(
 	response => {
 		return response;
 	},
 	async error => {
 		if (error.response.status === 401) {
-			// Handle token refresh logic here
-			// For instance, call your function that refreshes Keycloak token
-
-			// After refreshing, you might want to retry the original request:
 			let config = error.response.config;
+
+			// If retry count is not set, set it to 0
+			if (!config.retryCount) {
+				config.retryCount = 0;
+			}
+			// Increment the retry count
+			config.retryCount += 1;
+
+			// Check if we've retried more than 5 times
+			if (config.retryCount > 5) {
+				// Clear tokens or any other cleanup here
+				await clearTokens();
+
+				// Redirect to login
+				window.location.href = '/login';
+				return Promise.reject(error);
+			}
+
+			// Handle token refresh logic here
+			// After refreshing, you might want to retry the original request:
 
 			// Update the token in the header
 			const newToken = await refreshToken();
@@ -42,7 +58,7 @@ export default async function useApi(
 	log.time(loggerName)
 
 	let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
-	const { value: workspace } = await Preferences.get({ key: 'workspace' })
+	const { value: workspace } = await Preferences.get({ key: 'activeSpaceCode' })
 	let { value: region } = await Preferences.get({ key: 'region' })
 
 	// if no region or workspace

@@ -117,6 +117,21 @@ export async function refreshToken() {
 	})
 }
 
+
+export async function clearTokens() {
+
+	// alert('setTokens: ' + keycloak.token)
+
+	await Preferences.remove({
+		key: 'kcTokens'
+	})
+	await Preferences.remove({ key: 'region' })
+	await Preferences.remove({ key: 'activeSpaceCode' })
+	await Preferences.remove({ key: 'activeSpaceName' })
+
+}
+
+
 // async function refreshTokens() {
 //
 // 	console.log('refreshTokens')
