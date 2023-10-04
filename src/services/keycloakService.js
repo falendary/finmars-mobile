@@ -11,6 +11,9 @@ async function getRegion() {
 
 export async function initKeycloak() {
 
+
+
+
 	const region = await getRegion()
 
 	let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
@@ -40,6 +43,8 @@ export async function initKeycloak() {
 		redirectUri: window.location.origin + router.options.history.base + '/' + appDestinationPath
 	}
 
+
+
 	if (window.Cordova) {
 
 		console.log('window.Cordova', window.Cordova)
@@ -47,6 +52,15 @@ export async function initKeycloak() {
 		kcOpts['adapter'] = 'capacitor'
 		kcOpts['responseMode'] = 'query'
 		kcOpts['redirectUri'] = 'finmars://' + appDestinationPath
+
+		const platform = import.meta.env.VITE_APP_PLATFORM;
+
+		console.log('import.meta.env', import.meta.env);
+
+		if (platform == 'android') {
+			kcOpts['redirectUri'] = 'https://finmars.com/' + appDestinationPath
+		}
+
 	}
 
 	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))
@@ -72,6 +86,13 @@ export async function logoutKeycloak() {
 
 		console.log('window.Cordova', window.Cordova)
 		logoutOptions['redirectUri'] = 'finmars://welcome'
+
+		const platform = import.meta.env.VITE_APP_PLATFORM;
+
+		if (platform == 'android') {
+			logoutOptions['redirectUri'] = 'https://finmars.com/welcome'
+		}
+
 	}
 
 	Preferences.remove({

@@ -50,6 +50,7 @@ export default async function useApi(
 		params, // Router params
 		body, // Body for POST PUT PATCH
 		filters, // Query object
+		urlSearchParams,
 		headers = {},
 		provider = true, // Query object
 	} = {}
@@ -110,6 +111,10 @@ export default async function useApi(
 
 		url += '?' + searchPaarams.join('&')
 	}
+	if (urlSearchParams) {
+		url += `?${urlSearchParams.toString()}`
+	}
+
 	if (params) {
 		for (let param in params) {
 			url = url.replace(`{${param}}`, params[param])

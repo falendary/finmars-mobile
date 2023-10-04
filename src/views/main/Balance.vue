@@ -291,7 +291,7 @@
 					<ion-toolbar>
 						<ion-title>Chart Settings</ion-title>
 						<ion-buttons slot="end">
-							<ion-button @click="saveChartSettings()">Save</ion-button>
+							<ion-button @click="chartSettingsModalIsOpen = false;">close</ion-button>
 						</ion-buttons>
 					</ion-toolbar>
 				</ion-header>
@@ -342,6 +342,9 @@
 							</ion-select>
 						</ion-item>
 
+						<div class="display-flex" style="justify-content: end; margin-top: 0.5rem">
+							<ion-button @click="saveChartSettings()" style="width: 100px;">Save</ion-button>
+						</div>
 
 					</div>
 
@@ -496,7 +499,7 @@
 			},
 			async init() {
 
-				this.activeCategory = null;
+				this.activeCategory = null
 
 				console.log('route.query.tab', this.$route.query.tab)
 
@@ -608,7 +611,6 @@
 				this.categories = res.items
 
 				console.log('res', res)
-
 
 
 				console.log('createChart.categories', this.categories)
@@ -823,7 +825,6 @@
 		async mounted() {
 
 			await this.fetchBalanceReportAttributes()
-
 
 
 			this.transactionsOpts = {

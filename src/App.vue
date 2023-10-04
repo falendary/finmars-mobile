@@ -97,6 +97,13 @@
 		--ion-safe-area-bottom: 20px;
 	}
 
+	ion-modal {
+		–padding-top: var(–ion-safe-area-top, 0);
+		padding-top: env(safe-area-inset-top);
+		--ion-safe-area-top: 20px;
+		--ion-safe-area-bottom: 20px;
+	}
+
 	.text-center {
 		text-align: center;
 	}

@@ -306,6 +306,8 @@ import {
 } from '@ionic/vue'
 import { bagAddOutline, barChartOutline, calendarOutline, cubeOutline, layersOutline } from 'ionicons/icons'
 import { formatNumber } from 'chart.js/helpers'
+import { computed } from 'vue'
+import useStore from '@/composables/useStore.js'
 
 export default {
 	components: {
@@ -483,13 +485,28 @@ export default {
 		},
 		async getTransactions() {
 
-			const res = await useApi('complexTransaction.get', {
-				filters: {
-					transactions__accounting_date_after: this.options.begin_date,
-					transactions__accounting_date_before: this.options.end_date,
-					ordering: '-transactions__accounting_date'
-				}
+			console.log('this.spaceStore.settings.general.portfolios', this.spaceStore.settings.general.portfolios)
+
+			let filters = {
+				transactions__accounting_date_after: this.options.begin_date,
+				transactions__accounting_date_before: this.options.end_date,
+				ordering: '-transactions__accounting_date'
+			}
+
+			const params = new URLSearchParams();
+
+			params.append('transactions__accounting_date_after', this.options.begin_date);
+			params.append('transactions__accounting_date_before', this.options.end_date);
+			params.append('ordering', '-transactions__accounting_date');
+
+			this.spaceStore.settings.general.portfolios.forEach(function(item) {
+				params.append('transactions__portfolio__user_code', item);
 			})
+
+			const res = await useApi('complexTransaction.get', {
+				urlSearchParams: params
+			})
+
 
 			this.transactions = res.results
 
@@ -498,6 +515,10 @@ export default {
 
 		}
 
+	},
+	async created() {
+		this.store = useStore()
+		this.spaceStore = computed(() => this.store.spaces[this.store.activeSpaceCode])
 	},
 	async mounted() {
 

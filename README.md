@@ -19,7 +19,10 @@ npx cap add android
 npx cap open android
 
 # This two actuially builds app
-npm run build && npx cap run android
+VITE_APP_PLATFORM='android' npm run build && npx cap run android
+
+# Change in android/app/src/main/res/values/strings.xml
+<string name="custom_url_scheme">finmars</string>
 
 # How to push new version to google play
 go to ```android/app/build.gradle```
@@ -30,7 +33,7 @@ npx cap build android
 npx cap build android --keystorepath=/Users/szhitenev/projects/finmars/data/keystores/android/finmars-keystore --keystorealias=key0 --keystorealiaspass=[pass] --keystorepass=[pass]
  
 ionic
-ionic capacitor build android
+VITE_APP_PLATFORM='android' ionic capacitor build android
 
 
 ### Release APP

@@ -78,23 +78,23 @@
 
 			<ion-content>
 				<ion-list lines="full">
-					<ion-item>
-						<ion-select
-							v-model="spaceStore.settings.general.period"
-							:label="`Period [${dayjs(spaceStore.settings.general.date_from).format(
-								'DD MMM YYYY'
-							)}]`"
-							placeholder="Period"
-							@ionChange="changeDataFrom"
-						>
-							<ion-select-option value="inception">
-								Inception
-							</ion-select-option>
-							<ion-select-option value="ytd"> YTD</ion-select-option>
-							<ion-select-option value="qtd"> QTD</ion-select-option>
-							<ion-select-option value="mtd"> MTD</ion-select-option>
-						</ion-select>
-					</ion-item>
+<!--					<ion-item>-->
+<!--						<ion-select-->
+<!--							v-model="spaceStore.settings.general.period"-->
+<!--							:label="`Period [${dayjs(spaceStore.settings.general.date_from).format(-->
+<!--								'DD MMM YYYY'-->
+<!--							)}]`"-->
+<!--							placeholder="Period"-->
+<!--							@ionChange="changeDataFrom"-->
+<!--						>-->
+<!--							<ion-select-option value="inception">-->
+<!--								Inception-->
+<!--							</ion-select-option>-->
+<!--							<ion-select-option value="ytd"> YTD</ion-select-option>-->
+<!--							<ion-select-option value="qtd"> QTD</ion-select-option>-->
+<!--							<ion-select-option value="mtd"> MTD</ion-select-option>-->
+<!--						</ion-select>-->
+<!--					</ion-item>-->
 
 					<ion-item v-if="spaceStore.settings.general.date_to">
 						<ion-label
@@ -167,14 +167,14 @@
 
 				<br />
 
-				<ion-button
-					class="ion-margin-horizontal"
-					fill="outline"
-					expand="block"
-					@click="fetchPortfolios()"
-				>
-					RELOAD PORTFOLIOS
-				</ion-button>
+<!--				<ion-button-->
+<!--					class="ion-margin-horizontal"-->
+<!--					fill="outline"-->
+<!--					expand="block"-->
+<!--					@click="fetchPortfolios()"-->
+<!--				>-->
+<!--					RELOAD PORTFOLIOS-->
+<!--				</ion-button>-->
 
 				<ion-button
 					class="ion-margin-horizontal"
@@ -336,7 +336,7 @@
 
 			async logout() {
 
-				this.isOpen = false;
+				this.isOpen = false
 				this.$router.push('/logout')
 			},
 			changeSpace() {
@@ -345,12 +345,16 @@
 				//
 				// console.log('changeSpace.router', this.router);
 
-				this.isOpen = false;
+				this.isOpen = false
 				this.$router.push('/workspaces')
 
 			},
 			async fetchPortfolios() {
-				let res = await useApi('portfolioLight.get')
+				let res = await useApi('portfolioLight.get', {
+					filters: {
+						page_size: '1000'
+					}
+				})
 
 				if (res && !res.error) {
 					this.spaceStore.portfolioListStock = res.results.map((o) => {
@@ -554,7 +558,7 @@
 	}
 
 	.app-header {
-		height: 1.5rem;
+		height: 2.5rem;
 		background: var(--ion-tab-bar-background);
 		padding-top: 0 !important;
 
@@ -564,9 +568,9 @@
 
 			display: flex;
 			justify-content: space-between;
-			font-size: 0.6rem;
+			font-size: .7rem;
 			align-items: center;
-			height: 1.5rem;
+			height: 2.5rem;
 			top: 0;
 			position: absolute;
 			width: 100%;
@@ -574,7 +578,7 @@
 			padding: 0 0.5rem;
 
 			ion-select {
-				width: 60px;
+				width: 70px;
 			}
 
 			ion-datetime-button::part(native) {
@@ -584,7 +588,7 @@
 			ion-datetime-button.header-date-button {
 
 				display: inline-block;
-				font-size: .5rem;
+				font-size: .7rem;
 
 				//padding: 0.2rem;
 				border-bottom: 1px dotted var(--ion-date-button-border-color);
