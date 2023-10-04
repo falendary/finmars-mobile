@@ -291,7 +291,7 @@
 					<ion-toolbar>
 						<ion-title>Chart Settings</ion-title>
 						<ion-buttons slot="end">
-							<ion-button @click="chartSettingsModalIsOpen = false;">close</ion-button>
+							<ion-button @click="chartSettingsModalIsOpen = false;">Close</ion-button>
 						</ion-buttons>
 					</ion-toolbar>
 				</ion-header>
@@ -544,12 +544,12 @@
 				this.groupByAttributes = [...this.groupByAttributes, ...instrumentAttributes]
 
 				this.groupByAttributes.push({
-					key: 'currency.name',
-					name: 'Currency',
+					key: 'pricing_currency.short_name',
+					name: 'Pricing Currency',
 					value_type: 10
 				})
 				this.groupByAttributes.push({
-					key: 'exposure_currency.name',
+					key: 'exposure_currency.short_name',
 					name: 'Exposure Currency',
 					value_type: 10
 				})
