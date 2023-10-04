@@ -44,7 +44,7 @@
 								)
 							}}</span
 						>
-						POS
+						UNITS
 					</div>
 				</div>
 				<div class='flex sb'>
@@ -151,6 +151,21 @@
 	// need for frontend_request_options
 	// only columns that requested will be shown
 	const columns = [
+		{
+			"key": "entry_currency.short_name",
+			"name": "Transaction. Entry Currency. Short Name",
+			"value_type": 10,
+		},
+		{
+			"key": "settlement_currency.short_name",
+			"name": "Transaction. Settlement Currency. Short Name",
+			"value_type": 10,
+		},
+		{
+			"key": "transaction_currency.short_name",
+			"name": "Transaction. Transaction Currency. Short Name",
+			"value_type": 10,
+		},
 		{
 			'content_type': 'transactions.complextransaction',
 			'isHidden': false,
@@ -1260,7 +1275,8 @@
 				cost_method: 1,
 				custom_fields_to_calculate: '',
 				date_field: 'accounting_date',
-				depth_level: props.reportType == 'pl' ? 'base_transaction' : 'entry',
+				// depth_level: props.reportType == 'pl' ? 'base_transaction' : 'entry',
+				depth_level: props.options.dept_level,
 				end_date: props.options.end_date,
 				expression_iterations_count: 1,
 				frontend_request_options: {
@@ -1289,17 +1305,16 @@
 
 		// if (!props.options.filter_entry_user_code) return res
 
-		//depricated
-		// if (props.reportType != 'pl') {
-		// 	res.items = res.items.filter(
-		// 		(o) => o.entry_item_user_code == props.options.filter_entry_user_code
-		// 	)
-		// } else {
-		// 	res.items = res.items.filter(
-		// 		(o) =>
-		// 			o.transaction_item_user_code == props.options.filter_entry_user_code
-		// 	)
-		// }
+		if (props.reportType != 'pl') {
+			res.items = res.items.filter(
+				(o) => o.entry_item_user_code == props.options.filter_entry_user_code
+			)
+		} else {
+			res.items = res.items.filter(
+				(o) =>
+					o.transaction_item_user_code == props.options.filter_entry_user_code
+			)
+		}
 
 		return res
 	}
@@ -1350,6 +1365,7 @@
 		font-weight: 600;
 		font-size: 12px;
 		line-height: 24px;
+		white-space: nowrap;
 	}
 
 	.desc {

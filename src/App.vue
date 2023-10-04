@@ -88,11 +88,11 @@
 
 			console.log('processing', this.processing);
 
+			this.processing = true
+
 			if (tokens) {
 
 				console.log('APP_INIT: Has tokens in Storage, trying to reinit Keycloak')
-
-				this.processing = true
 
 				try {
 					await initKeycloak()
@@ -100,8 +100,14 @@
 					this.processing = false
 
 					if (activeSpaceCode) {
+
+						console.log("APP_INIT: has activeSpaceCode. redirect to dashboard")
+
 						this.$router.push('/main/dashboard')
 					} else {
+
+						console.log("APP_INIT: has activeSpaceCode. redirect to workspaces")
+
 						this.$router.push('/workspaces')
 					}
 
@@ -112,6 +118,8 @@
 					console.log('APP_INIT: keycloak.error', e)
 
 					await Preferences.remove({ key: 'kcTokens' })
+
+					this.$router.push('/welcome')
 
 				}
 
@@ -132,11 +140,17 @@
 						this.$router.push('/workspaces')
 					}
 				} else {
+
 					console.log('APP_INIT: Nothing, its first open, wait until user select region')
+
+					this.$router.push('/welcome')
+
 				}
 
 				// 	user should pick region and after that login
 			}
+
+			this.processing = false
 
 		},
 		mounted() {

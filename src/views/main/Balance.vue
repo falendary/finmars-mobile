@@ -50,7 +50,7 @@
 			<div class="header flex sb aic">
 				<div v-if="portfolio">{{ portfolio.name }}</div>
 				<IonSkeletonText
-					v-else
+					v-if="!portfolio"
 					:animated="true"
 					style="height: 24px; width: 80px"
 				/>
@@ -227,8 +227,8 @@
 						<div class="flex sb jcfe">
 							<div class="instr_name">
 								{{
-									item.name.length > 20
-										? item.name.slice(0, 20) + '...'
+									item.name.length > 80
+										? item.name.slice(0, 80) + '...'
 										: item.name
 								}}
 							</div>
@@ -506,7 +506,8 @@
 				return +(Math.round(num + "e+2") + "e-2");
 			},
 			saveChartSettings() {
-				this.chartSettingsModalIsOpen = false
+				this.chartSettingsModalIsOpen = false;
+				this.activeCategory = null;
 				this.createChart()
 			},
 			async init() {
@@ -566,6 +567,11 @@
 				this.groupByAttributes.push({
 					key: 'instrument.country.name',
 					name: 'Country',
+					value_type: 10
+				})
+				this.groupByAttributes.push({
+					key: 'item_type_name',
+					name: 'Item Type',
 					value_type: 10
 				})
 
@@ -848,7 +854,8 @@
 				end_date: this.spaceStore.settings.general.date_to,
 				begin_date: '0001-01-01',
 				portfolios: this.$route.query.tab,
-				filter_entry_user_code: null
+				filter_entry_user_code: null,
+				dept_level: 'entry'
 			}
 
 
@@ -1015,6 +1022,7 @@
 
 	.instr_name {
 		line-height: 20px;
+		font-size: 0.6rem;
 	}
 
 	.instr_first {

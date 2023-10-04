@@ -284,10 +284,17 @@
 
 			},
 			async fetchPortfolios() {
-				this.portfolios = this.spaceStore.portfolioList.map((o, k) => {
+
+				this.portfolios = [];
+
+				// TODO Consider refactor here
+				// Some weird logic that I do not like
+
+				this.portfolios = this.spaceStore.settings.general.portfolios.map((o, k) => {
+
 					useApi('reportsSummary.get', {
 						filters: {
-							portfolios: o.user_code,
+							portfolios: o,
 							currency: this.spaceStore.settings.general.currency,
 							date_to: this.spaceStore.settings.general.date_to
 						}
@@ -305,9 +312,9 @@
 					})
 
 					return {
-						id: o.id,
-						name: o.name,
-						user_code: o.user_code,
+						id: o,
+						name: o,
+						user_code: o,
 						price: '-',
 						change: {
 							price: '-',

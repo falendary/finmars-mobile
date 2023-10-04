@@ -846,7 +846,8 @@
 				end_date: this.spaceStore.settings.general.date_to,
 				begin_date: '0001-01-01',
 				portfolios: this.$route.query.tab,
-				filter_entry_user_code: null
+				filter_entry_user_code: null,
+				dept_level: 'base_transaction'
 			}
 
 
