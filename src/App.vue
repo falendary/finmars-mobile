@@ -1,84 +1,127 @@
 <template>
 	<ion-app>
-		<Suspense>
+
+		<Suspense v-show="!processing">
+
 			<ion-router-outlet id="main-content" />
+
+
 		</Suspense>
+
+
+		<div v-show="processing" class="display-flex align-center justify-center height-100">
+			<progress-circular bg="black" diameter="90"></progress-circular>
+		</div>
+
 	</ion-app>
 </template>
 
-<script setup>
+<script>
 	import { IonApp, IonRouterOutlet } from '@ionic/vue'
-	import { onMounted, ref } from 'vue'
-	import { useRouter } from 'vue-router'
 	import { Preferences } from '@capacitor/preferences'
 	import { initKeycloak } from '@/services/keycloakService.js'
+	import ProgressCircular from '@/components/ProgressCircular.vue'
+	import { Suspense } from 'vue'
 
-	const router = useRouter()
+	export default {
+		components: {
+			ProgressCircular,
+			IonRouterOutlet,
+			Suspense,
+			IonApp
+			// settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline
+		},
 
-	const processing = ref(false)
+		data() {
+			return {
+				processing: false
+			}
+		},
+		methods: {
+			async initializeDarkTheme() {
 
-	// App.addListener('appUrlOpen', async (event) => {
-	// 	console.log('event.url', event.url)
+				let { value: darkTheme } = await Preferences.get({ key: 'darkTheme' })
 
-	// 	const slug = event.url.split('https://finmars.com')[1]
-	// })
+				console.log('from store darkTheme', darkTheme)
 
-	onMounted(async () => {
+				let isDark = false
 
-		let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
-		let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
-
-
-		// console.log('onMounted.tokens', tokens);
-
-		if (tokens) {
-
-			console.log('APP_INIT: Has tokens in Storage, trying to reinit Keycloak')
-
-			processing.value = true
-
-			try {
-				await initKeycloak()
-
-				processing.value = false
-
-				if (activeSpaceCode) {
-					router.push('/main/dashboard')
+				if (darkTheme === 'true') {
+					isDark = true
+				} else if (darkTheme === 'false') {
+					isDark = false
 				} else {
-					router.push('/workspaces')
+					const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
+
+					if (prefersDark) {
+						isDark = true
+					}
 				}
-			} catch (e) {
-
-				console.log('APP_INIT: keycloak.error', e)
-
-				await Preferences.remove({ key: 'kcTokens' })
+				document.body.classList.toggle('dark', isDark)
 
 			}
+		},
+		async created() {
 
+			let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
+			let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
 
-		} else {
+			this.initializeDarkTheme();
 
-			if (window.location.href.indexOf('state=') !== -1) {
+			console.log('processing', this.processing);
 
-				console.log('APP_INIT: Probably got redirect from keycloak, trying to parse query parameters')
+			if (tokens) {
 
+				console.log('APP_INIT: Has tokens in Storage, trying to reinit Keycloak')
 
-				processing.value = true
-				await initKeycloak()
-				processing.value = false
-				if (activeSpaceCode) {
-					router.push('/main/dashboard')
-				} else {
-					router.push('/workspaces')
+				this.processing = true
+
+				try {
+					await initKeycloak()
+
+					this.processing = false
+
+					if (activeSpaceCode) {
+						this.$router.push('/main/dashboard')
+					} else {
+						this.$router.push('/workspaces')
+					}
+
+					console.log('this.processing', this.processing);
+
+				} catch (e) {
+
+					console.log('APP_INIT: keycloak.error', e)
+
+					await Preferences.remove({ key: 'kcTokens' })
+
 				}
+
+
 			} else {
-				console.log('APP_INIT: Nothing, its first open, wait until user select region')
+
+				if (window.location.href.indexOf('state=') !== -1) {
+
+					console.log('APP_INIT: Probably got redirect from keycloak, trying to parse query parameters')
+
+
+					this.processing = true
+					await initKeycloak()
+					this.processing = false
+					if (activeSpaceCode) {
+						this.$router.push('/main/dashboard')
+					} else {
+						this.$router.push('/workspaces')
+					}
+				} else {
+					console.log('APP_INIT: Nothing, its first open, wait until user select region')
+				}
+
+				// 	user should pick region and after that login
 			}
 
-			// 	user should pick region and after that login
 		}
-
-	})
+	}
 
 </script>
 
@@ -145,6 +188,7 @@
 	.flex-end {
 		justify-content: end;
 	}
+
 	.flex-align-center {
 		align-items: center;
 	}

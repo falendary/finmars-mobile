@@ -493,14 +493,14 @@ export default {
 				ordering: '-transactions__accounting_date'
 			}
 
-			const params = new URLSearchParams();
+			const params = new URLSearchParams()
 
-			params.append('transactions__accounting_date_after', this.options.begin_date);
-			params.append('transactions__accounting_date_before', this.options.end_date);
-			params.append('ordering', '-transactions__accounting_date');
+			params.append('transactions__accounting_date_after', this.options.begin_date)
+			params.append('transactions__accounting_date_before', this.options.end_date)
+			params.append('ordering', '-transactions__accounting_date')
 
 			this.spaceStore.settings.general.portfolios.forEach(function(item) {
-				params.append('transactions__portfolio__user_code', item);
+				params.append('transactions__portfolio__user_code', item)
 			})
 
 			const res = await useApi('complexTransaction.get', {
@@ -624,6 +624,11 @@ export default {
 		padding-bottom: 1rem;
 		padding-left: 2rem;
 		padding-right: 0.3rem;
+	}
+
+	.transaction-child-item {
+		margin-top: 0.5rem;
+		margin-bottom: 0.5rem;
 	}
 
 	.transaction-child-item-inner {
