@@ -125,7 +125,7 @@
 											}"
 									>
 										{{
-											Math.floor(
+											roundToTwo(
 												(Math.abs(item.subtotal[spaceStore.settings.balance.sumByKey]) / total_nav) *
 												100
 											)
@@ -306,6 +306,15 @@
 								class="chart_view"
 							>
 								Chart view
+							</ion-checkbox>
+						</div>
+						<div style="margin-bottom: 1rem">
+							<ion-checkbox
+								v-model="spaceStore.settings.balance.consolidateAccounts"
+								labelPlacement="start"
+								class="chart_view"
+							>
+								Consolidate Accounts
 							</ion-checkbox>
 						</div>
 
@@ -493,6 +502,9 @@
 			}
 		},
 		methods: {
+			roundToTwo(num) {
+				return +(Math.round(num + "e+2") + "e-2");
+			},
 			saveChartSettings() {
 				this.chartSettingsModalIsOpen = false
 				this.createChart()
@@ -534,6 +546,11 @@
 				this.groupByAttributes.push({
 					key: 'currency.name',
 					name: 'Currency',
+					value_type: 10
+				})
+				this.groupByAttributes.push({
+					key: 'exposure_currency.name',
+					name: 'Exposure Currency',
 					value_type: 10
 				})
 				this.groupByAttributes.push({
@@ -685,7 +702,7 @@
 
 				let res = await useApi('backendBalanceReportGroups.post', {
 					body: {
-						account_mode: 0, // Ignore Accounts, important
+						account_mode: this.spaceStore.settings.balance.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
 						accounts: [],
 						accounts_cash: [],
 						accounts_position: [],
@@ -750,7 +767,7 @@
 
 				let res = await useApi('backendBalanceReportItems.post', {
 					body: {
-						account_mode: 0, // Ignore Accounts, important
+						account_mode: this.spaceStore.settings.balance.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
 						accounts: [],
 						accounts_cash: [],
 						accounts_position: [],
@@ -961,7 +978,7 @@
 		flex-shrink: 0;
 		color: #fff;
 		font-size: 14px;
-		width: 50px;
+		width: 60px;
 		text-align: center;
 		border-radius: 5px;
 		margin-right: 6px;

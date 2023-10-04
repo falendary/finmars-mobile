@@ -1,6 +1,15 @@
 <template>
 	<ion-app>
 
+		<ion-header >
+			<ion-toolbar v-if="isOffline && showOfflineBar" color="danger">
+				<ion-title>Connection Offline</ion-title>
+				<ion-buttons slot="end">
+					<ion-button @click="showOfflineBar = false;">Close</ion-button>
+				</ion-buttons>
+			</ion-toolbar>
+		</ion-header>
+
 		<Suspense v-show="!processing">
 
 			<ion-router-outlet id="main-content" />
@@ -17,14 +26,17 @@
 </template>
 
 <script>
-	import { IonApp, IonRouterOutlet } from '@ionic/vue'
+	import { IonApp, IonButton, IonButtons, IonRouterOutlet } from '@ionic/vue'
 	import { Preferences } from '@capacitor/preferences'
 	import { initKeycloak } from '@/services/keycloakService.js'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
 	import { Suspense } from 'vue'
+	import { Network } from '@capacitor/network'
 
 	export default {
 		components: {
+			IonButton,
+			IonButtons,
 			ProgressCircular,
 			IonRouterOutlet,
 			Suspense,
@@ -34,7 +46,9 @@
 
 		data() {
 			return {
-				processing: false
+				processing: false,
+				showOfflineBar: true,
+				isOffline: false
 			}
 		},
 		methods: {
@@ -59,6 +73,10 @@
 				}
 				document.body.classList.toggle('dark', isDark)
 
+			},
+			async updateNetworkStatus() {
+				const status = await Network.getStatus();
+				this.isOffline = !status.connected;
 			}
 		},
 		async created() {
@@ -120,6 +138,17 @@
 				// 	user should pick region and after that login
 			}
 
+		},
+		mounted() {
+			this.updateNetworkStatus();
+
+			Network.addListener('networkStatusChange', (status) => {
+				this.isOffline = !status.connected;
+
+				if (this.isOffline) {
+					this.showOfflineBar = true;
+				}
+			});
 		}
 	}
 

@@ -39,7 +39,8 @@ export default defineStore('store', {
 						balance: {
 							isChartView: true,
 							groupByKey: 'instrument.instrument_type.name',
-							sumByKey: 'market_value'
+							sumByKey: 'market_value',
+							consolidateAccounts: true
 						},
 						pl: {
 							isChartView: true,

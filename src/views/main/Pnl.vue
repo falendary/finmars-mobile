@@ -976,7 +976,7 @@
 		flex-shrink: 0;
 		color: #fff;
 		font-size: 14px;
-		width: 50px;
+		width: 60px;
 		text-align: center;
 		border-radius: 5px;
 		margin-right: 6px;
