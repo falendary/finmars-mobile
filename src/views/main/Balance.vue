@@ -927,7 +927,7 @@
 	}
 
 	.balance_block {
-		margin: 0 15px;
+		margin: 0 15px 10px;
 		padding: 15px 13px 12px;
 		background: var(--ion-card-background);
 		border-radius: 5px;
