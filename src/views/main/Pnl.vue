@@ -101,7 +101,7 @@
 
 			</div>
 
-			<div v-if="!chartProcessing">
+			<div v-show="!chartProcessing">
 
 				<div class="balance_block">
 					<div class="bb_header_line flex sb aic">
@@ -119,7 +119,7 @@
 							v-show="spaceStore.settings.pl.isChartView"
 						>
 
-							<canvas :id="`balanceChart`"><p>Chart</p></canvas>
+							<canvas ref="canvasPlChart"><p>Chart</p></canvas>
 
 						</div>
 
@@ -172,7 +172,7 @@
 
 			</div>
 
-			<div v-if="chartProcessing" class="balance_block">
+			<div v-show="chartProcessing" class="balance_block">
 
 				<div class="bb_header_line flex sb aic">
 					<div class="bb_header">
@@ -674,63 +674,61 @@
 
 					this.chartProcessing = false
 
-					setTimeout(() => {
+					if (this.balanceChartObj) {
+						this.balanceChartObj.destroy()
+					}
 
-						if (this.balanceChartObj) {
-							this.balanceChartObj.destroy()
-						}
+					let ctx = this.$refs.canvasPlChart.getContext('2d');
+					this.balanceChartObj = new Chart(ctx,
+						{
+							type: 'doughnut',
+							data: {
+								labels: this.categories.map((item) => {
+									return item.___group_name
+								}),
+								datasets: [
+									{
+										data: this.categories.map((item) => {
+											return item.subtotal[this.spaceStore.settings.pl.sumByKey]
+										}),
+										backgroundColor: this.categories.map((item, index) => {
+											return this.colorByCat(item, index)
+										}),
+										borderWidth: 0
+									}
+								]
+							},
+							options: {
+								cutout: '35%',
+								responsive: true,
+								maintainAspectRatio: false,
+								plugins: {
+									legend: {
+										display: false
+									},
 
-						this.balanceChartObj = new Chart('balanceChart',
-							{
-								type: 'doughnut',
-								data: {
-									labels: this.categories.map((item) => {
-										return item.___group_name
-									}),
-									datasets: [
-										{
-											data: this.categories.map((item) => {
-												return item.subtotal[this.spaceStore.settings.pl.sumByKey]
-											}),
-											backgroundColor: this.categories.map((item, index) => {
-												return this.colorByCat(item, index)
-											}),
-											borderWidth: 0
-										}
-									]
-								},
-								options: {
-									cutout: '35%',
-									responsive: true,
-									maintainAspectRatio: false,
-									plugins: {
-										legend: {
-											display: false
-										},
+									tooltip: {
+										callbacks: {
+											label: function(context) {
+												let labelIndex = context.dataIndex
 
-										tooltip: {
-											callbacks: {
-												label: function(context) {
-													let labelIndex = context.dataIndex
-
-													if (context.datasetIndex === 1) {
-														labelIndex =
-															context.chart.data.datasets[0].data.length + labelIndex
-													}
-
-													return (
-														context.chart.data.labels[labelIndex] +
-														': ' +
-														context.formattedValue
-													)
+												if (context.datasetIndex === 1) {
+													labelIndex =
+														context.chart.data.datasets[0].data.length + labelIndex
 												}
+
+												return (
+													context.chart.data.labels[labelIndex] +
+													': ' +
+													context.formattedValue
+												)
 											}
 										}
 									}
 								}
 							}
-						)
-					}, 0) // just to get element after
+						}
+					)
 
 
 					console.log('createChart.balanceChartObj', this.balanceChartObj)
