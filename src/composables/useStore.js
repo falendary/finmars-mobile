@@ -9,6 +9,7 @@ export default defineStore('store', {
 		return {
 			member: null,
 			activeSpaceCode: null,
+			globalProcessing: false,
 			spaces: {}
 			// portfolioList: [],
 			// portfolioListStock: [],

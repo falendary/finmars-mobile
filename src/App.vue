@@ -10,7 +10,7 @@
 			</ion-toolbar>
 		</ion-header>
 
-		<Suspense v-show="!processing">
+		<Suspense v-show="!store.globalProcessing">
 
 			<ion-router-outlet id="main-content" />
 
@@ -18,7 +18,7 @@
 		</Suspense>
 
 
-		<div v-show="processing" class="display-flex align-center justify-center height-100">
+		<div v-show="store.globalProcessing" class="display-flex align-center justify-center height-100">
 			<progress-circular bg="black" diameter="90"></progress-circular>
 		</div>
 
@@ -32,6 +32,7 @@
 	import ProgressCircular from '@/components/ProgressCircular.vue'
 	import { Suspense } from 'vue'
 	import { Network } from '@capacitor/network'
+	import useStore from '@/composables/useStore.js'
 
 	export default {
 		components: {
@@ -48,7 +49,8 @@
 			return {
 				processing: false,
 				showOfflineBar: true,
-				isOffline: false
+				isOffline: false,
+				store: null
 			}
 		},
 		methods: {
@@ -81,14 +83,15 @@
 		},
 		async created() {
 
+			this.store = useStore()
+
 			let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
 			let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
 
 			this.initializeDarkTheme();
 
-			console.log('processing', this.processing);
 
-			this.processing = true
+			this.store.globalProcessing = true
 
 			if (tokens) {
 
@@ -97,7 +100,7 @@
 				try {
 					await initKeycloak()
 
-					this.processing = false
+					this.store.globalProcessing = false
 
 					if (activeSpaceCode) {
 
@@ -111,7 +114,7 @@
 						this.$router.push('/workspaces')
 					}
 
-					console.log('this.processing', this.processing);
+					console.log('this.store.globalProcessing', this.store.globalProcessing);
 
 				} catch (e) {
 
@@ -131,9 +134,9 @@
 					console.log('APP_INIT: Probably got redirect from keycloak, trying to parse query parameters')
 
 
-					this.processing = true
+					this.store.globalProcessing = true
 					await initKeycloak()
-					this.processing = false
+					this.store.globalProcessing = false
 					if (activeSpaceCode) {
 						this.$router.push('/main/dashboard')
 					} else {
@@ -150,7 +153,7 @@
 				// 	user should pick region and after that login
 			}
 
-			this.processing = false
+			this.store.globalProcessing = false
 
 		},
 		mounted() {

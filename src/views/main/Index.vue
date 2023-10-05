@@ -1,6 +1,7 @@
 <template>
 	<ion-page>
 
+<!-- show globalProcessing here in App.vue		-->
 		<ion-tabs v-if="!processing">
 
 			<ion-router-outlet></ion-router-outlet>
@@ -54,10 +55,6 @@
 				</ion-tab-button>
 			</ion-tab-bar>
 		</ion-tabs>
-
-		<div v-if="processing" class="display-flex align-center justify-center height-100">
-			<progress-circular bg="black" diameter="90"></progress-circular>
-		</div>
 
 		<ion-modal
 
@@ -447,9 +444,11 @@
 
 			this.processing = true
 
+
 			await this.initializeDarkTheme()
 
 			this.store = useStore()
+			this.store.globalProcessing = true;
 
 			this.route = useRoute()
 			this.router = useRouter()
@@ -483,6 +482,7 @@
 
 			console.log('INDEX_CONTROLLER: Store is ready')
 			this.processing = false
+			this.store.globalProcessing = false;
 
 			this.tab = computed(() => {
 				if (!this.route) return null
