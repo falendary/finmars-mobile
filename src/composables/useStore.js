@@ -45,7 +45,8 @@ export default defineStore('store', {
 						pl: {
 							isChartView: true,
 							groupByKey: 'instrument.instrument_type.name',
-							sumByKey: 'total'
+							sumByKey: 'total',
+							consolidateAccounts: true
 						},
 					},
 					layout: null, // deprecated

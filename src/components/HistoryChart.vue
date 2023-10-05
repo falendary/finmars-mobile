@@ -48,7 +48,7 @@
 	<div v-bind="$attrs" style="height: 179px" v-if="!store.spaces[store.activeSpaceCode].portfolioList.length">
 		<div class="main_chart">
 			<div class="main_chart_h">
-				{{ type == 'nav' ? 'Net Asset Value (NAV)' : 'Profit & Loss (P&L)' }}
+				{{ type == 'nav' ? 'Net Asset Value' : 'Profit & Loss' }}
 			</div>
 			<div class="main_chart_price">
 				<IonSkeletonText :animated="true" style="width: 30%; height: 24px" />

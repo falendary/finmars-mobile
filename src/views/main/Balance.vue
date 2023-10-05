@@ -6,7 +6,7 @@
 
 				<div class="app-header-inner">
 
-					{{ store.activeSpaceName || 'Finmars' }}
+					<div class="app-header-inner-space-name">{{ store.activeSpaceName || 'Finmars' }}</div>
 
 					<div class="display-flex flex-end flex-align-center">
 
@@ -68,6 +68,7 @@
 			<IndicatorsComp v-if="$route.query.tab"
 											:portfolioId="$route.query.tab"
 											:currency="spaceStore.settings.general.currency"
+											:pricing_policy="spaceStore.settings.general.pricing_policy"
 											:date="spaceStore.settings.general.date_to"
 											@refresher="indicatorsRefresher = $event"
 											@nav="total_nav = $event"

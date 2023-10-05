@@ -6,7 +6,7 @@
 
 				<div class="app-header-inner">
 
-					{{ store.activeSpaceName || 'Finmars' }}
+					<div class="app-header-inner-space-name">{{ store.activeSpaceName || 'Finmars' }}</div>
 
 					<div class="display-flex flex-end flex-align-center">
 
@@ -83,7 +83,10 @@
 
 			<IndicatorsComp v-if="$route.query.tab"
 											:portfolioId="$route.query.tab"
+											:date_from="spaceStore.settings.general.date_from"
+											type="pl"
 											:currency="spaceStore.settings.general.currency"
+											:pricing_policy="spaceStore.settings.general.pricing_policy"
 											:date="spaceStore.settings.general.date_to"
 											@refresher="indicatorsRefresher = $event"
 											@nav="total_nav = $event"
@@ -113,7 +116,7 @@
 						<div
 							class="balance_chart_wrap"
 							style="width: 145px; height: 145px"
-							v-show="spaceStore.settings.balance.isChartView"
+							v-show="spaceStore.settings.pl.isChartView"
 						>
 
 							<canvas :id="`balanceChart`"><p>Chart</p></canvas>
@@ -122,7 +125,7 @@
 
 						<div
 							class="balance_labels"
-							:style="!spaceStore.settings.balance.isChartView ? 'margin-left: 0;' : ''"
+							:style="!spaceStore.settings.pl.isChartView ? 'margin-left: 0;' : ''"
 						>
 							<div
 								class="balance_labels_item flex aic sb"
@@ -142,7 +145,7 @@
 									>
 										{{
 											Math.floor(
-												(Math.abs(item.subtotal[spaceStore.settings.balance.sumByKey]) / total_nav) *
+												(Math.abs(item.subtotal[spaceStore.settings.pl.sumByKey]) / total_nav) *
 												100
 											)
 										}}%
@@ -150,8 +153,8 @@
 									<div class="balance_labels_text">{{ item.___group_name }}</div>
 								</div>
 
-								<div class="balance_labels_price" v-show="!spaceStore.settings.balance.isChartView">
-									{{ $format(item.subtotal[spaceStore.settings.balance.sumByKey]) }}
+								<div class="balance_labels_price" v-show="!spaceStore.settings.pl.isChartView">
+									{{ $format(item.subtotal[spaceStore.settings.pl.sumByKey]) }}
 								</div>
 							</div>
 						</div>
@@ -216,7 +219,7 @@
 						<div class="bb_header">{{ activeCategory.___group_name }}</div>
 						<div>
 							<div class="bb_price">
-								{{ $format(activeCategory.subtotal[spaceStore.settings.balance.sumByKey]) }}
+								{{ $format(activeCategory.subtotal[spaceStore.settings.pl.sumByKey]) }}
 								{{ spaceStore.settings.general.currency }}
 							</div>
 							<!-- <div class="instr_block_change flex jcfe">
@@ -243,13 +246,13 @@
 						<div class="flex sb jcfe">
 							<div class="instr_name">
 								{{
-									item.name.length > 20
-										? item.name.slice(0, 20) + '...'
+									item.name.length > 80
+										? item.name.slice(0, 80) + '...'
 										: item.name
 								}}
 							</div>
 							<div class="instr_market_value instr_first">
-								{{ $format(item.market_value) }}
+								{{ $format(item.total) }}
 							</div>
 						</div>
 						<div class="flex sb">
@@ -317,7 +320,7 @@
 
 						<div style="margin-bottom: 1rem">
 							<ion-checkbox
-								v-model="spaceStore.settings.balance.isChartView"
+								v-model="spaceStore.settings.pl.isChartView"
 								labelPlacement="start"
 								class="chart_view"
 							>
@@ -325,10 +328,20 @@
 							</ion-checkbox>
 						</div>
 
+						<div style="margin-bottom: 1rem">
+							<ion-checkbox
+								v-model="spaceStore.settings.pl.consolidateAccounts"
+								labelPlacement="start"
+								class="chart_view"
+							>
+								Consolidate Accounts
+							</ion-checkbox>
+						</div>
+
 
 						<ion-item v-if="numericBalanceReportAttributes?.length">
 							<ion-select
-								v-model="spaceStore.settings.balance.sumByKey"
+								v-model="spaceStore.settings.pl.sumByKey"
 								label="Sum By"
 								placeholder="Market Value"
 							>
@@ -344,7 +357,7 @@
 
 						<ion-item v-if="groupByAttributes?.length">
 							<ion-select
-								v-model="spaceStore.settings.balance.groupByKey"
+								v-model="spaceStore.settings.pl.groupByKey"
 								label="Group By"
 								placeholder="Instrument Type"
 							>
@@ -487,14 +500,14 @@
 
 				this.groupByAttributes.forEach((item) => {
 
-					if (item.key === this.spaceStore.settings.balance.groupByKey) {
+					if (item.key === this.spaceStore.settings.pl.groupByKey) {
 						result = item
 					}
 
 				})
 
 				if (!result) {
-					return this.spaceStore.settings.balance.groupByKey
+					return this.spaceStore.settings.pl.groupByKey
 				} else {
 					return result.name
 				}
@@ -532,6 +545,30 @@
 					return item.value_type == 20
 				})
 
+				this.numericBalanceReportAttributes.push({
+					key: 'total',
+					name: 'Total',
+					value_type: 20
+				})
+
+				this.numericBalanceReportAttributes.push({
+					key: 'principal',
+					name: 'Principal',
+					value_type: 20
+				})
+
+				this.numericBalanceReportAttributes.push({
+					key: 'carry',
+					name: 'Carry',
+					value_type: 20
+				})
+
+				this.numericBalanceReportAttributes.push({
+					key: 'overheads',
+					name: 'Overheads',
+					value_type: 20
+				})
+
 				res = await useApi('instrumentAttributes.get')
 
 				const instrumentAttributes = res.results.filter((item) => {
@@ -561,6 +598,11 @@
 				this.groupByAttributes.push({
 					key: 'instrument.country.name',
 					name: 'Country',
+					value_type: 10
+				})
+				this.groupByAttributes.push({
+					key: 'item_group_name',
+					name: 'PL Type',
 					value_type: 10
 				})
 
@@ -616,81 +658,89 @@
 			},
 			async createChart() {
 
-				this.chartProcessing = true
+				try {
 
-				const res = await this.fetchReport()
+					this.chartProcessing = true
 
-				this.categories = res.items
+					const res = await this.fetchReport()
 
-				console.log('res', res)
-
-
-
-				console.log('createChart.categories', this.categories)
-
-				this.chartProcessing = false
-
-				setTimeout(() => {
-
-					if (this.balanceChartObj) {
-						this.balanceChartObj.destroy()
+					if (res.items) {
+						this.categories = res.items
 					}
 
-					this.balanceChartObj = new Chart('balanceChart',
-						{
-							type: 'doughnut',
-							data: {
-								labels: this.categories.map((item) => {
-									return item.___group_name
-								}),
-								datasets: [
-									{
-										data: this.categories.map((item) => {
-											return item.subtotal[this.spaceStore.settings.balance.sumByKey]
-										}),
-										backgroundColor: this.categories.map((item, index) => {
-											return this.colorByCat(item, index)
-										}),
-										borderWidth: 0
-									}
-								]
-							},
-							options: {
-								cutout: '35%',
-								responsive: true,
-								maintainAspectRatio: false,
-								plugins: {
-									legend: {
-										display: false
-									},
+					console.log('res', res)
 
-									tooltip: {
-										callbacks: {
-											label: function(context) {
-												let labelIndex = context.dataIndex
+					console.log('createChart.categories', this.categories)
 
-												if (context.datasetIndex === 1) {
-													labelIndex =
-														context.chart.data.datasets[0].data.length + labelIndex
+					this.chartProcessing = false
+
+					setTimeout(() => {
+
+						if (this.balanceChartObj) {
+							this.balanceChartObj.destroy()
+						}
+
+						this.balanceChartObj = new Chart('balanceChart',
+							{
+								type: 'doughnut',
+								data: {
+									labels: this.categories.map((item) => {
+										return item.___group_name
+									}),
+									datasets: [
+										{
+											data: this.categories.map((item) => {
+												return item.subtotal[this.spaceStore.settings.pl.sumByKey]
+											}),
+											backgroundColor: this.categories.map((item, index) => {
+												return this.colorByCat(item, index)
+											}),
+											borderWidth: 0
+										}
+									]
+								},
+								options: {
+									cutout: '35%',
+									responsive: true,
+									maintainAspectRatio: false,
+									plugins: {
+										legend: {
+											display: false
+										},
+
+										tooltip: {
+											callbacks: {
+												label: function(context) {
+													let labelIndex = context.dataIndex
+
+													if (context.datasetIndex === 1) {
+														labelIndex =
+															context.chart.data.datasets[0].data.length + labelIndex
+													}
+
+													return (
+														context.chart.data.labels[labelIndex] +
+														': ' +
+														context.formattedValue
+													)
 												}
-
-												return (
-													context.chart.data.labels[labelIndex] +
-													': ' +
-													context.formattedValue
-												)
 											}
 										}
 									}
 								}
 							}
-						}
-					)
-				}, 0) // just to get element after
+						)
+					}, 0) // just to get element after
 
 
-				console.log('createChart.balanceChartObj', this.balanceChartObj)
-				console.log('createChart.chartProcessing', this.chartProcessing)
+					console.log('createChart.balanceChartObj', this.balanceChartObj)
+					console.log('createChart.chartProcessing', this.chartProcessing)
+
+				} catch (error) {
+
+					console.error('createChart.error', error)
+
+				}
 
 			},
 			async fetchReport() {
@@ -698,7 +748,7 @@
 
 				let res = await useApi('backendPLReportGroups.post', {
 					body: {
-						account_mode: 0, // Ignore Accounts, important
+						account_mode: this.spaceStore.settings.pl.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
 						accounts: [],
 						accounts_cash: [],
 						accounts_position: [],
@@ -714,11 +764,11 @@
 						frontend_request_options: {
 							columns: [
 								{
-									'key': this.spaceStore.settings.balance.groupByKey,
+									'key': this.spaceStore.settings.pl.groupByKey,
 									'value_type': 10
 								},
 								{
-									'key': this.spaceStore.settings.balance.sumByKey,
+									'key': this.spaceStore.settings.pl.sumByKey,
 									'report_settings': {
 										'subtotal_formula_id': 1 // sum
 									},
@@ -727,7 +777,7 @@
 							],
 							groups_types: [
 								{
-									'key': this.spaceStore.settings.balance.groupByKey,
+									'key': this.spaceStore.settings.pl.groupByKey,
 									'value_type': 10
 								}
 							],
@@ -782,7 +832,7 @@
 						frontend_request_options: {
 							groups_types: [
 								{
-									'key': this.spaceStore.settings.balance.groupByKey,
+									'key': this.spaceStore.settings.pl.groupByKey,
 									'value_type': 10
 								}
 							],
@@ -841,13 +891,13 @@
 			await this.fetchPLReportAttributes()
 
 
-
 			this.transactionsOpts = {
 				end_date: this.spaceStore.settings.general.date_to,
 				begin_date: '0001-01-01',
 				portfolios: this.$route.query.tab,
 				filter_entry_user_code: null,
-				dept_level: 'base_transaction'
+				// dept_level: 'base_transaction'
+				dept_level: 'entry'
 			}
 
 
@@ -1014,6 +1064,7 @@
 
 	.instr_name {
 		line-height: 20px;
+		font-size: 0.6rem;
 	}
 
 	.instr_first {

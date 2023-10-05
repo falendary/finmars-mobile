@@ -6,7 +6,7 @@
 
 				<div class="app-header-inner">
 
-					{{ store.activeSpaceName || 'Finmars' }}
+					<div class="app-header-inner-space-name">{{ store.activeSpaceName || 'Finmars' }}</div>
 
 					<div class="display-flex flex-end flex-align-center">
 

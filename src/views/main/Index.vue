@@ -568,7 +568,7 @@
 
 			display: flex;
 			justify-content: space-between;
-			font-size: .7rem;
+			font-size: .6rem;
 			align-items: center;
 			height: 2.5rem;
 			top: 0;
@@ -576,6 +576,15 @@
 			width: 100%;
 			left: 0;
 			padding: 0 0.5rem;
+
+			.app-header-inner-space-name {
+				max-width: 90px;
+				text-overflow: ellipsis;
+				overflow: hidden;
+				white-space: nowrap;
+				padding-right: 10px;
+				box-sizing: border-box;
+			}
 
 			ion-select {
 				width: 70px;
@@ -588,7 +597,7 @@
 			ion-datetime-button.header-date-button {
 
 				display: inline-block;
-				font-size: .7rem;
+				font-size: .6rem;
 
 				//padding: 0.2rem;
 				border-bottom: 1px dotted var(--ion-date-button-border-color);

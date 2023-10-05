@@ -47,6 +47,12 @@
 		portfolioId: Array,
 		date: String,
 		currency: String,
+		pricing_policy: String,
+		date_from: String,
+		type: {
+			type: String,
+			default: 'balance',
+		},
 	})
 
 	let indicators = reactive([
@@ -85,7 +91,10 @@
 		let filters = {
 			date_to: props.date,
 			currency: props.currency,
+			pricing_policy: props.pricing_policy
 		}
+
+		if (props.date_from) filters.date_from = props.date_from
 
 		if (props.portfolioId) filters.portfolios = props.portfolioId
 
@@ -105,7 +114,13 @@
 
 			return false
 		}
-		emits('nav', res.total.nav)
+
+		// TODO Refactor this shit
+		if (props.type == 'pl') {
+			emits('nav', res.total.pl_range)
+		} else {
+			emits('nav', res.total.nav)
+		}
 
 		indicators[0].price = res.total.pl_daily
 		indicators[0].percent = Math.round(res.total.pl_daily_percent * 100) / 100

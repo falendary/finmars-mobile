@@ -6,7 +6,7 @@
 
 				<div class="app-header-inner">
 
-					{{ store.activeSpaceName || 'Finmars' }}
+					<div class="app-header-inner-space-name">{{ store.activeSpaceName || 'Finmars' }}</div>
 
 					<div class="display-flex flex-end flex-align-center">
 
@@ -90,6 +90,7 @@
 
 				<Indicators
 					:currency="spaceStore.settings.general.currency"
+					:pricing_policy="spaceStore.settings.general.pricing_policy"
 					:date="spaceStore.settings.general.date_to"
 				/>
 
@@ -220,6 +221,7 @@
 	import useApi from '@/composables/useApi.js'
 	import useStore from '@/composables/useStore'
 	import ComplexTransactionList from '@/components/ComplexTransactionList.vue'
+	import IndicatorsComp from '@/components/Indicators.vue'
 	// Stores the controller so that the chart initialization routine can look it up
 	Chart.register(
 		LineElement,
@@ -234,6 +236,7 @@
 
 	export default {
 		components: {
+			IndicatorsComp,
 			IonSelectOption,
 			IonSelect,
 			IonDatetime,
