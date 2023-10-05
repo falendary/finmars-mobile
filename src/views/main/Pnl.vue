@@ -665,7 +665,7 @@
 					const res = await this.fetchReport()
 
 					if (res.items) {
-						this.categories = res.items
+						this.categories = res.items.sort((a, b) => b.subtotal[this.spaceStore.settings.pl.sumByKey] - a.subtotal[this.spaceStore.settings.pl.sumByKey]);
 					}
 
 					console.log('res', res)
@@ -864,7 +864,7 @@
 					}
 				})
 
-				this.positions = res.items
+				this.positions = res.items.sort((a, b) => b[this.spaceStore.settings.pl.sumByKey] - a[this.spaceStore.settings.pl.sumByKey]);
 
 				this.positionsProcessing = false
 
