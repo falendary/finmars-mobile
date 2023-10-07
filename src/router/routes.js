@@ -12,16 +12,24 @@ export default [
 		beforeEnter: [() => {}],
 	},
 	{
-		path: '/workspaces',
-		component: () => import('@/views/Workspaces.vue'),
+		path: '/recovery',
+		component: () => import('@/views/Recovery.vue'),
+		beforeEnter: [() => {}],
 	},
 	{
 		path: '/login',
 		component: () => import('@/views/Login.vue'),
+		beforeEnter: [() => {}],
 	},
 	{
 		path: '/logout',
 		component: () => import('@/views/Logout.vue'),
+		beforeEnter: [() => {}],
+	},
+	{
+		path: '/workspaces',
+		component: () => import('@/views/Workspaces.vue'),
+		beforeEnter: [auth],
 	},
 	{
 		path: '/main',

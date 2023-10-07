@@ -106,7 +106,14 @@
 
 						console.log("APP_INIT: has activeSpaceCode. redirect to dashboard")
 
-						this.$router.push('/main/dashboard')
+						this.$router.push('/main/dashboard');
+						// if (this.$router.currentRoute.path === '/login') {
+						// 	console.log("APP_INIT: On login page. Redirecting to dashboard");
+						// 	this.$router.push('/main/dashboard');
+						// } else {
+						// 	console.log("APP_INIT: Not on login page. No redirection needed.");
+						// }
+
 					} else {
 
 						console.log("APP_INIT: has activeSpaceCode. redirect to workspaces")
@@ -133,7 +140,6 @@
 
 					console.log('APP_INIT: Probably got redirect from keycloak, trying to parse query parameters')
 
-
 					this.store.globalProcessing = true
 					await initKeycloak()
 					this.store.globalProcessing = false
@@ -144,7 +150,7 @@
 					}
 				} else {
 
-					console.log('APP_INIT: Nothing, its first open, wait until user select region')
+					console.log('APP_INIT: Nothing, its first open, wait until user select region. Keycloak IS NOT INITED')
 
 					this.$router.push('/welcome')
 

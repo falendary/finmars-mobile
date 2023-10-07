@@ -63,6 +63,12 @@ function createAppVue() {
 
 	app.component('IonPage', IonPage).component('IonContent', IonContent)
 
+	app.config.errorHandler = (err, ) => {
+		console.error('Caught a global error', err);
+		// You can navigate the user to a recovery page or log them out here
+		router.push('/recovery');
+	};
+
 	app.mount('#app')
 }
 

@@ -10,31 +10,40 @@
 	</ion-page>
 </template>
 
-<script setup>
+<script>
 
-	import { useRouter } from 'vue-router'
 	import { initKeycloak } from '@/services/keycloakService.js'
 	import { Preferences } from '@capacitor/preferences'
 
-	const router = useRouter()
+	export default {
 
-	console.log('Login Page Init')
+		methods: {
 
-	try {
-		await initKeycloak()
+		},
+		async created() {
 
-		console.log('keycloak inited, redirect to /workspaces')
+			try {
 
-		router.push('/workspaces')
+				await initKeycloak()
 
-	} catch (e) {
+				console.log('keycloak inited, redirect to /workspaces')
 
-		await Preferences.remove({ key: 'kcTokens' })
+				this.$router.push('/workspaces')
 
-		console.log("login.keycloak.error", e)
+			} catch (e) {
 
-		router.push('/welcome')
+				await Preferences.remove({ key: 'kcTokens' })
+
+				console.error("login.keycloak.error", e)
+
+				this.$router.push('/welcome')
+			}
+
+		}
+
 	}
+
+
 
 </script>
 

@@ -202,6 +202,16 @@
 					</ion-toggle>
 				</div>
 
+				<p style="padding: 0 1rem; font-size: .7rem">If something went wrong you can proceed to Recovery Page. It will reset app</p>
+				<ion-button
+					class="ion-margin-horizontal logout"
+					fill="outline"
+					expand="block"
+					@click="recovery()"
+				>
+					Recovery
+				</ion-button>
+
 			</ion-content>
 		</ion-modal>
 
@@ -233,7 +243,7 @@
 		IonToolbar
 	} from '@ionic/vue'
 	import { barChartOutline, close, layersOutline, readerOutline, settingsOutline, settingsSharp } from 'ionicons/icons'
-	import { computed, watch } from 'vue'
+	import { computed, } from 'vue'
 	import { useRoute, useRouter } from 'vue-router'
 	import { Preferences } from '@capacitor/preferences'
 	import useStore from '@/composables/useStore'
@@ -335,6 +345,11 @@
 
 				this.isOpen = false
 				this.$router.push('/logout')
+			},
+			async recovery() {
+
+				this.isOpen = false
+				this.$router.push('/recovery')
 			},
 			changeSpace() {
 
@@ -470,7 +485,7 @@
 			let { value: valUser } = await Preferences.get({ key: 'username' })
 			this.username = valUser
 
-			watch(
+			this.portfoliosWatch = this.$watch(
 				() => this.spaceStore.settings.general.portfolios,
 				() => {
 					this.spaceStore.portfolioList = this.spaceStore.portfolioListStock.filter((o) =>
@@ -489,6 +504,13 @@
 				if (!this.route.path.includes('/main/')) return null
 				return this.route.path.replace('/main/', '')
 			})
+
+		},
+		beforeUnmount() {
+
+			if (this.portfoliosWatch) {
+				this.portfoliosWatch();  // stop the watcher when the component is being destroyed
+			}
 
 		}
 	}

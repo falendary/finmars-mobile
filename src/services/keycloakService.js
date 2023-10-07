@@ -12,11 +12,11 @@ async function getRegion() {
 export async function initKeycloak() {
 
 
-
-
 	const region = await getRegion()
 
 	let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
+
+	console.log('region.keycloakOpts', JSON.stringify(region.keycloakOpts, null, 4));
 
 	window.keycloak = Keycloak(region.keycloakOpts)
 
@@ -26,7 +26,7 @@ export async function initKeycloak() {
 
 	let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
 
-	let appDestinationPath = 'workspaces'
+	let appDestinationPath = 'welcome'
 
 	if (activeSpaceCode) {
 		appDestinationPath = 'main/dashboard'
@@ -38,7 +38,7 @@ export async function initKeycloak() {
 	let kcOpts = {
 		onLoad: 'login-required',
 		checkLoginIframe: true,
-		// checkLoginIframeInterval: 60, // Seconds
+		checkLoginIframeInterval: 60, // Seconds
 		timeSkew: 0, // fix bag with update token
 		redirectUri: window.location.origin + router.options.history.base + '/' + appDestinationPath
 	}
@@ -65,7 +65,7 @@ export async function initKeycloak() {
 
 	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))
 
-	// console.log('kcOpts', kcOpts)
+	console.log('kcOpts', JSON.stringify(kcOpts, null, 4))
 
 	await window.keycloak.init(kcOpts)
 
@@ -75,6 +75,10 @@ export async function initKeycloak() {
 			value: window.keycloak.idTokenParsed.preferred_username
 		})
 	}
+
+	console.log("HEREE??????")
+
+	// debugger;
 
 }
 

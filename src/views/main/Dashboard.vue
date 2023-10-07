@@ -96,10 +96,10 @@
 
 				<div class="header">Portfolios</div>
 
-				<div class="portfolios" v-if="portfolios?.length">
+				<div class="portfolios" v-if="spaceStore.data.portfolios?.length">
 					<div
 						class="portfolios_item"
-						v-for="item in portfolios"
+						v-for="item in spaceStore.data.portfolios"
 						v-bind:key="item.id"
 						@click="$router.push('/main/balance?tab=' + item.user_code)"
 					>
@@ -117,12 +117,12 @@
 						<div class="flex aic sb">
 							<div class="pi_price">
 								<IonSkeletonText
-									v-if="item.price == '-'"
+									v-if="item.nav == '-'"
 									:animated="true"
 									style="width: 100px; height: 24px"
 								/>
 								<template v-else
-								>{{ $format(item.price) }}
+								>{{ $format(item.nav) }}
 									{{ spaceStore.settings.general.currency }}
 								</template
 								>
@@ -293,24 +293,27 @@
 				// TODO Consider refactor here
 				// Some weird logic that I do not like
 
-				this.portfolios = this.spaceStore.settings.general.portfolios.map((o, k) => {
+				this.spaceStore.data.portfolios = this.spaceStore.settings.general.portfolios.map((o, k) => {
 
 					useApi('reportsSummary.get', {
 						filters: {
 							portfolios: o,
 							currency: this.spaceStore.settings.general.currency,
-							date_to: this.spaceStore.settings.general.date_to
+							date_to: this.spaceStore.settings.general.date_to,
+							date_from: this.spaceStore.settings.general.date_from
 						}
 					}).then((stats) => {
 						if (stats.error) {
-							this.portfolios[k].price = '--'
-							this.portfolios[k].change.price = '--'
-							this.portfolios[k].change.percent = '--'
+							this.spaceStore.data.portfolios[k].nav = '--'
+							this.spaceStore.data.portfolios[k].pl_range = '--'
+							this.spaceStore.data.portfolios[k].change.price = '--'
+							this.spaceStore.data.portfolios[k].change.percent = '--'
 						}
 
-						this.portfolios[k].price = stats.total.nav
-						this.portfolios[k].change.price = stats.total.pl_daily
-						this.portfolios[k].change.percent =
+						this.spaceStore.data.portfolios[k].nav = stats.total.nav
+						this.spaceStore.data.portfolios[k].pl_range = stats.total.pl_range
+						this.spaceStore.data.portfolios[k].change.price = stats.total.pl_daily
+						this.spaceStore.data.portfolios[k].change.percent =
 							Math.round(stats.total.pl_daily_percent * 100) / 100
 					})
 
@@ -318,13 +321,17 @@
 						id: o,
 						name: o,
 						user_code: o,
-						price: '-',
+						nav: '-',
+						pl_range: '-',
 						change: {
 							price: '-',
 							percent: '-'
 						}
 					}
 				})
+
+				console.log('this.spaceStore.data.portfolios', this.spaceStore.data.portfolios);
+
 			},
 
 			async fetchUser() {

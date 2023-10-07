@@ -1,6 +1,6 @@
 <template>
 
-	<div class="history-chart-holder">
+	<div class="history-chart-holder" v-if="activePortfolio">
 
 		<swiper
 			v-if="spaceStore.portfolioList.length"
@@ -11,31 +11,33 @@
 			:loop="true"
 			class="balance_swiper"
 			@swiper="onSwiper"
-			@slideChangeTransitionEnd="onPortfolioChange"
+			@slideChange="onSlideChange"
 		>
-			<swiper-slide v-for="(item, k) in portfolios" v-bind:key="k">
+			<swiper-slide v-for="(item, k) in spaceStore.data.portfolios" v-bind:key="k">
 				<div class="main_chart" v-if="!processing">
 					<div class="main_chart_h">
 						<h4 style="margin: 0">{{ item.name }}</h4>
 						{{ type == 'balance' ? 'Net Asset Value' : 'Profit & Loss' }}
 					</div>
 
-					<div class="main_chart_price" v-if="nav !== null">
-						{{ $format(portfolios[k].price) }}
+					<div class="main_chart_price">
+						<span v-if="type == 'balance'">{{ $format(spaceStore.data.portfolios[k].nav) }}</span>
+						<span v-if="type == 'pl'">{{ $format(spaceStore.data.portfolios[k].pl_range) }}</span>
 						{{ spaceStore.settings.general.currency }}
-					</div>
-					<div class="main_chart_price" v-else>
-						<IonSkeletonText :animated="true" style="width: 30%; height: 24px" />
 					</div>
 
 					<div
 						style="height: 80px; width: calc(100% + 10px); margin: 0 0 -5px -5px"
-						v-show="!error" v-if="chartData"
+						v-show="!error" v-if="!chartProcessing"
 					>
 
 						<Line :data="chartData.data" :options="chartData.options"></Line>
 
 					</div>
+					<IonSkeletonText v-if="chartProcessing && !error"
+													 :animated="true"
+													 style="width: 100%; height: 80px; margin-bottom: -5px"
+					/>
 					<div
 						class="center aic"
 						style="height: 80px; width: calc(100% + 10px); margin: 0 0 -5px -5px"
@@ -91,7 +93,6 @@
 			date_to: String,
 			date_from: String,
 			currency: String,
-			nav: [String, Number],
 			type: {
 				type: String,
 				default: 'balance'
@@ -112,39 +113,47 @@
 				spaceStore: null,
 				portfolios: [],
 				processing: false,
-				chartData: null
+				chartProcessing: false,
+				chartData: null,
+				activePortfolio: null
 			}
 		},
 		methods: {
 			async fetchPortfolios() {
 
-				this.portfolios = [];
+				this.portfolios = []
 
 				// TODO Consider refactor here
 				// Some weird logic that I do not like
 
-				this.portfolios = this.spaceStore.settings.general.portfolios.map((o, k) => {
+				this.spaceStore.data.portfolios = this.spaceStore.settings.general.portfolios.map((o, k) => {
+
+					let filters = {
+						portfolios: o,
+						currency: this.spaceStore.settings.general.currency,
+						date_to: this.spaceStore.settings.general.date_to,
+						date_from: this.spaceStore.settings.general.date_from
+					}
+
 
 					useApi('reportsSummary.get', {
-						filters: {
-							portfolios: o,
-							currency: this.spaceStore.settings.general.currency,
-							date_to: this.spaceStore.settings.general.date_to
-						}
+						filters: filters
 					}).then((stats) => {
 						if (stats.error) {
-							this.portfolios[k].price = '--'
-							this.portfolios[k].change.price = '--'
-							this.portfolios[k].change.percent = '--'
+							this.spaceStore.data.portfolios[k].nav = '--'
+							this.spaceStore.data.portfolios[k].pl_range = '--'
+							this.spaceStore.data.portfolios[k].change.price = '--'
+							this.spaceStore.data.portfolios[k].change.percent = '--'
 						}
 
-						this.portfolios[k].price = stats.total.nav
-						this.portfolios[k].change.price = stats.total.pl_daily
-						this.portfolios[k].change.percent =
+						this.spaceStore.data.portfolios[k].nav = stats.total.nav
+						this.spaceStore.data.portfolios[k].pl_range = stats.total.pl_range
+						this.spaceStore.data.portfolios[k].change.price = stats.total.pl_daily
+						this.spaceStore.data.portfolios[k].change.percent =
 							Math.round(stats.total.pl_daily_percent * 100) / 100
 
 
-						console.log('this.portfolios', this.portfolios);
+						console.log('this.spaceStore.data.portfolios', this.spaceStore.data.portfolios)
 
 					})
 
@@ -152,7 +161,8 @@
 						id: o,
 						name: o,
 						user_code: o,
-						price: '-',
+						nav: '-',
+						pl_range: '-',
 						change: {
 							price: '-',
 							percent: '-'
@@ -160,42 +170,51 @@
 					}
 				})
 
-				console.log('this.portfolios', this.portfolios);
+				console.log('this.portfolios', this.portfolios)
 
 			},
 			onSwiper(swiper) {
+
 				let slideIndex = this.spaceStore.portfolioList.findIndex(
-					(o) => o.user_code == this.$route.query.tab
+					(o) => o.user_code == this.activePortfolio
 				)
 
 				if (slideIndex != -1) {
 					swiper.slideTo(slideIndex)
 					this.init()
-				} else {
-					// if no portfolio
-					this.$router.push({ query: { tab: this.spaceStore.portfolioList[0].user_code } })
 				}
 			},
-			async refresh(force = false) {
+			async reloadChart() {
 
-				this.processing = true;
+				try {
+					this.chartProcessing = true
+					await this.fetchHistory()
+					await this.createChart()
+					this.chartProcessing = false
+				} catch (error) {
+					console.error('Could not create history chart', error)
+				}
 
-				await this.fetchPortfolios();
-				await this.fetchHistory(force)
-				await this.createChart()
+			},
+			async refresh() {
 
-				this.processing = false;
+				this.processing = true
+
+				await this.fetchPortfolios()
+				await this.reloadChart()
+
+				this.processing = false
 
 			},
 			async init() {
 
-				this.processing = true;
+				this.activePortfolio = this.$route.query.tab
 
-				await this.fetchPortfolios();
-				await this.fetchHistory()
-				await this.createChart()
+				this.processing = true
 
-				this.processing = false;
+				await this.reloadChart()
+
+				this.processing = false
 
 			},
 			async createChart() {
@@ -210,21 +229,18 @@
 				let width, height, gradient
 
 				console.log('createChart.type', this.type)
-				console.log('createChart.$route.query.tab', this.$route.query.tab)
+				console.log('createChart.activePortfolio', this.activePortfolio)
 
 				let cacheName
 
 				if (this.type == 'balance') {
-					cacheName = this.type + this.$route.query.tab + this.date_to
+					cacheName = this.type + this.activePortfolio + this.date_to
 				} else if (this.type == 'pl') {
-					cacheName = this.type + this.$route.query.tab + this.date_to + this.date_from
+					cacheName = this.type + this.activePortfolio + this.date_to + this.date_from
 				}
 
-
-				let chartRef = `${this.type}_line_chart_${this.$route.query.tab}`
-
-				console.log('$refs', this.$refs)
-				console.log('this.$refs[chartRef]', this.$refs[chartRef])
+				console.log('localChartCache', this.localChartCache)
+				console.log('cacheName', cacheName)
 
 				this.chartData = {}
 
@@ -278,7 +294,7 @@
 				this.chartData.options = {
 					layout: {},
 					maintainAspectRatio: false,
-						elements: {
+					elements: {
 						line: {
 							tension: 0.5
 						}
@@ -299,12 +315,12 @@
 				}
 
 
-				console.log('HistoryChart.chartData', this.chartData);
+				console.log('HistoryChart.chartData', this.chartData)
 
 			},
 			async fetchHistory() {
 				let filters = {
-					portfolio: this.$route.query.tab,
+					portfolio: this.activePortfolio,
 					date_to: this.date_to
 				}
 				this.error = ''
@@ -314,22 +330,29 @@
 				let cacheName
 
 				if (this.type == 'balance') {
-					cacheName = this.type + this.$route.query.tab + this.date_to
+					cacheName = this.type + this.activePortfolio + this.date_to
 				} else if (this.type == 'pl') {
-					cacheName = this.type + this.$route.query.tab + this.date_to + this.date_from
+					cacheName = this.type + this.activePortfolio + this.date_to + this.date_from
 				}
 
 				console.log('cacheName.cacheName', cacheName)
+				let histNav;
+				try {
 
-				const histNav = await useApi('widgetsHistory.get', {
-					params: {
-						type: this.type === 'balance' ? 'nav' : 'pl'
-					},
-					provider: null,
-					filters
-				})
+					histNav = await useApi('widgetsHistory.get', {
+						params: {
+							type: this.type === 'balance' ? 'nav' : 'pl'
+						},
+						provider: null,
+						filters
+					})
 
-				if (!histNav || histNav.error) {
+					if (!histNav || histNav.error) {
+						this.error = 'No data'
+						return false
+					}
+
+				} catch (e) {
 					this.error = 'No data'
 					return false
 				}
@@ -353,17 +376,24 @@
 					data: data
 				}
 
-				console.log('fetchHistory.localChartCache', this.localChartCache);
+				console.log('fetchHistory.localChartCache', this.localChartCache)
 
 			},
-			onPortfolioChange(swiper) {
+			onSlideChange(swiper) {
+
 				let userCode = this.spaceStore.portfolioList[swiper.realIndex]?.user_code
 
-				this.$router.push({
-					query: {
-						tab: userCode
-					}
+				console.log('onPortfolioChange.userCode', userCode)
+
+
+				this.activePortfolio = userCode
+
+				this.reloadChart(); // TODO consider prefetch nav history once
+
+				this.$emit('portfolioChange', {
+					activePortfolio: this.activePortfolio
 				})
+
 			}
 		},
 		mounted() {
@@ -385,12 +415,12 @@
 <style lang="scss" scoped>
 
 	.history-chart-holder {
-		background: var(--ion-background-color);
+		background: var(--ion-pane-background);
 		padding: 16px 8px 8px;
 	}
 
 	.main_chart {
-		background: var(--ion-pane-background);
+		background: var(--ion-card-background);
 		//margin: 0 8px;
 		margin: 0 4px;
 		padding-top: 9px;

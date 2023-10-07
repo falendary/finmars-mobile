@@ -16,6 +16,7 @@
 						>
 							<ion-select-option
 								v-for="item in spaceStore.currencies"
+								:key="item.user_code"
 								:value="item.user_code"
 							>
 								{{ item.short_name }}
@@ -56,18 +57,18 @@
 
 		</ion-header>
 
-		<ion-content>
+		<ion-content v-if="$route.query.tab">
 			<ion-refresher slot="fixed" @ionRefresh="refresh($event)">
 				<ion-refresher-content />
 			</ion-refresher>
 
 			<div class="header flex sb aic">
-				<div v-if="portfolio">{{ portfolio.name }}</div>
-				<IonSkeletonText
-					v-else
-					:animated="true"
-					style="height: 24px; width: 80px"
-				/>
+				<div>Portfolios</div>
+				<!--				<IonSkeletonText-->
+				<!--					v-else-->
+				<!--					:animated="true"-->
+				<!--					style="height: 24px; width: 80px"-->
+				<!--				/>-->
 
 			</div>
 
@@ -76,20 +77,18 @@
 				:date_from="spaceStore.settings.general.date_from"
 				:date_to="spaceStore.settings.general.date_to"
 				:currency="spaceStore.settings.general.currency"
-				@portfolioChange="init($event)"
+				@portfolioChange="portfolioChangeHandler"
 				@refresher="portfoliosRefresher = $event"
-				:nav="total_nav"
 			/>
 
-			<IndicatorsComp v-if="$route.query.tab"
-											:portfolioId="$route.query.tab"
-											:date_from="spaceStore.settings.general.date_from"
-											type="pl"
-											:currency="spaceStore.settings.general.currency"
-											:pricing_policy="spaceStore.settings.general.pricing_policy"
-											:date="spaceStore.settings.general.date_to"
-											@refresher="indicatorsRefresher = $event"
-											@nav="total_nav = $event"
+			<IndicatorsComp
+				:portfolioId="$route.query.tab"
+				:date_from="spaceStore.settings.general.date_from"
+				type="pl"
+				:currency="spaceStore.settings.general.currency"
+				:pricing_policy="spaceStore.settings.general.pricing_policy"
+				:date="spaceStore.settings.general.date_to"
+				@refresher="indicatorsRefresher = $event"
 			/>
 
 			<!--			Pie Chart below-->
@@ -107,7 +106,7 @@
 					<div class="bb_header_line flex sb aic">
 						<div class="bb_header">{{ groupByName }}</div>
 						<div class="bb_price">
-							{{ $format(total_nav) }}
+							{{ $format(categoriesTotalSum) }}
 							{{ spaceStore.settings.general.currency }}
 						</div>
 					</div>
@@ -115,17 +114,17 @@
 					<div class="flex sb">
 						<div
 							class="balance_chart_wrap"
-							style="width: 145px; height: 145px"
-							v-show="spaceStore.settings.pl.isChartView"
+							style="width: 100%;"
+							v-if="spaceStore.settings.pl.isChartView && chartData"
 						>
 
-							<canvas ref="canvasPlChart"><p>Chart</p></canvas>
+							<Bar :options="chartData.options" :data="chartData.data"></Bar>
 
 						</div>
 
-						<div
-							class="balance_labels"
-							:style="!spaceStore.settings.pl.isChartView ? 'margin-left: 0;' : ''"
+						<div v-if="!spaceStore.settings.pl.isChartView"
+								 class="balance_labels"
+								 :style="!spaceStore.settings.pl.isChartView ? 'margin-left: 0;' : ''"
 						>
 							<div
 								class="balance_labels_item flex aic sb"
@@ -143,11 +142,10 @@
 												backgroundColor: colorByCat(item.___group_name, index),
 											}"
 									>
-										{{
-											Math.floor(
-												(Math.abs(item.subtotal[spaceStore.settings.pl.sumByKey]) / total_nav) *
-												100
-											)
+										<span v-if="item.subtotal[spaceStore.settings.pl.sumByKey] < 0">-</span>{{ roundToTwo(
+										(Math.abs(item.subtotal[spaceStore.settings.pl.sumByKey]) / categoriesTotalSum) *
+										100
+									)
 										}}%
 									</div>
 									<div class="balance_labels_text">{{ item.___group_name }}</div>
@@ -214,7 +212,7 @@
 			<div v-if="!positionsProcessing && activeCategory">
 				<div class="header flex aic sb">Details</div>
 
-				<div class="balance_block instr_block">
+				<div class="balance_block instr_block" v-if="!positionsError">
 					<div class="bb_header_line instr_block_header flex sb aifs">
 						<div class="bb_header">{{ activeCategory.___group_name }}</div>
 						<div>
@@ -270,6 +268,15 @@
 							<!--								</div>-->
 							<!--							</div>-->
 						</div>
+					</div>
+				</div>
+
+				<div class="balance_block instr_block" v-if="positionsError">
+					<div class="bb_header_line instr_block_header flex sb aifs">
+						<div class="bb_header">{{ activeCategory.___group_name }}</div>
+					</div>
+					<div style="padding: 0 0.5rem">
+						{{ positionsError }}
 					</div>
 				</div>
 
@@ -403,20 +410,6 @@
 		IonTitle,
 		IonToolbar
 	} from '@ionic/vue'
-	import {
-		ArcElement,
-		CategoryScale,
-		Chart,
-		DoughnutController,
-		Filler,
-		Legend,
-		LinearScale,
-		LineController,
-		LineElement,
-		PieController,
-		PointElement,
-		Tooltip
-	} from 'chart.js'
 
 	import IndicatorsComp from '@/components/Indicators.vue'
 	import HistoryChartComp from '@/components/HistoryChart.vue'
@@ -428,23 +421,13 @@
 	import useStore from '@/composables/useStore'
 	import { Pagination } from 'swiper'
 	import { cogOutline } from 'ionicons/icons'
+	import { Bar, Doughnut } from 'vue-chartjs'
 
-	Chart.register(
-		LineElement,
-		PointElement,
-		ArcElement,
-		DoughnutController,
-		LineController,
-		PieController,
-		CategoryScale,
-		LinearScale,
-		Filler,
-		Legend,
-		Tooltip
-	)
+	import errorService from '@/services/errorService';
 
 	export default {
 		components: {
+			Doughnut,
 			IonItem,
 			IonContent,
 			IonTitle,
@@ -464,7 +447,9 @@
 			IonHeader,
 			IonPage,
 			IonToolbar,
-			IonModal, IonDatetimeButton, IonDatetime
+			IonModal, IonDatetimeButton, IonDatetime,
+
+			Bar
 
 		},
 		data() {
@@ -475,7 +460,6 @@
 				Pagination: Pagination,
 				store: null,
 				spaceStore: null,
-				total_nav: 0,
 				transactionsOpts: null,
 				isOpenTransactions: false,
 				chartProcessing: true,
@@ -490,7 +474,10 @@
 				chartSettingsModalIsOpen: false,
 
 				numericBalanceReportAttributes: [],
-				groupByAttributes: []
+				groupByAttributes: [],
+				categoriesTotalSum: null,
+				chartData: null,
+				positionsError: ''
 			}
 		},
 		computed: {
@@ -519,18 +506,38 @@
 			}
 		},
 		methods: {
+			roundToTwo(num) {
+				return +(Math.round(num + 'e+2') + 'e-2')
+			},
 			saveChartSettings() {
 				this.chartSettingsModalIsOpen = false
 				this.createChart()
 			},
-			async init() {
+			async portfolioChangeHandler(data) {
 
+				console.log('PL.portfolioChangeHandler', data)
+
+				this.$router.push({
+					query: {
+						tab: data.activePortfolio
+					}
+				})
+
+				// this.init()
+
+			},
+			async init() {
 
 				console.log('route.query.tab', this.$route.query.tab)
 
-				this.transactionsOpts.end_date = this.spaceStore.settings.general.date_to
-				this.transactionsOpts.portfolios = [this.$route.query.tab]
-				this.transactionsOpts.filter_entry_user_code = null
+				this.transactionsOpts = {
+					end_date: this.spaceStore.settings.general.date_to,
+					begin_date: '0001-01-01',
+					portfolios: [this.$route.query.tab],
+					filter_entry_user_code: null,
+					// dept_level: 'base_transaction'
+					dept_level: 'entry'
+				}
 
 				await this.createChart()
 
@@ -665,71 +672,107 @@
 					const res = await this.fetchReport()
 
 					if (res.items) {
-						this.categories = res.items.sort((a, b) => b.subtotal[this.spaceStore.settings.pl.sumByKey] - a.subtotal[this.spaceStore.settings.pl.sumByKey]);
+						this.categories = res.items.sort((a, b) => b.subtotal[this.spaceStore.settings.pl.sumByKey] - a.subtotal[this.spaceStore.settings.pl.sumByKey])
 					}
+
+					this.categoriesTotalSum = 0
+
+					this.categories.forEach((item) => {
+						this.categoriesTotalSum = this.categoriesTotalSum + item.subtotal[this.spaceStore.settings.pl.sumByKey]
+					})
 
 					console.log('res', res)
 
 					console.log('createChart.categories', this.categories)
 
-					this.chartProcessing = false
 
-					if (this.balanceChartObj) {
-						this.balanceChartObj.destroy()
-					}
+					this.chartData = {}
 
-					let ctx = this.$refs.canvasPlChart.getContext('2d');
-					this.balanceChartObj = new Chart(ctx,
-						{
-							type: 'doughnut',
-							data: {
-								labels: this.categories.map((item) => {
-									return item.___group_name
+					let vueThis = this
+
+					this.chartData.data = {
+						labels: this.categories.map((item) => {
+							return item.___group_name
+						}),
+						datasets: [
+							{
+								data: this.categories.map((item) => {
+									return item.subtotal[this.spaceStore.settings.pl.sumByKey]
 								}),
-								datasets: [
-									{
-										data: this.categories.map((item) => {
-											return item.subtotal[this.spaceStore.settings.pl.sumByKey]
-										}),
-										backgroundColor: this.categories.map((item, index) => {
-											return this.colorByCat(item, index)
-										}),
-										borderWidth: 0
-									}
-								]
+								backgroundColor: this.categories.map((item, index) => {
+									return this.colorByCat(item, index)
+								}),
+								borderWidth: 0
+							}
+						]
+					}
+					this.chartData.options = {
+						responsive: true,
+						indexAxis: 'y',
+						plugins: {
+							legend: {
+								display: false
 							},
-							options: {
-								cutout: '35%',
-								responsive: true,
-								maintainAspectRatio: false,
-								plugins: {
-									legend: {
-										display: false
-									},
 
-									tooltip: {
-										callbacks: {
-											label: function(context) {
-												let labelIndex = context.dataIndex
+							tooltip: {
+								callbacks: {
+									label: function(context) {
+										let labelIndex = context.dataIndex
 
-												if (context.datasetIndex === 1) {
-													labelIndex =
-														context.chart.data.datasets[0].data.length + labelIndex
-												}
-
-												return (
-													context.chart.data.labels[labelIndex] +
-													': ' +
-													context.formattedValue
-												)
-											}
+										if (context.datasetIndex === 1) {
+											labelIndex =
+												context.chart.data.datasets[0].data.length + labelIndex
 										}
+
+										return (
+											context.chart.data.labels[labelIndex] +
+											': ' +
+											context.formattedValue
+										)
 									}
 								}
 							}
-						}
-					)
+						},
 
+						onClick: function(event, array) {
+							// Check if a bar was clicked
+							if (array.length > 0) {
+								// Access the first clicked element
+								var firstClickedElement = array[0]
+
+								// Get the index of the clicked bar
+								var clickedBarIndex = firstClickedElement.index
+
+								// Access the dataset of the clicked bar
+								var clickedDataset = firstClickedElement.datasetIndex
+
+								// You can then use these indices to access your chart data, for example:
+								var clickedValue = this.data.datasets[clickedDataset].data[clickedBarIndex]
+
+								// Do something with the clicked bar
+								console.log(`You clicked on: ${this.data.labels[clickedBarIndex]} with value: ${clickedValue}`)
+
+
+								let activeCategory = null
+
+								vueThis.categories.forEach((item) => {
+
+									if (item.___group_name === this.data.labels[clickedBarIndex]) {
+										activeCategory = item
+									}
+
+								})
+
+								vueThis.activeCategory = activeCategory
+								vueThis.isOpenTransactions = false
+								vueThis.fetchPositions()
+
+
+							}
+						}
+					}
+
+					this.chartProcessing = false
 
 					console.log('createChart.balanceChartObj', this.balanceChartObj)
 					console.log('createChart.chartProcessing', this.chartProcessing)
@@ -809,60 +852,68 @@
 			async fetchPositions() {
 
 				this.positionsProcessing = true
+				this.positionsError = ''
 
-				let res = await useApi('backendPLReportItems.post', {
-					body: {
-						account_mode: 0, // Ignore Accounts, important
-						accounts: [],
-						accounts_cash: [],
-						accounts_position: [],
-						allocation_detailing: true,
-						allocation_mode: 0,
-						approach_multiplier: 0.5,
-						calculate_pl: true,
-						calculationGroup: 'portfolio',
-						complex_transaction_statuses_filter: 'booked',
-						cost_method: 1,
-						custom_fields_to_calculate: '',
-						date_field: 'transaction_date',
-						depth_level: 'base_transaction',
-						expression_iterations_count: 1,
-						frontend_request_options: {
-							groups_types: [
-								{
-									'key': this.spaceStore.settings.pl.groupByKey,
-									'value_type': 10
-								}
-							],
-							groups_values: [
-								this.activeCategory.___group_identifier
-							],
-							page: 1,
-							filter_settings: []
-						},
-						pl_include_zero: false,
-						portfolio_mode: 1,
-						portfolios: [this.$route.query.tab],
-						pricing_policy: this.spaceStore.settings.general.pricing_policy,
-						report_currency: this.spaceStore.settings.general.currency,
-						report_date: this.spaceStore.settings.general.date_to,
-						pl_first_date: this.spaceStore.settings.general.date_from,
-						report_type: 1,
-						show_balance_exposure_details: false,
-						show_transaction_details: true,
-						strategies1: [],
-						strategies2: [],
-						strategies3: [],
-						strategy1_mode: 0,
-						strategy2_mode: 0,
-						strategy3_mode: 0,
-						table_font_size: 'small',
-						transaction_classes: [],
-						task_id: null
-					}
-				})
+				try {
 
-				this.positions = res.items.sort((a, b) => b[this.spaceStore.settings.pl.sumByKey] - a[this.spaceStore.settings.pl.sumByKey]);
+					let res = await useApi('backendPLReportItems.post', {
+						body: {
+							account_mode: 0, // Ignore Accounts, important
+							accounts: [],
+							accounts_cash: [],
+							accounts_position: [],
+							allocation_detailing: true,
+							allocation_mode: 0,
+							approach_multiplier: 0.5,
+							calculate_pl: true,
+							calculationGroup: 'portfolio',
+							complex_transaction_statuses_filter: 'booked',
+							cost_method: 1,
+							custom_fields_to_calculate: '',
+							date_field: 'transaction_date',
+							depth_level: 'base_transaction',
+							expression_iterations_count: 1,
+							frontend_request_options: {
+								groups_types: [
+									{
+										'key': this.spaceStore.settings.pl.groupByKey,
+										'value_type': 10
+									}
+								],
+								groups_values: [
+									this.activeCategory.___group_identifier
+								],
+								page: 1,
+								filter_settings: []
+							},
+							pl_include_zero: false,
+							portfolio_mode: 1,
+							portfolios: [this.$route.query.tab],
+							pricing_policy: this.spaceStore.settings.general.pricing_policy,
+							report_currency: this.spaceStore.settings.general.currency,
+							report_date: this.spaceStore.settings.general.date_to,
+							pl_first_date: this.spaceStore.settings.general.date_from,
+							report_type: 1,
+							show_balance_exposure_details: false,
+							show_transaction_details: true,
+							strategies1: [],
+							strategies2: [],
+							strategies3: [],
+							strategy1_mode: 0,
+							strategy2_mode: 0,
+							strategy3_mode: 0,
+							table_font_size: 'small',
+							transaction_classes: [],
+							task_id: null
+						}
+					})
+
+					this.positions = res.items.sort((a, b) => b[this.spaceStore.settings.pl.sumByKey] - a[this.spaceStore.settings.pl.sumByKey])
+
+				} catch (error) {
+					console.error('Pnl.fetchPositions.error', error)
+					this.positionsError = errorService.getRandomErrorMessage()
+				}
 
 				this.positionsProcessing = false
 
@@ -889,33 +940,39 @@
 			await this.fetchPLReportAttributes()
 
 
-			this.transactionsOpts = {
-				end_date: this.spaceStore.settings.general.date_to,
-				begin_date: '0001-01-01',
-				portfolios: this.$route.query.tab,
-				filter_entry_user_code: null,
-				// dept_level: 'base_transaction'
-				dept_level: 'entry'
-			}
-
-
 			console.log('this.$route.query.tab', this.$route.query.tab)
 			if (this.$route.query.tab) {
 				this.init()
+			} else {
+				this.$router.push({ query: { tab: this.spaceStore.portfolioList[0].user_code } })
 			}
 
 			watch(
 				() => this.$route.query.tab,
-				(newVal, oldVal) => {
-					if (!this.$route.path.includes('/main/balance') || newVal == oldVal)
+				async (newVal, oldVal) => {
+					if (!this.$route.path.includes('/main/pnl') || newVal == oldVal)
 						return false
 
-					this.total_nav = null
-					Promise.all([this.init(), this.portfoliosRefresher(), this.indicatorsRefresher()])
+					await this.init()
+
+					if (this.indicatorsRefresher) {
+						await this.indicatorsRefresher()
+					}
+
+
 				}
 			)
-			watch(this.spaceStore.settings.general, () => {
-				Promise.all([this.init(), this.portfoliosRefresher(), this.indicatorsRefresher()])
+			watch(this.spaceStore.settings.general, async () => {
+
+				await this.init()
+
+				if (this.portfoliosRefresher) {
+					await this.portfoliosRefresher()
+				}
+				if (this.indicatorsRefresher) {
+					await this.indicatorsRefresher()
+				}
+
 			})
 
 		}

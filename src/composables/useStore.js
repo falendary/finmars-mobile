@@ -44,13 +44,16 @@ export default defineStore('store', {
 							consolidateAccounts: true
 						},
 						pl: {
-							isChartView: true,
+							isChartView: false,
 							groupByKey: 'instrument.instrument_type.name',
 							sumByKey: 'total',
 							consolidateAccounts: true
 						},
 					},
-					layout: null, // deprecated
+					layout: null, // deprecated,
+					data: {
+						portfolios: {}
+					}
 				}
 			}
 
@@ -108,5 +111,12 @@ export default defineStore('store', {
 				}
 			}
 		},
+		async clear() {
+			this.spaces = {};
+			this.activeSpaceCode = null;
+			this.activeSpaceName = null;
+			this.member = null;
+			this.globalProcessing = false;
+		}
 	},
 })

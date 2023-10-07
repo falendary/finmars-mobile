@@ -42,7 +42,7 @@
 	import useApi from '@/composables/useApi'
 	import { nextTick } from 'vue'
 
-	const emits = defineEmits(['refresher', 'nav'])
+	const emits = defineEmits(['refresher'])
 	const props = defineProps({
 		portfolioId: Array,
 		date: String,
@@ -113,13 +113,6 @@
 			indicators[2].percent = 0.0
 
 			return false
-		}
-
-		// TODO Refactor this shit
-		if (props.type == 'pl') {
-			emits('nav', res.total.pl_range)
-		} else {
-			emits('nav', res.total.nav)
 		}
 
 		indicators[0].price = res.total.pl_daily

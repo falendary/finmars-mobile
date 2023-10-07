@@ -255,7 +255,6 @@
 					await Preferences.set({ key: 'region', value: JSON.stringify(regionObj) })
 
 					await this.router.push('/login')
-					this.router.go(0)
 
 				} else {
 
