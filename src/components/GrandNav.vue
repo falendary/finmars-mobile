@@ -45,12 +45,13 @@ import { IonSkeletonText } from '@ionic/vue'
 import useApi from '@/composables/useApi.js'
 import { useRoute, useRouter } from 'vue-router'
 import useStore from '@/composables/useStore'
-import { computed } from 'vue'
+import { computed, nextTick } from 'vue'
 
 export default {
 	components: { IonSkeletonText },
 
 
+	emits: ['refresher'],
 	data() {
 		return {
 			grandTotal: 0,
@@ -63,7 +64,11 @@ export default {
 	},
 
 	methods: {
-
+		async refresh() {
+			this.grandTotal = 0;
+			await nextTick()
+			await this.getGrandNav()
+		},
 		async getGrandNav() {
 
 			this.processing = true;
@@ -177,6 +182,8 @@ export default {
 		this.spaceStore = computed(() => this.store.spaces[this.store.activeSpaceCode]);
 
 		console.log('GrandNav.spaceStore', this.spaceStore.portfolioList)
+
+		this.$emit('refresher', this.refresh)
 
 	},
 	beforeUnmount() {

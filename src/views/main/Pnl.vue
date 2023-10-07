@@ -423,7 +423,7 @@
 	import { cogOutline } from 'ionicons/icons'
 	import { Bar, Doughnut } from 'vue-chartjs'
 
-	import errorService from '@/services/errorService';
+	import errorService from '@/services/errorService'
 
 	export default {
 		components: {
@@ -919,11 +919,10 @@
 
 			},
 			async refresh(event) {
-				await Promise.all([
-					this.init(),
-					this.portfoliosRefresher(true),
-					this.indicatorsRefresher()
-				])
+
+				this.init()
+				this.portfoliosRefresher(true)
+				this.indicatorsRefresher()
 
 				if (event) event.target.complete()
 			}

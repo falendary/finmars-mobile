@@ -1,21 +1,21 @@
 <template>
-	<swiper :slides-per-view="'auto'" :space-between="16" class="indicators">
-		<swiper-slide class="indicators_items" v-for="item in indicators">
+	<swiper :slides-per-view="'auto'" :space-between="8" class="indicators">
+		<swiper-slide class="indicators_items" v-for="(item, k) in indicators" :key="k" >
 			<div class="ii_header">{{ item.name }}</div>
 			<div class="ii_price">
-				<template v-if="item.price !== null">
+				<template v-if="!processing">
 					<span class="ii_price_value">{{ $format(item.price) }}</span>  <span class="ii_price_currency">{{ currency }}</span>
 				</template>
 				<IonSkeletonText
-					v-else
+					v-if="processing"
 					:animated="true"
 					style="width: 80%; height: 24px; margin: 0"
 				/>
 			</div>
 
-			<ChangePriceComp v-if="item.price !== null" :percent="item.percent" />
+			<ChangePriceComp v-if="!processing" :percent="item.percent" />
 			<IonSkeletonText
-				v-else
+				v-if="processing"
 				:animated="true"
 				style="width: 60%; height: 25px; margin: 0"
 			/>
@@ -23,17 +23,9 @@
 	</swiper>
 </template>
 
-<script setup>
-	import { ref, reactive, watch } from 'vue'
+<script>
 	import {
 		IonSkeletonText,
-		IonTitle,
-		IonIcon,
-		IonButtons,
-		IonButton,
-		IonTabButton,
-		IonFooter,
-		IonToolbar,
 	} from '@ionic/vue'
 
 	import { Swiper, SwiperSlide } from 'swiper/vue'
@@ -42,88 +34,121 @@
 	import useApi from '@/composables/useApi'
 	import { nextTick } from 'vue'
 
-	const emits = defineEmits(['refresher'])
-	const props = defineProps({
-		portfolioId: Array,
-		date: String,
-		currency: String,
-		pricing_policy: String,
-		date_from: String,
-		type: {
-			type: String,
-			default: 'balance',
+	export default {
+		components: {
+			IonSkeletonText,
+			Swiper, SwiperSlide,
+			ChangePriceComp
 		},
-	})
 
-	let indicators = reactive([
-		{
-			id: 1,
-			name: 'Daily Profit & Loss',
-			price: null,
-			percent: null,
+		props: {
+			portfolioId: Array,
+			date: String,
+			currency: String,
+			pricing_policy: String,
+			date_from: String,
+			type: {
+				type: String,
+				default: 'balance',
+			}
 		},
-		{
-			id: 2,
-			name: 'Month to date (MTD) P&L',
-			price: null,
-			percent: null,
+		emits: ['refresher'],
+		data() {
+			return {
+				processing: false,
+				indicators: [
+					{
+						id: 1,
+						name: 'Daily Profit & Loss',
+						price: null,
+						percent: null,
+					},
+					{
+						id: 2,
+						name: 'Month to date (MTD) P&L',
+						price: null,
+						percent: null,
+					},
+					{
+						id: 3,
+						name: 'Year to date (YTD) P&L',
+						price: null,
+						percent: null,
+					},
+				]
+			}
 		},
-		{
-			id: 3,
-			name: 'Year to date (YTD) P&L',
-			price: null,
-			percent: null,
-		},
-	])
+		methods: {
+			async refresh() {
+				this.indicators.forEach((item) => {
+					item.price = null
+					item.percent = null
+				})
+				await nextTick()
+				await this.init()
+			},
+			async init() {
 
-	init()
-	emits('refresher', refresh)
+				console.log('Indicators.init')
 
-	async function refresh() {
-		indicators.forEach((item) => {
-			item.price = null
-			item.percent = null
-		})
-		await nextTick()
-		await init()
-	}
-	async function init() {
-		let filters = {
-			date_to: props.date,
-			currency: props.currency,
-			pricing_policy: props.pricing_policy
+				this.processing = true;
+
+				let filters = {
+					date_to: this.date,
+					currency: this.currency,
+					pricing_policy: this.pricing_policy
+				}
+
+				if (this.date_from) filters.date_from = this.date_from
+
+				if (this.portfolioId) filters.portfolios = this.portfolioId
+
+				let res = await useApi('reportsSummary.get', {
+					filters,
+				})
+
+				if (!res) {
+					this.indicators[0].price = 0.0
+					this.indicators[0].percent = 0.0
+
+					this.indicators[1].price = 0.0
+					this.indicators[1].percent = 0.0
+
+					this.indicators[2].price = 0.0
+					this.indicators[2].percent = 0.0
+
+					return false
+				}
+
+				this.indicators[0].price = res.total.pl_daily
+				this.indicators[0].percent = Math.round(res.total.pl_daily_percent * 100) / 100
+
+				this.indicators[1].price = res.total.pl_mtd
+				this.indicators[1].percent = Math.round(res.total.pl_mtd_percent * 100) / 100
+
+				this.indicators[2].price = res.total.pl_ytd
+				this.indicators[2].percent = Math.round(res.total.pl_ytd_percent * 100) / 100
+
+
+				this.processing = false;
+
+
+			},
+		},
+		mounted() {
+
+			console.log("indicators mounted")
+
+			this.init()
+
+		},
+		created() {
+
+			this.$emit('refresher', this.refresh)
+
 		}
-
-		if (props.date_from) filters.date_from = props.date_from
-
-		if (props.portfolioId) filters.portfolios = props.portfolioId
-
-		let res = await useApi('reportsSummary.get', {
-			filters,
-		})
-
-		if (!res) {
-			indicators[0].price = 0.0
-			indicators[0].percent = 0.0
-
-			indicators[1].price = 0.0
-			indicators[1].percent = 0.0
-
-			indicators[2].price = 0.0
-			indicators[2].percent = 0.0
-
-			return false
-		}
-
-		indicators[0].price = res.total.pl_daily
-		indicators[0].percent = Math.round(res.total.pl_daily_percent * 100) / 100
-
-		indicators[1].price = res.total.pl_mtd
-		indicators[1].percent = Math.round(res.total.pl_mtd_percent * 100) / 100
-
-		indicators[2].price = res.total.pl_ytd
-		indicators[2].percent = Math.round(res.total.pl_ytd_percent * 100) / 100
 	}
+
 </script>
 
 <style lang="scss" scoped>

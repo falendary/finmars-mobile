@@ -822,16 +822,16 @@
 				this.positionsProcessing = false
 
 			},
-			async refresh(event) {
+			refresh(event) {
 
-				await this.init()
+				this.init()
 
 				if (this.portfoliosRefresher) {
-					await this.portfoliosRefresher(true)
+					this.portfoliosRefresher(true)
 				}
 
 				if (this.indicatorsRefresher) {
-					await this.indicatorsRefresher()
+					this.indicatorsRefresher()
 				}
 
 				if (event) event.target.complete()

@@ -51,11 +51,11 @@
 				Welcome Back, {{ username }}
 			</div>
 
-			<div class="dashboard-content" v-if="!processing">
+			<div class="dashboard-content">
 
 				<div class="header">Grand Total</div>
 
-				<grand-nav></grand-nav>
+				<grand-nav @refresher="grandNavRefresher = $event"></grand-nav>
 
 				<!--				<div class="header flex sb aic">-->
 				<!--					<div>All Portfolios</div>-->
@@ -92,6 +92,7 @@
 					:currency="spaceStore.settings.general.currency"
 					:pricing_policy="spaceStore.settings.general.pricing_policy"
 					:date="spaceStore.settings.general.date_to"
+					@refresher="indicatorsRefresher = $event"
 				/>
 
 				<div class="header">Portfolios</div>
@@ -259,7 +260,9 @@
 				portfolios: [],
 				dayjs: dayjs,
 				transactionsOpts: null,
-				username: null
+				username: null,
+				indicatorsRefresher: null,
+				grandNavRefresher: null
 			}
 		},
 		computed: {
@@ -269,19 +272,28 @@
 			}
 		},
 		methods: {
-			async init() {
+			init() {
 
 				console.log('Dashboard.init')
 
 				this.processing = true
 
-				await Promise.all([this.fetchPortfolios()])
+				this.fetchPortfolios()
+
+				if (this.indicatorsRefresher) {
+					this.indicatorsRefresher()
+				}
+
+				if (this.grandNavRefresher) {
+					this.grandNavRefresher()
+				}
+
 
 				this.processing = false
 
 			},
 			async refresh(event) {
-				await this.init()
+				this.init()
 
 				if (event) event.target.complete()
 
