@@ -29,7 +29,7 @@
     "@sentry/vite-plugin": "^2.7.1",
     "@sentry/vue": "^7.73.0",
     "axios": "^1.5.0",
-    "chart.js": "^4.2.1",
+    "chart.js": "^4.4.0",
     "express": "^4.18.2",
     "ionic-plugin-deeplinks": "^1.0.24",
     "ionicons": "^7.0.0",
@@ -39,6 +39,7 @@
     "tsparticles-preset-stars": "^2.12.0",
     "tsparticles-slim": "^2.12.0",
     "vue": "^3.2.45",
+    "vue-chartjs": "^5.2.0",
     "vue-router": "^4.1.6",
     "vue3-particles": "^2.12.0"
   },

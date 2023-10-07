@@ -48,16 +48,18 @@
 			</ion-refresher>
 
 			<div class="header flex sb aic">
-				<div v-if="portfolio">{{ portfolio.name }}</div>
-				<IonSkeletonText
-					v-if="!portfolio"
-					:animated="true"
-					style="height: 24px; width: 80px"
-				/>
+				<!--				<div v-if="portfolio">{{ portfolio.name }}</div>-->
+				<div>Portfolios</div>
+				<!--				<IonSkeletonText-->
+				<!--					v-if="!portfolio"-->
+				<!--					:animated="true"-->
+				<!--					style="height: 24px; width: 80px"-->
+				<!--				/>-->
 
 			</div>
 
 			<HistoryChartComp
+				v-if="$route.query.tab"
 				:date_to="spaceStore.settings.general.date_to"
 				:currency="spaceStore.settings.general.currency"
 				@portfolioChange="init($event)"
@@ -89,7 +91,7 @@
 					<div class="bb_header_line flex sb aic">
 						<div class="bb_header">{{ groupByName }}</div>
 						<div class="bb_price">
-							{{ $format(total_nav) }}
+							{{ $format(categoriesTotalSum) }}
 							{{ spaceStore.settings.general.currency }}
 						</div>
 					</div>
@@ -98,10 +100,10 @@
 						<div
 							class="balance_chart_wrap"
 							style="width: 145px; height: 145px"
-							v-show="spaceStore.settings.balance.isChartView"
+							v-if="spaceStore.settings.balance.isChartView && chartData"
 						>
 
-							<canvas ref="canvasBalanceChart"><p>Chart</p></canvas>
+							<Doughnut :options="chartData.options" :data="chartData.data"></Doughnut>
 
 						</div>
 
@@ -127,7 +129,7 @@
 									>
 										{{
 											roundToTwo(
-												(Math.abs(item.subtotal[spaceStore.settings.balance.sumByKey]) / total_nav) *
+												(Math.abs(item.subtotal[spaceStore.settings.balance.sumByKey]) / categoriesTotalSum) *
 												100
 											)
 										}}%
@@ -387,45 +389,20 @@
 		IonTitle,
 		IonToolbar
 	} from '@ionic/vue'
-	import {
-		ArcElement,
-		CategoryScale,
-		Chart,
-		DoughnutController,
-		Filler,
-		Legend,
-		LinearScale,
-		LineController,
-		LineElement,
-		PieController,
-		PointElement,
-		Tooltip
-	} from 'chart.js'
+
 
 	import IndicatorsComp from '@/components/Indicators.vue'
 	import HistoryChartComp from '@/components/HistoryChart.vue'
 	import TransactionListComp from '@/components/TransactionList.vue'
-
-	import { Swiper, SwiperSlide } from 'swiper/vue'
 
 	import useApi from '@/composables/useApi'
 	import useStore from '@/composables/useStore'
 	import { Pagination } from 'swiper'
 	import { cogOutline } from 'ionicons/icons'
 
-	Chart.register(
-		LineElement,
-		PointElement,
-		ArcElement,
-		DoughnutController,
-		LineController,
-		PieController,
-		CategoryScale,
-		LinearScale,
-		Filler,
-		Legend,
-		Tooltip
-	)
+	import { Doughnut, Bar } from 'vue-chartjs'
+
+
 
 	export default {
 		components: {
@@ -439,7 +416,6 @@
 			HistoryChartComp,
 			TransactionListComp,
 			IonSkeletonText,
-			Swiper, SwiperSlide,
 			IonCheckbox,
 			IonSelectOption,
 			IonSelect,
@@ -448,7 +424,10 @@
 			IonHeader,
 			IonPage,
 			IonToolbar,
-			IonModal, IonDatetimeButton, IonDatetime
+			IonModal, IonDatetimeButton, IonDatetime,
+
+			Doughnut,
+			Bar
 
 		},
 		data() {
@@ -460,6 +439,7 @@
 				store: null,
 				spaceStore: null,
 				total_nav: 0,
+				categoriesTotalSum: null,
 				transactionsOpts: null,
 				isOpenTransactions: false,
 				chartProcessing: true,
@@ -474,7 +454,8 @@
 				chartSettingsModalIsOpen: false,
 
 				numericBalanceReportAttributes: [],
-				groupByAttributes: []
+				groupByAttributes: [],
+				chartData: null
 			}
 		},
 		computed: {
@@ -504,11 +485,11 @@
 		},
 		methods: {
 			roundToTwo(num) {
-				return +(Math.round(num + "e+2") + "e-2");
+				return +(Math.round(num + 'e+2') + 'e-2')
 			},
 			saveChartSettings() {
-				this.chartSettingsModalIsOpen = false;
-				this.activeCategory = null;
+				this.chartSettingsModalIsOpen = false
+				this.activeCategory = null
 				this.createChart()
 			},
 			async init() {
@@ -630,76 +611,92 @@
 
 				this.chartProcessing = true
 
+				this.chartData = null;
+
 				const res = await this.fetchReport()
 
-				this.categories = res.items.sort((a, b) => b.subtotal[this.spaceStore.settings.balance.sumByKey] - a.subtotal[this.spaceStore.settings.balance.sumByKey]);
 
-				console.log('res', res)
+				this.categories = res.items.sort((a, b) => b.subtotal[this.spaceStore.settings.balance.sumByKey] - a.subtotal[this.spaceStore.settings.balance.sumByKey])
+
+				this.categoriesTotalSum = 0
+
+				this.categories.forEach((item) => {
+					this.categoriesTotalSum = this.categoriesTotalSum + item.subtotal[this.spaceStore.settings.balance.sumByKey]
+				})
 
 
-				console.log('createChart.categories', this.categories)
+				// console.log('res', res)
 
-				this.chartProcessing = false
+
+				// console.log('createChart.categories', this.categories)
+
+
 
 				if (this.balanceChartObj) {
 					this.balanceChartObj.destroy()
 				}
 
-				let ctx = this.$refs.canvasBalanceChart.getContext('2d');
-				this.balanceChartObj = new Chart(ctx,
-					{
-						type: 'doughnut',
-						data: {
-							labels: this.categories.map((item) => {
-								return item.___group_name
+				// let ctx = this.$refs.canvasBalanceChart.getContext('2d');
+				// this.balanceChartObj = new Chart(ctx,
+				// 	{
+				// 		type: 'doughnut',
+				//
+				// 	}
+				// )
+
+				this.chartData = {}
+
+				this.chartData.data = {
+					labels: this.categories.map((item) => {
+						return item.___group_name
+					}),
+					datasets: [
+						{
+							data: this.categories.map((item) => {
+								return item.subtotal[this.spaceStore.settings.balance.sumByKey]
 							}),
-							datasets: [
-								{
-									data: this.categories.map((item) => {
-										return item.subtotal[this.spaceStore.settings.balance.sumByKey]
-									}),
-									backgroundColor: this.categories.map((item, index) => {
-										return this.colorByCat(item, index)
-									}),
-									borderWidth: 0
-								}
-							]
+							backgroundColor: this.categories.map((item, index) => {
+								return this.colorByCat(item, index)
+							}),
+							borderWidth: 0
+						}
+					]
+				}
+
+				this.chartData.options = {
+					cutout: '35%',
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: {
+						legend: {
+							display: false
 						},
-						options: {
-							cutout: '35%',
-							responsive: true,
-							maintainAspectRatio: false,
-							plugins: {
-								legend: {
-									display: false
-								},
+						tooltip: {
+							callbacks: {
+								label: function(context) {
+									let labelIndex = context.dataIndex
 
-								tooltip: {
-									callbacks: {
-										label: function(context) {
-											let labelIndex = context.dataIndex
-
-											if (context.datasetIndex === 1) {
-												labelIndex =
-													context.chart.data.datasets[0].data.length + labelIndex
-											}
-
-											return (
-												context.chart.data.labels[labelIndex] +
-												': ' +
-												context.formattedValue
-											)
-										}
+									if (context.datasetIndex === 1) {
+										labelIndex =
+											context.chart.data.datasets[0].data.length + labelIndex
 									}
+
+									return (
+										context.chart.data.labels[labelIndex] +
+										': ' +
+										context.formattedValue
+									)
 								}
 							}
 						}
 					}
-				)
+				}
+
+				this.chartProcessing = false
 
 
-				console.log('createChart.balanceChartObj', this.balanceChartObj)
-				console.log('createChart.chartProcessing', this.chartProcessing)
+				// console.log('createChart.chartData', this.chartData)
+				// console.log('createChart.chartProcessing', this.chartProcessing)
 
 			},
 			async fetchReport() {
@@ -822,17 +819,22 @@
 					}
 				})
 
-				this.positions = res.items.sort((a, b) => b[this.spaceStore.settings.balance.sumByKey] - a[this.spaceStore.settings.balance.sumByKey]);
+				this.positions = res.items.sort((a, b) => b[this.spaceStore.settings.balance.sumByKey] - a[this.spaceStore.settings.balance.sumByKey])
 
 				this.positionsProcessing = false
 
 			},
 			async refresh(event) {
-				await Promise.all([
-					this.init(),
-					this.portfoliosRefresher(true),
-					this.indicatorsRefresher()
-				])
+
+				await this.init()
+
+				if (this.portfoliosRefresher) {
+					await this.portfoliosRefresher(true)
+				}
+
+				if (this.indicatorsRefresher) {
+					await this.indicatorsRefresher()
+				}
 
 				if (event) event.target.complete()
 			}
@@ -845,6 +847,8 @@
 
 		},
 		async mounted() {
+
+			console.log('Balance.mounted')
 
 			await this.fetchBalanceReportAttributes()
 
@@ -861,20 +865,41 @@
 			console.log('this.$route.query.tab', this.$route.query.tab)
 			if (this.$route.query.tab) {
 				this.init()
+			} else {
+				this.$router.push({ query: { tab: this.spaceStore.portfolioList[0].user_code } })
 			}
 
 			watch(
 				() => this.$route.query.tab,
-				(newVal, oldVal) => {
+				async (newVal, oldVal) => {
 					if (!this.$route.path.includes('/main/balance') || newVal == oldVal)
 						return false
 
 					this.total_nav = null
-					Promise.all([this.init(), this.portfoliosRefresher(), this.indicatorsRefresher()])
+
+					await this.init()
+
+					if (this.portfoliosRefresher) {
+						await this.portfoliosRefresher()
+					}
+
+					if (this.indicatorsRefresher) {
+						await this.indicatorsRefresher()
+					}
+
 				}
 			)
-			watch(this.spaceStore.settings.general, () => {
-				Promise.all([this.init(), this.portfoliosRefresher(), this.indicatorsRefresher()])
+			watch(this.spaceStore.settings.general, async () => {
+
+				await this.init()
+
+				if (this.portfoliosRefresher) {
+					await this.portfoliosRefresher()
+				}
+				if (this.indicatorsRefresher) {
+					await this.indicatorsRefresher()
+				}
+
 			})
 
 		}

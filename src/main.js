@@ -30,6 +30,15 @@ import NumberFormat from '@/plugins/NumberFormat.js'
 import { createPinia } from 'pinia'
 import Particles from "vue3-particles";
 import * as Sentry from "@sentry/vue";
+import {
+	ArcElement, BarElement, CategoryScale,
+	Chart as ChartJS,
+	DoughnutController, Filler, Legend, LinearScale,
+	LineController,
+	LineElement,
+	PieController,
+	PointElement, Title, Tooltip
+} from 'chart.js'
 
 let pinia, app
 
@@ -56,5 +65,20 @@ function createAppVue() {
 
 	app.mount('#app')
 }
+
+ChartJS.register(
+	LineElement,
+	PointElement,
+	ArcElement,
+	DoughnutController,
+	LineController,
+	PieController,
+	CategoryScale,
+	LinearScale,
+	Filler,
+	Legend,
+	Tooltip,
+	BarElement, Title,
+)
 
 // router.isReady().then(() => {})

@@ -92,6 +92,7 @@ body {
 	--ion-background-color: #eff4f7;
 	--ion-content-background: linear-gradient(rgba(255,255,255,0), rgba(255,255,255,0));
 	--ion-item-background: white;
+	--ion-pane-background: white;
 	--ion-card-background: white;
 	--ion-card-border-color: #ffffff;
 
@@ -217,6 +218,7 @@ body {
 		--ion-color-light-rgb: 110, 110, 110;
 
 		//--ion-card-background: #1c1c1d;
+		--ion-pane-background: rgba(0,0,0,.5);
 		--ion-card-background: rgba(0,0,0,.3);
 		//--ion-card-border-color: #2c2a2a;
 		--ion-card-border-color: rgba(255,255,255,.03);
@@ -274,7 +276,8 @@ body {
 
 		--ion-tab-bar-background: #1f1f1f;
 
-		--ion-card-background: #101117;
+		--ion-pane-background: rgba(0,0,0,.5);
+		--ion-card-background: rgba(0,0,0,.3);
 		--ion-card-border-color: #2c2a2a;
 		--ion-transaction-transparent-bg: rgba(16,17,23,.7);
 		--ion-content-background: linear-gradient(109.6deg, rgba(36, 45, 57, 0.2) 11.2%, rgba(16, 37, 60, 0.5) 51.2%, rgba(0, 0, 0, 0.5) 98.6%);
