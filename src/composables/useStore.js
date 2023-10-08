@@ -67,7 +67,7 @@ export default defineStore('store', {
 			} else {
 				let date_from = dayjs().add(-3, 'month').format('YYYY-MM-DD')
 				let date_to = dayjs().add(-1, 'day').format('YYYY-MM-DD')
-				let currency = 'USD'
+				let currency = 'USD' // TODO consider to take default from backend
 
 				this.spaces[this.activeSpaceCode].settings.general = {
 					period: 'inception',

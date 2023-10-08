@@ -244,7 +244,6 @@
 	} from '@ionic/vue'
 	import { barChartOutline, close, layersOutline, readerOutline, settingsOutline, settingsSharp } from 'ionicons/icons'
 	import { computed, } from 'vue'
-	import { useRoute, useRouter } from 'vue-router'
 	import { Preferences } from '@capacitor/preferences'
 	import useStore from '@/composables/useStore'
 	import useApi from '@/composables/useApi'
@@ -352,11 +351,6 @@
 				this.$router.push('/recovery')
 			},
 			changeSpace() {
-
-				// this.router = useRouter()
-				//
-				// console.log('changeSpace.router', this.router);
-
 				this.isOpen = false
 				this.$router.push('/workspaces')
 
@@ -382,11 +376,30 @@
 						}
 					})
 
-					this.spaceStore.portfolioList = this.spaceStore.settings.general.portfolios?.length
-						? this.spaceStore.portfolioListStock.filter((o) =>
-							this.spaceStore.settings.general.portfolios.includes(o.user_code)
-						)
-						: this.spaceStore.portfolioListStock
+					console.log('fetchPortfolios.spaceStore.settings.general.portfolios', this.spaceStore.settings.general.portfolios);
+
+					if (!this.spaceStore.settings.general.portfolios.length) {
+						res.results.forEach((item, index) => {
+
+							if (index < 5) {
+								this.spaceStore.settings.general.portfolios.push(item.user_code);
+							}
+
+						})
+					}
+
+
+					 if (this.spaceStore.settings.general.portfolios?.length) {
+						 this.spaceStore.portfolioList = this.spaceStore.portfolioListStock.filter((o) =>
+							 this.spaceStore.settings.general.portfolios.includes(o.user_code))
+					 } else {
+						 this.spaceStore.portfolioList = this.spaceStore.portfolioListStock
+					 }
+
+
+
+
+
 				} else {
 					this.spaceStore.portfolioListStock = []
 					this.spaceStore.portfolioList = []
@@ -465,8 +478,6 @@
 			this.store = useStore()
 			this.store.globalProcessing = true;
 
-			this.route = useRoute()
-			this.router = useRouter()
 
 			await this.store.init() // TODO IMPORTANT! should be called only once
 			this.spaceStore = computed(() => this.store.spaces[this.store.activeSpaceCode])
@@ -500,9 +511,9 @@
 			this.store.globalProcessing = false;
 
 			this.tab = computed(() => {
-				if (!this.route) return null
-				if (!this.route.path.includes('/main/')) return null
-				return this.route.path.replace('/main/', '')
+				if (!this.$route) return null
+				if (!this.$route.path.includes('/main/')) return null
+				return this.$route.path.replace('/main/', '')
 			})
 
 		},
