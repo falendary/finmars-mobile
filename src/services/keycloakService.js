@@ -55,7 +55,7 @@ export async function initKeycloak() {
 
 		const platform = import.meta.env.VITE_APP_PLATFORM;
 
-		console.log('import.meta.env', import.meta.env);
+		// console.log('import.meta.env', import.meta.env);
 
 		if (platform == 'android') {
 			kcOpts['redirectUri'] = 'https://finmars.com/' + appDestinationPath
@@ -65,7 +65,7 @@ export async function initKeycloak() {
 
 	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))
 
-	console.log('kcOpts', JSON.stringify(kcOpts, null, 4))
+	// console.log('kcOpts', JSON.stringify(kcOpts, null, 4))
 
 	await window.keycloak.init(kcOpts)
 

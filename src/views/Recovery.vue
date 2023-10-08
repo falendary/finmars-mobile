@@ -44,7 +44,11 @@
 
 					<p>In the meantime, please try one of the following:</p>
 
-					<div>
+					<div class="display-flex align-center" style="margin-top: 0.5rem">
+						<IonButton style="margin-top: 0; margin-right: 0.5rem" @click="toSpaces()">Space Selection</IonButton>
+					</div>
+
+					<div style="margin-top: 0.5rem">
 						<IonButton style="margin-top: 0; margin-right: 0.5rem" @click="refresh()">Refresh</IonButton> your app or page.
 					</div>
 					<div class="display-flex align-center" style="margin-top: 0.5rem">
@@ -104,6 +108,9 @@
 			async logout() {
 
 				this.$router.push('/logout')
+			},
+			async toSpaces() {
+				this.$router.push('/workspaces')
 			},
 			async particlesInit(engine) {
 				//await loadFull(engine);

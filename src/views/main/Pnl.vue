@@ -535,8 +535,8 @@
 					begin_date: '0001-01-01',
 					portfolios: [this.$route.query.tab],
 					filter_entry_user_code: null,
-					// dept_level: 'base_transaction'
-					dept_level: 'entry'
+					dept_level: 'base_transaction'
+					// dept_level: 'entry'
 				}
 
 				await this.createChart()

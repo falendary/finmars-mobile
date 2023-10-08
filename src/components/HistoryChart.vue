@@ -28,10 +28,17 @@
 
 					<div
 						style="height: 80px; width: calc(100% + 10px); margin: 0 0 -5px -5px"
-						v-show="!error" v-if="!chartProcessing"
+						v-show="!error" v-if="!chartProcessing && item.user_code === activePortfolio"
 					>
 
 						<Line :data="chartData.data" :options="chartData.options"></Line>
+
+					</div>
+					<div
+						style="height: 80px; width: calc(100% + 10px); margin: 0 0 -5px -5px"
+						v-show="!error" v-if="!chartProcessing && item.user_code !== activePortfolio"
+					>
+
 
 					</div>
 					<IonSkeletonText v-if="chartProcessing && !error"
@@ -102,7 +109,7 @@
 		data() {
 			return {
 				error: '',
-				localChartCache: {},
+				cacheData: {},
 				histNav: null,
 				lineChartObj: null,
 				width: null,
@@ -119,60 +126,7 @@
 			}
 		},
 		methods: {
-			async fetchPortfolios() {
 
-				this.portfolios = []
-
-				// TODO Consider refactor here
-				// Some weird logic that I do not like
-
-				this.spaceStore.data.portfolios = this.spaceStore.settings.general.portfolios.map((o, k) => {
-
-					let filters = {
-						portfolios: o,
-						currency: this.spaceStore.settings.general.currency,
-						date_to: this.spaceStore.settings.general.date_to,
-						date_from: this.spaceStore.settings.general.date_from
-					}
-
-
-					useApi('reportsSummary.get', {
-						filters: filters
-					}).then((stats) => {
-						if (stats.error) {
-							this.spaceStore.data.portfolios[k].nav = '--'
-							this.spaceStore.data.portfolios[k].pl_range = '--'
-							this.spaceStore.data.portfolios[k].change.price = '--'
-							this.spaceStore.data.portfolios[k].change.percent = '--'
-						}
-
-						this.spaceStore.data.portfolios[k].nav = stats.total.nav
-						this.spaceStore.data.portfolios[k].pl_range = stats.total.pl_range
-						this.spaceStore.data.portfolios[k].change.price = stats.total.pl_daily
-						this.spaceStore.data.portfolios[k].change.percent =
-							Math.round(stats.total.pl_daily_percent * 100) / 100
-
-
-						console.log('this.spaceStore.data.portfolios', this.spaceStore.data.portfolios)
-
-					})
-
-					return {
-						id: o,
-						name: o,
-						user_code: o,
-						nav: '-',
-						pl_range: '-',
-						change: {
-							price: '-',
-							percent: '-'
-						}
-					}
-				})
-
-				console.log('this.portfolios', this.portfolios)
-
-			},
 			onSwiper(swiper) {
 
 				let slideIndex = this.spaceStore.portfolioList.findIndex(
@@ -188,7 +142,7 @@
 
 				try {
 					this.chartProcessing = true
-					await this.fetchHistory()
+					await this.fetchPerformance()
 					await this.createChart()
 					this.chartProcessing = false
 				} catch (error) {
@@ -200,7 +154,8 @@
 
 				this.processing = true
 
-				await this.fetchPortfolios()
+				this.cacheData = {} // clear cache
+
 				await this.reloadChart()
 
 				this.processing = false
@@ -231,25 +186,34 @@
 				console.log('createChart.type', this.type)
 				console.log('createChart.activePortfolio', this.activePortfolio)
 
-				let cacheName
+				let labels = []
+				let data = []
+				let cashflowData = []
 
-				if (this.type == 'balance') {
-					cacheName = this.type + this.activePortfolio + this.date_to
-				} else if (this.type == 'pl') {
-					cacheName = this.type + this.activePortfolio + this.date_to + this.date_from
-				}
+				this.cacheData[this.activePortfolio].items.forEach((item) => {
 
-				console.log('localChartCache', this.localChartCache)
-				console.log('cacheName', cacheName)
+					labels.push(item.date_to)
+
+					if (this.type === 'balance') {
+						data.push(item.nav)
+					} else {
+						data.push(item.cumulative_return)
+					}
+
+					cashflowData.push(item.cash_flow)
+
+				})
+
+				// console.log('data', data);
 
 				this.chartData = {}
 
 				this.chartData.data = {
-					labels: this.localChartCache[cacheName].labels,
+					labels: labels,
 					datasets: [
 						{
 							label: 'Dataset',
-							data: this.localChartCache[cacheName].data,
+							data: data,
 							borderColor: '#F05A22',
 							borderWidth: 1,
 							pointBackgroundColor: 'transparent',
@@ -288,6 +252,15 @@
 							},
 							spanGaps: true
 						}
+						// {
+						// 	label: 'Dataset',
+						// 	data: cashflowData,
+						// 	borderColor: '#F05A22',
+						// 	borderWidth: 1,
+						// 	pointBackgroundColor: 'transparent',
+						// 	pointBorderColor: 'transparent',
+						// 	spanGaps: true
+						// }
 					]
 				}
 
@@ -318,65 +291,48 @@
 				console.log('HistoryChart.chartData', this.chartData)
 
 			},
-			async fetchHistory() {
-				let filters = {
-					portfolio: this.activePortfolio,
-					date_to: this.date_to
+			async fetchPerformance() {
+
+				let performanceData
+
+				console.log('this.spaceStore.settings', this.spaceStore.settings)
+
+				let activePortfolioObject = null
+
+				this.spaceStore.settings.general.portfoliosObjects.forEach((item) => {
+
+					if (item.user_code == this.activePortfolio) {
+						activePortfolioObject = item
+					}
+
+				})
+
+				if (this.cacheData.hasOwnProperty(this.activePortfolio)) {
+					return
 				}
-				this.error = ''
 
-				if (this.date_from) filters.date_from = this.date_from
-
-				let cacheName
-
-				if (this.type == 'balance') {
-					cacheName = this.type + this.activePortfolio + this.date_to
-				} else if (this.type == 'pl') {
-					cacheName = this.type + this.activePortfolio + this.date_to + this.date_from
-				}
-
-				console.log('cacheName.cacheName', cacheName)
-				let histNav;
 				try {
 
-					histNav = await useApi('widgetsHistory.get', {
-						params: {
-							type: this.type === 'balance' ? 'nav' : 'pl'
-						},
-						provider: null,
-						filters
+					performanceData = await useApi('performanceReport.post', {
+						body: {
+							begin_date: activePortfolioObject.first_transaction.date,
+							end_date: this.spaceStore.settings.general.date_to,
+							calculation_type: 'time_weighted',
+							segmentation_type: 'months',
+							registers: [this.activePortfolio],
+							report_currency: this.spaceStore.settings.general.currency
+						}
 					})
-
-					if (!histNav || histNav.error) {
-						this.error = 'No data'
-						return false
-					}
 
 				} catch (e) {
 					this.error = 'No data'
 					return false
 				}
 
-				let labels = histNav.items.map((o) => o.date)
-				let data = histNav.items.map(
-					(o) => o[this.type == 'balance' ? 'nav' : 'total']
-				)
+				console.log('performanceData', performanceData)
 
-				if (data[0] === null) {
-					labels.unshift('hack')
-					data.unshift(0)
-				}
-				if (data[data.length - 1] === null) {
-					labels.push('hack')
-					data.push(0)
-				}
+				this.cacheData[this.activePortfolio] = performanceData
 
-				this.localChartCache[cacheName] = {
-					labels: labels,
-					data: data
-				}
-
-				console.log('fetchHistory.localChartCache', this.localChartCache)
 
 			},
 			onSlideChange(swiper) {
@@ -388,7 +344,7 @@
 
 				this.activePortfolio = userCode
 
-				this.reloadChart(); // TODO consider prefetch nav history once
+				this.reloadChart() // TODO consider prefetch nav history once
 
 				this.$emit('portfolioChange', {
 					activePortfolio: this.activePortfolio

@@ -362,6 +362,8 @@
 					}
 				})
 
+				this.spaceStore.settings.general.portfoliosObjects = res.results;
+
 				if (res && !res.error) {
 					this.spaceStore.portfolioListStock = res.results.map((o) => {
 						return {
@@ -379,10 +381,12 @@
 					console.log('fetchPortfolios.spaceStore.settings.general.portfolios', this.spaceStore.settings.general.portfolios);
 
 					if (!this.spaceStore.settings.general.portfolios.length) {
-						res.results.forEach((item, index) => {
+						res.results.forEach((item) => {
 
-							if (index < 5) {
-								this.spaceStore.settings.general.portfolios.push(item.user_code);
+							if (this.spaceStore.settings.general.portfolios.length < 5) {
+								if (item.first_transaction.date) {
+									this.spaceStore.settings.general.portfolios.push(item.user_code);
+								}
 							}
 
 						})
@@ -439,6 +443,9 @@
 			},
 
 			changeDataFrom() {
+
+				console.log('changeDataFrom');
+
 				const funcs = {
 					inception: () => {
 						this.spaceStore.settings.general.date_from = '0001-01-01'
@@ -465,6 +472,29 @@
 				}
 
 				funcs[this.spaceStore.settings.general.period]()
+			},
+			adjustDates(date_to, date_from) {
+				// Convert the dates from strings (if they are) to Date objects
+				const toDate = (typeof date_to === 'string') ? new Date(date_to) : date_to;
+				const fromDate = (typeof date_from === 'string') ? new Date(date_from) : date_from;
+
+				// Check if toDate is less than fromDate
+				if (toDate <= fromDate) {
+					// Subtract 30 days from fromDate
+					fromDate.setDate(fromDate.getDate() - 30);
+
+					// If fromDate is still greater than toDate after subtracting 30 days,
+					// then reset fromDate to be the same as toDate
+					if (fromDate > toDate) {
+						fromDate.setTime(toDate.getTime());
+					}
+				}
+
+				// Return the adjusted dates, converting them back to strings if needed
+				return {
+					date_to: (typeof date_to === 'string') ? toDate.toISOString().split('T')[0] : toDate,
+					date_from: (typeof date_from === 'string') ? fromDate.toISOString().split('T')[0] : fromDate
+				};
 			}
 
 		},
@@ -485,9 +515,16 @@
 			console.log('Index.spaceStore', this.spaceStore)
 			console.log('Index.store.activeSpaceCode', this.store.activeSpaceCode)
 
+			// Adjust dates, just in case date_from bigger then date_to
+			let result = this.adjustDates(this.spaceStore.settings.general.date_to, this.spaceStore.settings.general.date_from)
+
+			this.spaceStore.settings.general.date_from = result.date_from;
+
 			await this.fetchCurrencies()
 			await this.fetchPortfolios()
 			await this.fetchPolicies()
+
+
 
 
 			let { value } = await Preferences.get({ key: 'activeSpaceCode' })
@@ -502,6 +539,20 @@
 					this.spaceStore.portfolioList = this.spaceStore.portfolioListStock.filter((o) =>
 						this.spaceStore.settings.general.portfolios.includes(o.user_code)
 					)
+				}
+			)
+
+			this.dateToWatch = this.$watch(
+				() => this.spaceStore.settings.general.date_to,
+				() => {
+
+					console.log('this.spaceStore.settings.general.date_to', this.spaceStore.settings.general.date_to);
+					console.log('this.spaceStore.settings.general.date_from', this.spaceStore.settings.general.date_from);
+
+					let result = this.adjustDates(this.spaceStore.settings.general.date_to, this.spaceStore.settings.general.date_from)
+
+					this.spaceStore.settings.general.date_from = result.date_from;
+
 				}
 			)
 
@@ -521,6 +572,10 @@
 
 			if (this.portfoliosWatch) {
 				this.portfoliosWatch();  // stop the watcher when the component is being destroyed
+			}
+
+			if (this.dateToWatch) {
+				this.dateToWatch();
 			}
 
 		}
