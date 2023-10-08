@@ -8,10 +8,10 @@
 
 				<div class="transaction-inner">
 
-					<div class="transaction-icon" @click="openComplexTransactionModal($event, item)">
+					<div class="item-icon" @click="openComplexTransactionModal($event, item)">
 
 						<div :style="{'background': getIconColor(item.transaction_type_object.name[0])}"
-								 class="transaction-icon-icon">
+								 class="item-icon-icon">
 							{{ item.transaction_type_object.name[0] }}
 						</div>
 
@@ -308,6 +308,7 @@ import { bagAddOutline, barChartOutline, calendarOutline, cubeOutline, layersOut
 import { formatNumber } from 'chart.js/helpers'
 import { computed } from 'vue'
 import useStore from '@/composables/useStore.js'
+import metaService from '@/services/metaService.js'
 
 export default {
 	components: {
@@ -446,35 +447,7 @@ export default {
 
 		},
 		getIconColor(letter) {
-			const colorMap = {
-				'A': '#FFADAD',
-				'B': '#FFD6A5',
-				'C': '#FDFFB6',
-				'D': '#CAFFBF',
-				'E': '#9BF6FF',
-				'F': '#A0C4FF',
-				'G': '#BDB2FF',
-				'H': '#FFC6FF',
-				'I': '#FFAFCC',
-				'J': '#FFC3A0',
-				'K': '#FF61A6',
-				'L': '#70F3FF',
-				'M': '#9448BC',
-				'N': '#A3A380',
-				'O': '#FFA343',
-				'P': '#B671D5',
-				'Q': '#DDBDF1',
-				'R': '#4B8BBE',
-				'S': '#CCE7E8',
-				'T': '#EFB839',
-				'U': '#FF4242',
-				'V': '#CAA8F5',
-				'W': '#DFF2BF',
-				'X': '#D0F4DE',
-				'Y': '#AAEFDF',
-				'Z': '#BDC0BA'
-			}
-			return colorMap[letter.toUpperCase()] || 'gray'  // default to gray if letter is not found
+			return metaService.getIconColor(letter);
 		},
 		async getComplexTransactionUserFields() {
 
@@ -564,6 +537,7 @@ export default {
 
 	.transaction-inner {
 		display: flex;
+		padding-left: 0.4rem;
 	}
 
 	.transaction-content {
@@ -575,26 +549,6 @@ export default {
 		font-size: 0.7rem;
 	}
 
-	.transaction-icon {
-		width: 60px;
-		min-width: 60px;
-		overflow: hidden;
-		text-align: center;
-	}
-
-
-	.transaction-icon-icon {
-		width: 2.5rem;
-		height: 2.5rem;
-		border-radius: 50%;
-		background: #fff;
-		color: #000;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		margin: 0 auto;
-		font-size: 1.2rem;
-	}
 
 	.transaction-content-footer {
 		display: flex;

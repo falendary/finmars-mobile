@@ -19,7 +19,9 @@ export default {
 	complexTransactionItem: {
 		get: prefix + '/transactions/complex-transaction/{id}/'
 	},
-
+	instrument: {
+		get: prefix + '/instruments/instrument/{id}/'
+	},
 	instrumentAttributes: {
 		get: prefix + '/instruments/instrument/attributes/'
 	},

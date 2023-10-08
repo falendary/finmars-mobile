@@ -292,4 +292,26 @@
 		opacity: .8;
 	}
 
+	.item-icon {
+		width: 2rem;
+		min-width: 2rem;
+		overflow: hidden;
+		text-align: center;
+		margin-right: 0.4rem;
+	}
+
+
+	.item-icon-icon {
+		width: 2rem;
+		height: 2rem;
+		border-radius: 50%;
+		background: #fff;
+		color: #000;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin: 0 auto;
+		font-size: 1.2rem;
+	}
+
 </style>

@@ -1,5 +1,5 @@
 <template>
-	<ion-page >
+	<ion-page>
 
 		<ion-header>
 			<ion-toolbar class="app-header">
@@ -222,20 +222,44 @@
 							:class="{
 							active: transactionsOpts.filter_entry_user_code == item.user_code,
 						}"
-							@click="
-							;(transactionsOpts.filter_entry_user_code = item.user_code),
-								(isOpenTransactions = true)
-						"
 						>
 							<div class="flex sb jcfe">
-								<div class="instr_name">
+
+								<div class="item-icon" @click="openInstrumentModal($event, item)" v-if="item.item_type == 1">
+
+									<div :style="{'background': getIconColor(item['instrument.instrument_type.name'][0])}"
+											 class="item-icon-icon">
+										{{ item['instrument.instrument_type.name'][0] }}
+									</div>
+
+								</div>
+
+								<div class="item-icon" v-if="item.item_type == 2">
+
+									<div :style="{'background': getIconColor('C')}"
+											 class="item-icon-icon">
+										C
+									</div>
+
+								</div>
+
+								<div class="item-icon" v-if="item.item_type != 1 && item.item_type != 2">
+
+									<div :style="{'background': getIconColor('O')}"
+											 class="item-icon-icon">
+										O
+									</div>
+
+								</div>
+
+								<div class="instr_name" @click="activateInstrument($event, item)">
 									{{
 										item.name.length > 80
 											? item.name.slice(0, 80) + '...'
 											: item.name
 									}}
 								</div>
-								<div class="instr_market_value instr_first">
+								<div class="instr_market_value instr_first" @click="activateInstrument($event, item)">
 									{{ $format(item.market_value) }}
 								</div>
 							</div>
@@ -365,6 +389,97 @@
 				</ion-content>
 			</ion-modal>
 
+			<ion-modal ref="modal" :is-open="isInstrumentModelOpen">
+				<ion-header>
+					<ion-toolbar>
+						<ion-title>Instrument</ion-title>
+						<ion-buttons slot="end">
+							<ion-button @click="closeInstrumentModal()">Close</ion-button>
+						</ion-buttons>
+					</ion-toolbar>
+				</ion-header>
+				<ion-content class="ion-padding">
+
+					<div style="padding-bottom: 4rem;" v-if="fullInstrument">
+
+						<ion-item>
+							<ion-label class="ion-text-wrap">{{fullInstrument.name}}</ion-label>
+						</ion-item>
+
+						<ion-item>
+							<ion-label>
+								<p>Instrument Type</p>
+								<h2>{{ fullInstrument.instrument_type_object.name }}</h2>
+							</ion-label>
+						</ion-item>
+
+						<ion-item>
+							<ion-label>
+								<p>ISIN (User Code)</p>
+								<h2>{{ fullInstrument.user_code }}</h2>
+							</ion-label>
+						</ion-item>
+
+						<ion-item v-if="fullInstrument.maturity_date">
+							<ion-label>
+								<p>Maturity Date</p>
+								<h2>{{ fullInstrument.maturity_date }}</h2>
+							</ion-label>
+						</ion-item>
+
+						<ion-item >
+							<ion-label>
+								<p>Pricing Currency</p>
+								<h2>{{ fullInstrument.pricing_currency_object.short_name }}</h2>
+							</ion-label>
+						</ion-item>
+
+
+						<ion-item >
+							<ion-label>
+								<p>Accrued Currency</p>
+								<h2>{{ fullInstrument.accrued_currency_object.short_name }}</h2>
+							</ion-label>
+						</ion-item>
+
+						<ion-item v-if="fullInstrument.country">
+							<ion-label>
+								<p>Country</p>
+								<h2>{{ fullInstrument.country_object.name }}</h2>
+							</ion-label>
+						</ion-item>
+
+
+						<ion-item>
+							<ion-label>
+								<p>Notes</p>
+								<h2>{{ fullInstrument.notes }}</h2>
+							</ion-label>
+						</ion-item>
+
+						<div>
+
+							<ion-item v-for="attribute in fullInstrumentAttributes" :key="attribute.id">
+								<ion-label>
+									<p>{{attribute.attribute_type_object.name}}</p>
+
+									<h2 v-if="attribute.attribute_type_object.value_type == 10">{{ attribute.value_string }}</h2>
+									<h2 v-if="attribute.attribute_type_object.value_type == 20">{{ attribute.value_float }}</h2>
+									<h2 v-if="attribute.attribute_type_object.value_type == 30">{{ attribute.classifier_object.name }}</h2>
+									<h2 v-if="attribute.attribute_type_object.value_type == 40">{{ attribute.value_date }}</h2>
+								</ion-label>
+							</ion-item>
+
+
+						</div>
+
+
+					</div>
+
+				</ion-content>
+			</ion-modal>
+
+
 		</ion-content>
 	</ion-page>
 </template>
@@ -403,6 +518,7 @@
 	import { cogOutline } from 'ionicons/icons'
 
 	import { Bar, Doughnut } from 'vue-chartjs'
+	import metaService from '@/services/metaService.js'
 
 	export default {
 		components: {
@@ -454,7 +570,11 @@
 
 				numericBalanceReportAttributes: [],
 				groupByAttributes: [],
-				chartData: null
+				chartData: null,
+				isInstrumentModelOpen: false,
+				fullInstrument: null,
+				fullInstrumentAttributes: [],
+				activeInstrument: null
 			}
 		},
 		computed: {
@@ -483,6 +603,54 @@
 			}
 		},
 		methods: {
+			getIconColor(letter) {
+				return metaService.getIconColor(letter)
+			},
+			async openInstrumentModal($event, item) {
+
+				console.log('openInstrumentModal.item', item)
+
+				this.fullInstrument = await useApi('instrument.get', {
+					params: { id: item['instrument.id'] }
+				})
+
+				this.fullInstrumentAttributes = this.fullInstrument.attributes.filter((attribute) => {
+
+					if (attribute.attribute_type_object.user_code.indexOf('pricing_policy_') !== -1 ) {
+						return false
+					}
+
+					if (attribute.attribute_type_object.value_type == 10 && !attribute.value_string) {
+						return false
+					}
+
+					if (attribute.attribute_type_object.value_type == 20 && (!attribute.value_float && attribute.value_float !== 0)) {
+						return false
+					}
+
+
+					if (attribute.attribute_type_object.value_type == 40 && !attribute.value_date) {
+						return false
+					}
+
+					return true;
+
+				})
+
+				this.isInstrumentModelOpen = true
+
+
+			},
+			closeInstrumentModal() {
+				this.isInstrumentModelOpen = false
+				this.fullInstrument = null;
+			},
+			activateInstrument($event, item) {
+
+				this.transactionsOpts.filter_entry_user_code = item.user_code
+				this.isOpenTransactions = true
+
+			},
 			roundToTwo(num) {
 				return +(Math.round(num + 'e+2') + 'e-2')
 			},
@@ -491,9 +659,10 @@
 				this.activeCategory = null
 				this.createChart()
 			},
+
 			async portfolioChangeHandler(data) {
 
-				console.log("Balance.portfolioChangeHandler", data);
+				console.log('Balance.portfolioChangeHandler', data)
 
 				this.$router.push({
 					query: {
@@ -507,7 +676,7 @@
 			async init() {
 
 				this.activeCategory = null
-				this.isOpenTransactions = false;
+				this.isOpenTransactions = false
 
 				this.transactionsOpts = {
 					end_date: this.spaceStore.settings.general.date_to,
@@ -1046,6 +1215,7 @@
 		color: #747474;
 		font-size: 14px;
 		line-height: 24px;
+		margin-left: 2.4rem;
 	}
 
 	.instr_market_value {
