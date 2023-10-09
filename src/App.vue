@@ -314,4 +314,11 @@
 		font-size: 1.2rem;
 	}
 
+	.selectable {
+		user-select: text !important;
+		-webkit-user-select: text !important;
+		-moz-user-select: text !important;
+		-ms-user-select: text !important;
+	}
+
 </style>

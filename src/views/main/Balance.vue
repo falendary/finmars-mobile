@@ -403,34 +403,34 @@
 					<div style="padding-bottom: 4rem;" v-if="fullInstrument">
 
 						<ion-item>
-							<ion-label class="ion-text-wrap">{{fullInstrument.name}}</ion-label>
+							<ion-label class="ion-text-wrap selectable">{{fullInstrument.name}}</ion-label>
 						</ion-item>
 
 						<ion-item>
 							<ion-label>
 								<p>Instrument Type</p>
-								<h2>{{ fullInstrument.instrument_type_object.name }}</h2>
+								<h2 class="selectable">{{ fullInstrument.instrument_type_object.name }}</h2>
 							</ion-label>
 						</ion-item>
 
 						<ion-item>
 							<ion-label>
 								<p>ISIN (User Code)</p>
-								<h2>{{ fullInstrument.user_code }}</h2>
+								<h2 class="selectable">{{ fullInstrument.user_code }}</h2>
 							</ion-label>
 						</ion-item>
 
 						<ion-item v-if="fullInstrument.maturity_date">
 							<ion-label>
 								<p>Maturity Date</p>
-								<h2>{{ fullInstrument.maturity_date }}</h2>
+								<h2 class="selectable">{{ fullInstrument.maturity_date }}</h2>
 							</ion-label>
 						</ion-item>
 
 						<ion-item >
 							<ion-label>
 								<p>Pricing Currency</p>
-								<h2>{{ fullInstrument.pricing_currency_object.short_name }}</h2>
+								<h2 class="selectable">{{ fullInstrument.pricing_currency_object.short_name }}</h2>
 							</ion-label>
 						</ion-item>
 
@@ -438,14 +438,14 @@
 						<ion-item >
 							<ion-label>
 								<p>Accrued Currency</p>
-								<h2>{{ fullInstrument.accrued_currency_object.short_name }}</h2>
+								<h2 class="selectable">{{ fullInstrument.accrued_currency_object.short_name }}</h2>
 							</ion-label>
 						</ion-item>
 
 						<ion-item v-if="fullInstrument.country">
 							<ion-label>
 								<p>Country</p>
-								<h2>{{ fullInstrument.country_object.name }}</h2>
+								<h2 class="selectable">{{ fullInstrument.country_object.name }}</h2>
 							</ion-label>
 						</ion-item>
 
@@ -453,7 +453,7 @@
 						<ion-item>
 							<ion-label>
 								<p>Notes</p>
-								<h2>{{ fullInstrument.notes }}</h2>
+								<h2 class="selectable">{{ fullInstrument.notes }}</h2>
 							</ion-label>
 						</ion-item>
 
@@ -463,10 +463,10 @@
 								<ion-label>
 									<p>{{attribute.attribute_type_object.name}}</p>
 
-									<h2 v-if="attribute.attribute_type_object.value_type == 10">{{ attribute.value_string }}</h2>
-									<h2 v-if="attribute.attribute_type_object.value_type == 20">{{ attribute.value_float }}</h2>
-									<h2 v-if="attribute.attribute_type_object.value_type == 30">{{ attribute.classifier_object.name }}</h2>
-									<h2 v-if="attribute.attribute_type_object.value_type == 40">{{ attribute.value_date }}</h2>
+									<h2 v-if="attribute.attribute_type_object.value_type == 10" class="selectable">{{ attribute.value_string }}</h2>
+									<h2 v-if="attribute.attribute_type_object.value_type == 20" class="selectable">{{ attribute.value_float }}</h2>
+									<h2 v-if="attribute.attribute_type_object.value_type == 30" class="selectable">{{ attribute.classifier_object.name }}</h2>
+									<h2 v-if="attribute.attribute_type_object.value_type == 40" class="selectable">{{ attribute.value_date }}</h2>
 								</ion-label>
 							</ion-item>
 

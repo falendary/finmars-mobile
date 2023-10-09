@@ -89,6 +89,7 @@
 				</div>
 
 				<Indicators
+					:portfolioId="spaceStore.data.portfolios.map(item => item.user_code)"
 					:currency="spaceStore.settings.general.currency"
 					:pricing_policy="spaceStore.settings.general.pricing_policy"
 					:date="spaceStore.settings.general.date_to"
@@ -326,7 +327,7 @@
 						this.spaceStore.data.portfolios[k].pl_range = stats.total.pl_range
 						this.spaceStore.data.portfolios[k].change.price = stats.total.pl_daily
 						this.spaceStore.data.portfolios[k].change.percent =
-							Math.round(stats.total.pl_daily_percent * 100) / 100
+							Math.round(stats.performance.daily.grand_return * 100) / 100
 					})
 
 					return {

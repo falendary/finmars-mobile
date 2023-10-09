@@ -93,18 +93,33 @@
 
 				this.processing = true;
 
-				let filters = {
-					date_to: this.date,
-					currency: this.currency,
-					pricing_policy: this.pricing_policy
+				// let filters = {
+				// 	date_to: this.date,
+				// 	currency: this.currency,
+				// 	pricing_policy: this.pricing_policy
+				// }
+				//
+				// if (this.date_from) filters.date_from = this.date_from
+				//
+				// if (this.portfolioId) filters.portfolios = this.portfolioId
+
+				const params = new URLSearchParams()
+
+				params.append('date_to', this.date)
+				params.append('currency', this.currency)
+				params.append('pricing_policy', this.pricing_policy)
+
+				if (this.date_from)  {
+					params.append('date_from', this.date_from)
 				}
 
-				if (this.date_from) filters.date_from = this.date_from
+				this.portfolioId.forEach(function(item) {
+					params.append('portfolios', item)
+				})
 
-				if (this.portfolioId) filters.portfolios = this.portfolioId
 
 				let res = await useApi('reportsSummary.get', {
-					filters,
+					urlSearchParams: params,
 				})
 
 				if (!res) {
@@ -121,13 +136,13 @@
 				}
 
 				this.indicators[0].price = res.total.pl_daily
-				this.indicators[0].percent = Math.round(res.total.pl_daily_percent * 100) / 100
+				this.indicators[0].percent = Math.round(res.performance.daily.grand_return * 100) / 100
 
 				this.indicators[1].price = res.total.pl_mtd
-				this.indicators[1].percent = Math.round(res.total.pl_mtd_percent * 100) / 100
+				this.indicators[1].percent = Math.round(res.performance.mtd.grand_return * 100) / 100
 
 				this.indicators[2].price = res.total.pl_ytd
-				this.indicators[2].percent = Math.round(res.total.pl_ytd_percent * 100) / 100
+				this.indicators[2].percent = Math.round(res.performance.ytd.grand_return * 100) / 100
 
 
 				this.processing = false;
