@@ -31,8 +31,9 @@ update versionCode
 npx cap build android
 -- for signing build
 npx cap build android --keystorepath=/Users/szhitenev/projects/finmars/data/keystores/android/finmars-keystore --keystorealias=key0 --keystorealiaspass=[pass] --keystorepass=[pass]
- 
-ionic
+
+
+ionic cap sync android
 VITE_APP_PLATFORM='android' ionic capacitor build android
 
 

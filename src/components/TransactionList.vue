@@ -1183,6 +1183,120 @@
 			},
 			'___column_id': '6f41d5d9f8f4752afb5e1aa9ea1b1236',
 			'isHidden': false
+		},
+		{
+			"key": "transaction_item_user_code",
+			"name": "Transaction. Transaction Item User Code",
+			"value_type": 10,
+			"options": {
+				"sort": null,
+				"sort_settings": {}
+			},
+			"columns": true,
+			"style": {
+				"width": "100px"
+			},
+			"___column_id": "9fb07d8799de83b347b9cc30c92a16a6"
+		},
+		{
+			"___column_id": "3e6cb9f296d2f740b343f42f878bff4a",
+			"columns": true,
+			"content_type": "reports.transactionreport",
+			"filters": false,
+			"groups": false,
+			"isHidden": false,
+			"key": "cash_consideration",
+			"layout_name": "Amount/Cash",
+			"name": "Transaction. Cash consideration",
+			"options": {
+				"sort": null,
+				"sort_settings": {
+					"mode": null
+				}
+			},
+			"orderNumber__": 3,
+			"report_settings": {
+				"negative_color_format_id": 1,
+				"negative_format_id": 1,
+				"number_multiplier": null,
+				"number_prefix": "",
+				"number_suffix": "",
+				"percentage_format_id": 0,
+				"round_format_id": 1,
+				"subtotal_formula_id": 1,
+				"thousands_separator_format_id": 2,
+				"zero_format_id": 1
+			},
+			"style": {
+				"width": "100px"
+			},
+			"value_type": 20
+		},
+		{
+			"___column_id": "0af49b3b463f39bd4fb22430e6e291f1",
+			"columns": true,
+			"content_type": "reports.transactionreport",
+			"filters": false,
+			"groups": false,
+			"isHidden": false,
+			"key": "carry_with_sign",
+			"layout_name": "Accrued",
+			"name": "Transaction. Carry with sign",
+			"options": {
+				"sort": null,
+				"sort_settings": {
+					"mode": null
+				}
+			},
+			"orderNumber__": 5,
+			"report_settings": {
+				"negative_color_format_id": 1,
+				"negative_format_id": 1,
+				"number_multiplier": null,
+				"number_prefix": "",
+				"number_suffix": "",
+				"percentage_format_id": 0,
+				"round_format_id": 1,
+				"thousands_separator_format_id": 2,
+				"zero_format_id": 1
+			},
+			"style": {
+				"width": "100px"
+			},
+			"value_type": 20
+		},
+		{
+			"___column_id": "92dca03a91a4f4c3a1d9a7c11de85a88",
+			"columns": true,
+			"content_type": "reports.transactionreport",
+			"filters": false,
+			"groups": false,
+			"isHidden": false,
+			"key": "principal_with_sign",
+			"layout_name": "Principal",
+			"name": "Transaction. Principal with sign",
+			"options": {
+				"sort": null,
+				"sort_settings": {
+					"mode": null
+				}
+			},
+			"orderNumber__": 4,
+			"report_settings": {
+				"negative_color_format_id": 1,
+				"negative_format_id": 1,
+				"number_multiplier": null,
+				"number_prefix": "",
+				"number_suffix": "",
+				"percentage_format_id": 0,
+				"round_format_id": 1,
+				"thousands_separator_format_id": 2,
+				"zero_format_id": 1
+			},
+			"style": {
+				"width": "100px"
+			},
+			"value_type": 20
 		}
 	]
 
@@ -1220,23 +1334,30 @@
 
 		if (props.options.filter_entry_user_code) {
 
-			filters = [
-				{
-					key: 'entry_item_user_code',
-					groups: false,
-					columns: true,
-					filters: true,
-					name: 'Transaction. Entry Item User Code',
-					value_type: 10,
-					options: {
-						filter_type: 'equal',
-						filter_values: [props.options.filter_entry_user_code],
-						exclude_empty_cells: false,
-						enabled: true,
-						use_from_above: {}
+			if (props.reportType == 'balance') {
+
+				filters = [
+					{
+						key: 'entry_item_user_code',
+						groups: false,
+						columns: true,
+						filters: true,
+						name: 'Transaction. Entry Item User Code',
+						value_type: 10,
+						options: {
+							filter_type: 'equal',
+							filter_values: [props.options.filter_entry_user_code],
+							exclude_empty_cells: false,
+							enabled: true,
+							use_from_above: {}
+						}
 					}
-				}
-			]
+				]
+			} else {
+
+				filters = [] // pl context cant do entry sql filter
+
+			}
 
 		}
 
@@ -1262,6 +1383,23 @@
 
 		}
 
+
+		var filter_settings = []
+
+		if (props.reportType == 'pl') {
+			filter_settings = [
+				{
+					"key": "transaction_item_user_code",
+					"filter_type": "contains",
+					"exclude_empty_cells": false,
+					"value_type": 10,
+					"value": [
+						props.options.filter_entry_user_code
+					]
+				}
+			]
+		}
+
 		let res = await useApi('backendTransactionReportItems.post', {
 			body: {
 				accounts: [],
@@ -1283,7 +1421,8 @@
 					columns: columns,
 					groups_types: [],
 					page: 1,
-					filter_settings: []
+					filter_settings: filter_settings,
+
 				},
 				filters: filters,
 				portfolio_mode: 1,
@@ -1305,7 +1444,7 @@
 
 		// if (!props.options.filter_entry_user_code) return res
 
-		if (props.reportType != 'pl') {
+		if (props.reportType == 'balance') {
 			res.items = res.items.filter(
 				(o) => o.entry_item_user_code == props.options.filter_entry_user_code
 			)

@@ -322,6 +322,7 @@
 				<TransactionListComp
 					v-if="transactionsOpts.filter_entry_user_code"
 					:options="transactionsOpts"
+					:reportType="'pl'"
 				/>
 			</template>
 
