@@ -82,7 +82,7 @@
 			/>
 
 			<IndicatorsComp
-				:portfolioId="$route.query.tab"
+				:portfolioId="[$route.query.tab]"
 				:date_from="spaceStore.settings.general.date_from"
 				type="pl"
 				:currency="spaceStore.settings.general.currency"
@@ -115,6 +115,7 @@
 						<div
 							class="balance_chart_wrap"
 							style="width: 100%;"
+							:style="{ height: chartHeight + 'px' }"
 							v-if="spaceStore.settings.pl.isChartView && chartData"
 						>
 
@@ -136,22 +137,34 @@
 									"
 							>
 								<div class="flex aic">
+
 									<div
 										class="balance_labels_percent"
+										style="width: 24px;
+    border-radius: 50%;"
 										:style="{
 												backgroundColor: colorByCat(item.___group_name, index),
 											}"
 									>
-										<span v-if="item.subtotal[spaceStore.settings.pl.sumByKey] < 0">-</span>{{ roundToTwo(
-										(Math.abs(item.subtotal[spaceStore.settings.pl.sumByKey]) / categoriesTotalSum) *
-										100
-									)
-										}}%
+										&nbsp;
 									</div>
+
+<!--									<div-->
+<!--										class="balance_labels_percent"-->
+<!--										:style="{-->
+<!--												backgroundColor: colorByCat(item.___group_name, index),-->
+<!--											}"-->
+<!--									>-->
+<!--										<span v-if="item.subtotal[spaceStore.settings.pl.sumByKey] < 0">-</span>{{ roundToTwo(-->
+<!--										(Math.abs(item.subtotal[spaceStore.settings.pl.sumByKey]) / categoriesTotalSum) *-->
+<!--										100-->
+<!--									)-->
+<!--										}}%-->
+<!--									</div>-->
 									<div class="balance_labels_text">{{ item.___group_name }}</div>
 								</div>
 
-								<div class="balance_labels_price" v-show="!spaceStore.settings.pl.isChartView">
+								<div class="balance_labels_price" v-show="!spaceStore.settings.pl.isChartView" :class="{ 'negative-number': item.subtotal[spaceStore.settings.pl.sumByKey] < 0}">
 									{{ $format(item.subtotal[spaceStore.settings.pl.sumByKey]) }}
 								</div>
 							</div>
@@ -249,7 +262,7 @@
 										: item.name
 								}}
 							</div>
-							<div class="instr_market_value instr_first">
+							<div class="instr_market_value instr_first" :class="{ 'negative-number': item.total < 0}">
 								{{ $format(item.total) }}
 							</div>
 						</div>
@@ -477,7 +490,8 @@
 				groupByAttributes: [],
 				categoriesTotalSum: null,
 				chartData: null,
-				positionsError: ''
+				positionsError: '',
+				chartHeight: 200
 			}
 		},
 		computed: {
@@ -690,50 +704,87 @@
 
 					let vueThis = this
 
+					this.originalDataSet = this.categories.map((item) => {
+						return Math.floor(item.subtotal[this.spaceStore.settings.pl.sumByKey])
+					})
+
+					this.minPercent  = 10
+
 					this.chartData.data = {
 						labels: this.categories.map((item) => {
 							return item.___group_name
 						}),
 						datasets: [
-							{
-								data: this.categories.map((item) => {
-									return item.subtotal[this.spaceStore.settings.pl.sumByKey]
+							{// positive values
+								data: this.categories.map((item, index) => {
+
+									var val = Math.floor(item.subtotal[this.spaceStore.settings.pl.sumByKey])
+
+									var res = (val / vueThis.categoriesTotalSum) * 100
+
+									if (res < vueThis.minPercent) {
+										if (res < 0) {
+											res = res - vueThis.minPercent
+										} else {
+											res = res + vueThis.minPercent
+										}
+									}
+
+									if (res > 100) {
+										res = 100
+									}
+
+									if (res < -100) {
+										res = -100
+									}
+
+									return  res
 								}),
 								backgroundColor: this.categories.map((item, index) => {
 									return this.colorByCat(item, index)
 								}),
-								borderWidth: 0
+								borderColor: this.categories.map((item, index) => {
+									return this.colorByCat(item, index)
+								}),
+								borderWidth: 2,
 							}
 						]
 					}
+
+					console.log('this.chartData', this.chartData);
+
 					this.chartData.options = {
 						responsive: true,
+						maintainAspectRatio: false,
 						indexAxis: 'y',
 						plugins: {
 							legend: {
 								display: false
 							},
-
 							tooltip: {
 								callbacks: {
 									label: function(context) {
 										let labelIndex = context.dataIndex
 
-										if (context.datasetIndex === 1) {
+										console.log('context', context);
+										console.log('labelIndex', labelIndex);
+
+										if (context.datasetIndex === 0) {
 											labelIndex =
 												context.chart.data.datasets[0].data.length + labelIndex
 										}
 
+										console.log('labelIndex', labelIndex);
+
 										return (
-											context.chart.data.labels[labelIndex] +
+											'Value' +
 											': ' +
-											context.formattedValue
+											vueThis.originalDataSet[context.dataIndex]
 										)
 									}
 								}
 							}
 						},
-
 						onClick: function(event, array) {
 							// Check if a bar was clicked
 							if (array.length > 0) {
@@ -751,6 +802,26 @@
 
 								// Do something with the clicked bar
 								console.log(`You clicked on: ${this.data.labels[clickedBarIndex]} with value: ${clickedValue}`)
+
+
+								this.data.datasets[0].borderColor = this.data.datasets[0].borderColor.map((item, index) => {
+									return vueThis.colorByCat(this.data.labels[index], index)
+
+								})
+
+
+
+								if (array.length > 0) {
+									const firstElement = array[0];
+									const datasetIndex = firstElement.datasetIndex;
+									const dataIndex = firstElement.index;
+
+									// Highlight the clicked bar, for example, by setting its opacity to 1
+									this.data.datasets[datasetIndex].borderColor[dataIndex] = vueThis.colorByCat(this.data.labels[clickedBarIndex + 1], clickedBarIndex + 1)
+
+								}
+
+								this.update();
 
 
 								let activeCategory = null
@@ -771,6 +842,10 @@
 							}
 						}
 					}
+
+					const categoriesCount = this.chartData.data.labels.length;
+					const heightPerCategory = 70; // Set desired height for each category
+					this.chartHeight = categoriesCount * heightPerCategory;
 
 					this.chartProcessing = false
 
@@ -1019,6 +1094,7 @@
 
 	.balance_chart_wrap {
 		flex-shrink: 0;
+
 	}
 
 	.balance_block {

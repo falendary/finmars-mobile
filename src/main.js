@@ -35,7 +35,7 @@ import {
 	Chart as ChartJS,
 	DoughnutController, Filler, Legend, LinearScale,
 	LineController,
-	LineElement,
+	LineElement, LogarithmicScale,
 	PieController,
 	PointElement, Title, Tooltip
 } from 'chart.js'
@@ -85,6 +85,7 @@ ChartJS.register(
 	Legend,
 	Tooltip,
 	BarElement, Title,
+	LogarithmicScale
 )
 
 // router.isReady().then(() => {})
