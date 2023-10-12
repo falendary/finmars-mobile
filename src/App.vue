@@ -13,12 +13,11 @@
 		</ion-header>
 
 
-
-		<Suspense v-show="!store.globalProcessing && !showPasscode">
+		<div v-show="!store.globalProcessing && !showPasscode">
 
 			<ion-router-outlet id="main-content" :class="{ 'app-blurred': isBlurred }" />
 
-		</Suspense>
+		</div>
 
 
 		<div v-show="store.globalProcessing" class="display-flex align-center justify-center height-100">

@@ -48,7 +48,7 @@
 				</div>
 
 				<div class="buttons-grid">
-					<button v-for="n in 9" :key="n" class="passcode-button" @click="addDigit(n)">{{ n }}</button>
+					<button v-for="n in 9" :key="n" class="passcode-button" @touchend="addDigit(n)">{{ n }}</button>
 					&nbsp;
 					<button class="passcode-button" @click="addDigit(0)">0</button>
 					<button class="passcode-button-clear" @click="clearAll()">Clear</button>
@@ -75,6 +75,8 @@
 	import { loadStarsPreset } from 'tsparticles-preset-stars'
 	import { Preferences } from '@capacitor/preferences'
 
+	import { Haptics, ImpactStyle } from '@capacitor/haptics'
+
 	export default {
 		components: {
 			IonButton, IonContent, IonPage
@@ -87,7 +89,10 @@
 		},
 		methods: {
 
-			addDigit(digit) {
+			async addDigit(digit) {
+
+				await Haptics.impact({ style: ImpactStyle.Heavy });
+
 				if (this.passcode.length < 4) {
 					this.passcode += digit
 				}

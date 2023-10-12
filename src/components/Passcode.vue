@@ -1,9 +1,9 @@
 <template>
 	<div class="passcode-component-wrapper">
 		<vue-particles
-		id="tsparticles"
-		:particlesInit="particlesInit"
-		:options="{
+			id="tsparticles"
+			:particlesInit="particlesInit"
+			:options="{
 									fpsLimit: 120,
 
                     particles: {
@@ -28,7 +28,7 @@
 												direction: 'none',
 										}
 									}"
-	/>
+		/>
 
 
 		<div class="passcode-container">
@@ -44,10 +44,14 @@
 			</div>
 
 			<div class="buttons-grid">
-				<button v-for="n in 9" :key="n" class="passcode-button" @click="addDigit(n)">{{ n }}</button>
+				<button v-for="n in 9" :key="n" class="passcode-button" @touchend="addDigit(n)">{{ n }}</button>
 				<button class="passcode-button-clear" @click="logout()">Logout</button>
 				<button class="passcode-button" @click="addDigit(0)">0</button>
-				<button class="passcode-button-clear" @click="clearAll()">Clear</button>
+				<button class="passcode-button-clear" @click="onAuthenticate()">
+
+					<ion-icon :icon="icons.fingerPrintOutline" />
+
+				</button>
 			</div>
 
 		</div>
@@ -56,15 +60,29 @@
 </template>
 
 <script>
-	import { IonButton, IonContent, IonPage } from '@ionic/vue'
+	import { alertController, IonButton, IonContent, IonIcon, IonPage, } from '@ionic/vue'
 	import '../keycloak.js'
+
+	import { fingerPrintOutline } from 'ionicons/icons'
 
 	import { loadStarsPreset } from 'tsparticles-preset-stars'
 	import { Preferences } from '@capacitor/preferences'
-	import useApi from '@/composables/useApi.js'
+
+	import { Haptics, ImpactStyle } from '@capacitor/haptics'
+	import {
+		BiometricAuth,
+		BiometryErrorType,
+		BiometryType,
+		getBiometryName,
+	} from '@aparajita/capacitor-biometric-auth'
+
+	import { Capacitor } from '@capacitor/core'
+	import { toRaw } from 'vue'
+
 
 	export default {
 		components: {
+			IonIcon,
 			IonButton, IonContent, IonPage
 		},
 
@@ -73,12 +91,109 @@
 				passcode: '',
 				username: 'Passcode',
 				isWrongPasscode: false,
-				isRightPasscode: false
+				isRightPasscode: false,
+				biometryTypes: [
+					{
+						title: 'None',
+						type: BiometryType.none
+					},
+					{
+						title: 'Touch ID',
+						type: BiometryType.touchId
+					},
+					{
+						title: 'Face ID',
+						type: BiometryType.faceId
+					},
+					{
+						title: 'Fingerprint Authentication',
+						type: BiometryType.fingerprintAuthentication
+					},
+					{
+						title: 'Face Authentication',
+						type: BiometryType.faceAuthentication
+					},
+					{
+						title: 'Iris Authentication',
+						type: BiometryType.irisAuthentication
+					}
+				],
+				biometry: null,
+				biometryOptions: null,
+				biometryType: null,
+				appListener: null,
+				isNative: Capacitor.isNativePlatform(),
+				isIOS: Capacitor.getPlatform() === 'ios',
+				isAndroid: Capacitor.getPlatform() === 'android',
+				icons: {
+					fingerPrintOutline
+				},
+				attempts: 0,
+				maxAttempts: 3
+			}
+		},
+		computed: {
+			biometryName() {
+
+				if (this.isNative) {
+					if (this.biometry.biometryTypes.length === 0) {
+						return 'No biometry'
+					}
+
+					if (this.biometry.biometryTypes.length === 1) {
+						return getBiometryName(this.biometry.biometryType)
+					}
+
+					return 'Biometry'
+				} else {
+					return getBiometryName(this.biometry.biometryType) || 'No biometry'
+				}
+
+			},
+			biometryDescription() {
+
+				let description
+
+				if (this.isNative) {
+					if (this.biometry.biometryTypes.length > 0) {
+						description = `${this.biometry.biometryTypes
+							.map((type) => getBiometryName(type))
+							.join(' and ')} ${
+							this.biometry.value.biometryTypes.length === 1 ? 'is' : 'are'
+						} supported`
+					} else {
+						description = 'No biometry is supported'
+					}
+				} else {
+					description = `${this.biometryName.value} is supported`
+				}
+
+				if (this.biometry.biometryType !== BiometryType.none) {
+					if (this.biometry.isAvailable) {
+						description += ` and ${
+							this.biometry.biometryTypes.length > 1 ? 'potentially ' : ''
+						}available.`
+					} else {
+						description += ', but not available.'
+					}
+
+					if (this.biometry.reason) {
+						description += ` ${this.biometry.reason} (${this.biometry.code})`
+					}
+				} else {
+					description += '.'
+				}
+
+				return description
+
 			}
 		},
 		methods: {
 
-			addDigit(digit) {
+			async addDigit(digit) {
+
+				await Haptics.impact({ style: ImpactStyle.Heavy });
+
 				if (this.passcode.length < 4) {
 					this.passcode += digit
 				}
@@ -95,6 +210,15 @@
 						}, 500)
 
 					} else {
+
+						await Haptics.vibrate();
+
+						this.attempts = this.attempts + 1;
+
+						if (this.attempts >= this.maxAttempts) {
+							this.logout()
+							this.$emit('verified')
+						}
 
 						this.passcode = ''
 						this.isWrongPasscode = true
@@ -139,6 +263,54 @@
 			async particlesInit(engine) {
 				//await loadFull(engine);
 				await loadStarsPreset(engine)
+			},
+
+			async showAlert(message) {
+				const alert = await alertController.create({
+					header: `${this.biometryName} says:`,
+					subHeader: '',
+					message,
+					buttons: ['OK'],
+				})
+				await alert.present()
+			},
+
+			async showErrorAlert(error){
+				await this.showAlert(`${error.message} [${error.code}].`)
+			},
+
+
+			async onAuthenticate() {
+
+				console.log('this.biometry', this.biometry);
+				console.log('this.biometryOptions', this.biometryOptions);
+
+				try {
+					// options is a reactive proxy, we can't pass it directly to a plugin.
+					// so pass the underlying object.
+					await BiometricAuth.authenticate(toRaw(this.biometryOptions))
+					// await showAlert('Authorization successful!')
+
+					this.isRightPasscode = true
+
+					setTimeout(() => {
+						this.$emit('verified')
+					}, 500)
+
+				} catch (error) {
+					console.log('error', error);
+					// Someday TypeScript will let us type catch clauses...
+					// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+					// await this.showErrorAlert(error)
+				}
+
+			},
+
+			async updateBiometryInfo(info) {
+
+				console.log('updateBiometryInfo.info', info);
+
+				this.biometry = info
 			}
 
 		},
@@ -153,6 +325,49 @@
 			await this.fetchUser()
 
 
+			this.biometryType = BiometryType.none
+			this.biometry = {
+				isAvailable: false,
+				biometryType: BiometryType.none,
+				biometryTypes: [BiometryType.none],
+				reason: '',
+				code: BiometryErrorType.none
+			}
+
+
+			this.biometryOptions = {
+				reason: '',
+				cancelTitle: '',
+				iosFallbackTitle: '',
+				androidTitle: '',
+				androidSubtitle: '',
+				allowDeviceCredential: false,
+				androidConfirmationRequired: true
+			}
+
+			await this.updateBiometryInfo(await BiometricAuth.checkBiometry())
+
+
+			console.log('created.updateBiometryInfo', this.biometry)
+
+			try {
+				this.appListener = await BiometricAuth.addResumeListener(this.updateBiometryInfo)
+
+				console.log('created.appListener', this.appListener)
+
+			} catch (error) {
+				if (error instanceof Error) {
+					console.error(error.message)
+				}
+			}
+
+			if (this.biometry.isAvailable) {
+				await this.onAuthenticate();
+			}
+
+		},
+		async onBeforeUnmount() {
+			await this.appListener.remove()
 		}
 
 	}
@@ -221,6 +436,7 @@
 		width: 100%;
 		text-align: center;
 	}
+
 	.passcode-display {
 		top: 5.5rem;
 	}
@@ -229,6 +445,7 @@
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
 		gap: 1.5rem;
+		margin-bottom: 1rem;
 	}
 
 	.passcode-button {
@@ -259,6 +476,10 @@
 		background: transparent;
 		font-size: 0.9rem;
 		color: #fff;
+
+		ion-icon {
+			font-size: 3rem;
+		}
 	}
 
 	.passcode-digit.right-passcode {

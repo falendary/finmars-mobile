@@ -22,7 +22,7 @@ export default defineStore('store', {
 	},
 
 	actions: {
-		async init() {
+		async initSpaceStore() {
 			let { value } = await Preferences.get({ key: 'layout' })
 			let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
 			let { value: activeSpaceName } = await Preferences.get({ key: 'activeSpaceName' })
@@ -117,6 +117,14 @@ export default defineStore('store', {
 			this.activeSpaceName = null;
 			this.member = null;
 			this.globalProcessing = false;
+		},
+		async getActiveSpaceStore() {
+
+			if (!this.spaces[this.activeSpaceCode]) {
+				await this.initSpaceStore()
+			}
+
+			return this.spaces[this.activeSpaceCode]
 		}
 	},
 })

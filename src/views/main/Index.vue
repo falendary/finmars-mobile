@@ -254,9 +254,9 @@
 				processing: false,
 				currentYear: new Date().getFullYear(),
 				store: null,
-				spaceStore: null,
 				currencies: [],
 				pricingPolicies: [],
+				activeSpaceCode: null,
 				workspace: null,
 				username: null,
 				isOpen: false,
@@ -274,8 +274,6 @@
 			}
 		},
 		methods: {
-
-
 
 			goToMore() {
 				this.isOpen = false
@@ -434,13 +432,13 @@
 
 			this.processing = true
 
-
 			this.store = useStore()
 			this.store.globalProcessing = true;
+			this.spaceStore = await this.store.getActiveSpaceStore()
+
+			console.log("IndexController.activeSpaceCode", this.store.activeSpaceCode)
 
 
-			await this.store.init() // TODO IMPORTANT! should be called only once
-			this.spaceStore = computed(() => this.store.spaces[this.store.activeSpaceCode])
 
 			console.log('Index.spaceStore', this.spaceStore)
 			console.log('Index.store.activeSpaceCode', this.store.activeSpaceCode)
@@ -454,7 +452,6 @@
 			await this.fetchPortfolios()
 			await this.fetchPolicies()
 			await this.fetchUser()
-
 
 
 			this.portfoliosWatch = this.$watch(
@@ -493,6 +490,10 @@
 
 		},
 		beforeUnmount() {
+
+			if (this.activeSpaceWatch) {
+				this.activeSpaceWatch();
+			}
 
 			if (this.portfoliosWatch) {
 				this.portfoliosWatch();  // stop the watcher when the component is being destroyed
