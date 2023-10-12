@@ -33,7 +33,7 @@
 			/>
 
 
-			<div class="welcome-page-container center aic" style="height: 100%">
+			<div class="black-space-page recovery-page-container center aic" style="height: 100%">
 				<div style="width: 90%">
 					<h1 class="tac">🛠 Recovery</h1>
 
@@ -100,6 +100,7 @@
 				await Preferences.remove({ key: 'activeSpaceCode' })
 				await Preferences.remove({ key: 'activeSpaceName' })
 				await Preferences.remove({ key: 'layout' })
+				await Preferences.remove({ key: 'passcode' })
 
 				await this.store.clear();
 
@@ -132,12 +133,13 @@
 		margin-top: 20px;
 	}
 
-	.welcome-page-container {
+	.recovery-page-container {
 		--background: trasparent;
 		background: transparent;
 		color: #fff;
 		position: relative;
 		padding-bottom: 120px; // to see copyright block on page
+		font-size: .8rem;
 	}
 
 	ion-content {
@@ -145,12 +147,6 @@
 		--background: #eff4f7;
 	}
 
-	.welcome-page {
-		--background: #000;
-		background: #000;
-		position: relative;
-		color: #fff;
-	}
 
 	.finmars-main-copyright {
 		position: absolute;

@@ -164,53 +164,23 @@
 
 				<br />
 
-<!--				<ion-button-->
-<!--					class="ion-margin-horizontal"-->
-<!--					fill="outline"-->
-<!--					expand="block"-->
-<!--					@click="fetchPortfolios()"-->
-<!--				>-->
-<!--					RELOAD PORTFOLIOS-->
-<!--				</ion-button>-->
 
 				<ion-button
 					class="ion-margin-horizontal"
 					fill="outline"
 					expand="block"
-					@click="changeSpace()"
+					@click="goToMore()"
 				>
-					CHANGE SPACE
+					More
 				</ion-button>
 
-				<ion-button
-					class="ion-margin-horizontal logout"
-					fill="outline"
-					expand="block"
-					@click="logout()"
-				>
-					LOGOUT
-				</ion-button>
 
-				<div class="ion-margin-horizontal flex sb info_bot">
-					<div>{{ workspace }}</div>
-					<div>{{ username }}</div>
-				</div>
 
-				<div style="padding: 1rem">
-					<ion-toggle :checked="themeToggle" @ionChange="themeToggleChange($event)" justify="space-between"
-					>Dark Mode
-					</ion-toggle>
-				</div>
 
-				<p style="padding: 0 1rem; font-size: .7rem">If something went wrong you can proceed to Recovery Page. It will reset app</p>
-				<ion-button
-					class="ion-margin-horizontal logout"
-					fill="outline"
-					expand="block"
-					@click="recovery()"
-				>
-					Recovery
-				</ion-button>
+
+
+
+
 
 			</ion-content>
 		</ion-modal>
@@ -304,56 +274,12 @@
 			}
 		},
 		methods: {
-			async initializeDarkTheme() {
 
-				let { value: darkTheme } = await Preferences.get({ key: 'darkTheme' })
 
-				console.log('from store darkTheme', darkTheme)
 
-				if (darkTheme == 'true') {
-					this.themeToggle = true
-				} else if (darkTheme == 'false') {
-					this.themeToggle = false
-				} else {
-					const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
-
-					if (prefersDark) {
-						this.themeToggle = true
-					}
-				}
-
-				this.toggleDarkTheme(this.themeToggle)
-			},
-			toggleDarkTheme(shouldAdd) {
-
-				console.log('shouldAdd', shouldAdd)
-
-				document.body.classList.toggle('dark', shouldAdd)
-
-				Preferences.set({ key: 'darkTheme', value: shouldAdd })
-
-			},
-			themeToggleChange(ev) {
-
-				console.log('themeToggleChange', ev)
-
-				this.toggleDarkTheme(ev.detail.checked)
-			},
-
-			async logout() {
-
+			goToMore() {
 				this.isOpen = false
-				this.$router.push('/logout')
-			},
-			async recovery() {
-
-				this.isOpen = false
-				this.$router.push('/recovery')
-			},
-			changeSpace() {
-				this.isOpen = false
-				this.$router.push('/workspaces')
-
+				this.$router.push('/main/more')
 			},
 			async fetchPortfolios() {
 				let res = await useApi('portfolioLight.get', {
@@ -441,6 +367,12 @@
 					this.pricingPolicies = []
 				}
 			},
+			async fetchUser() {
+				let result = await useApi('user.get')
+				this.username = result.first_name || result.username
+
+				await Preferences.set({ key: 'username', value: this.username})
+			},
 
 			changeDataFrom() {
 
@@ -503,8 +435,6 @@
 			this.processing = true
 
 
-			await this.initializeDarkTheme()
-
 			this.store = useStore()
 			this.store.globalProcessing = true;
 
@@ -523,15 +453,9 @@
 			await this.fetchCurrencies()
 			await this.fetchPortfolios()
 			await this.fetchPolicies()
+			await this.fetchUser()
 
 
-
-
-			let { value } = await Preferences.get({ key: 'activeSpaceCode' })
-			this.workspace = value
-
-			let { value: valUser } = await Preferences.get({ key: 'username' })
-			this.username = valUser
 
 			this.portfoliosWatch = this.$watch(
 				() => this.spaceStore.settings.general.portfolios,

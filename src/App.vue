@@ -1,5 +1,7 @@
 <template>
-	<ion-app>
+	<ion-app >
+
+		<Passcode v-if="showPasscode" @verified="showPasscode = false;"></Passcode>
 
 		<ion-header >
 			<ion-toolbar v-if="isOffline && showOfflineBar" color="danger">
@@ -10,10 +12,11 @@
 			</ion-toolbar>
 		</ion-header>
 
-		<Suspense v-show="!store.globalProcessing">
 
-			<ion-router-outlet id="main-content" />
 
+		<Suspense v-show="!store.globalProcessing && !showPasscode">
+
+			<ion-router-outlet id="main-content" :class="{ 'app-blurred': isBlurred }" />
 
 		</Suspense>
 
@@ -21,6 +24,8 @@
 		<div v-show="store.globalProcessing" class="display-flex align-center justify-center height-100">
 			<progress-circular bg="black" diameter="90"></progress-circular>
 		</div>
+
+
 
 	</ion-app>
 </template>
@@ -33,6 +38,8 @@
 	import { Suspense } from 'vue'
 	import { Network } from '@capacitor/network'
 	import useStore from '@/composables/useStore.js'
+	import { App } from '@capacitor/app';
+	import Passcode from '@/components/Passcode.vue'
 
 	export default {
 		components: {
@@ -41,7 +48,8 @@
 			ProgressCircular,
 			IonRouterOutlet,
 			Suspense,
-			IonApp
+			IonApp,
+			Passcode
 			// settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline
 		},
 
@@ -50,10 +58,14 @@
 				processing: false,
 				showOfflineBar: true,
 				isOffline: false,
-				store: null
+				store: null,
+				isBlurred: false,
+				showPasscode: false,
+				backgroundTimestamp: null
 			}
 		},
 		methods: {
+
 			async initializeDarkTheme() {
 
 				let { value: darkTheme } = await Preferences.get({ key: 'darkTheme' })
@@ -67,19 +79,60 @@
 				} else if (darkTheme === 'false') {
 					isDark = false
 				} else {
-					const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
 
-					if (prefersDark) {
-						isDark = true
+					if (window.matchMedia) {
+						const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
+
+						if (prefersDark.matches) {
+							isDark = true
+						}
 					}
 				}
-				document.body.classList.toggle('dark', isDark)
+
+				if (isDark) {
+					document.body.classList.toggle('dark', isDark)
+				}
 
 			},
 			async updateNetworkStatus() {
 				const status = await Network.getStatus();
 				this.isOffline = !status.connected;
-			}
+			},
+			async verifyPasscode() {
+
+				let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
+				let { value: savedPasscode } = await Preferences.get({ key: 'passcode' })
+
+				if (savedPasscode && tokens) { // only if we logged in and passcode is setted up
+					this.showPasscode = true;
+				}
+			},
+			async handleAppStateChange(state) {
+
+				const currentTimestamp = new Date().getTime();
+
+				// state.isActive will be true if the app is in the foreground
+				if (state.isActive) {
+
+					if (this.backgroundTimestamp) {
+						const timeDifference = currentTimestamp - this.backgroundTimestamp;
+						if (timeDifference >= 60000) { // 1 minute in milliseconds
+							await this.verifyPasscode();
+						}
+					} else {
+						await this.verifyPasscode();
+					}
+
+					this.isBlurred = false;
+
+					// Trigger your Passcode modal here
+				} else {
+
+					this.backgroundTimestamp = currentTimestamp;
+					this.isBlurred = true;
+
+				}
+			},
 		},
 		async created() {
 
@@ -88,7 +141,7 @@
 			let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
 			let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
 
-			this.initializeDarkTheme();
+			await this.initializeDarkTheme();
 
 
 			this.store.globalProcessing = true
@@ -137,6 +190,7 @@
 			} else {
 
 				if (window.location.href.indexOf('state=') !== -1) {
+					this.isBlurred = false;
 
 					console.log('APP_INIT: Probably got redirect from keycloak, trying to parse query parameters')
 
@@ -161,9 +215,14 @@
 
 			this.store.globalProcessing = false
 
+			await this.verifyPasscode();
+
 		},
 		mounted() {
 			this.updateNetworkStatus();
+
+
+			// this.showPasscode = true; // for debug purpose
 
 			Network.addListener('networkStatusChange', (status) => {
 				this.isOffline = !status.connected;
@@ -172,12 +231,27 @@
 					this.showOfflineBar = true;
 				}
 			});
-		}
+
+			App.addListener('appStateChange', this.handleAppStateChange);
+		},
+		beforeUnmount() {
+			// Clean up listeners when component is destroyed
+			App.removeAllListeners();
+		},
 	}
 
 </script>
 
 <style lang="scss">
+
+	body {
+		--background: #000;
+	}
+
+	.app-blurred {
+		filter: blur(1rem);
+		pointer-events: none; /* Prevent interactions while blurred */
+	}
 
 	#main-content {
 		//padding: 12px;
@@ -319,6 +393,13 @@
 		-webkit-user-select: text !important;
 		-moz-user-select: text !important;
 		-ms-user-select: text !important;
+	}
+
+	.black-space-page {
+		--background: #000;
+		background: #000;
+		position: relative;
+		color: #fff;
 	}
 
 </style>

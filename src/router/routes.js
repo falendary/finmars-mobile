@@ -32,6 +32,11 @@ export default [
 		beforeEnter: [auth],
 	},
 	{
+		path: '/setup-passcode',
+		component: () => import('@/views/SetupPasscode.vue'),
+		beforeEnter: [auth],
+	},
+	{
 		path: '/main',
 		component: () => import('@/views/main/Index.vue'),
 		beforeEnter: [auth],
@@ -55,6 +60,10 @@ export default [
 			{
 				path: 'transactions',
 				component: () => import('@/views/main/Transactions.vue'),
+			},
+			{
+				path: 'more',
+				component: () => import('@/views/main/More.vue'),
 			},
 		],
 	},

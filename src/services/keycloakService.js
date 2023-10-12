@@ -76,7 +76,6 @@ export async function initKeycloak() {
 		})
 	}
 
-	console.log("HEREE??????")
 
 	// debugger;
 

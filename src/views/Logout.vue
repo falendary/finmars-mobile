@@ -24,6 +24,7 @@
 	await Preferences.remove({ key: 'region' })
 	await Preferences.remove({ key: 'activeSpaceCode' })
 	await Preferences.remove({ key: 'activeSpaceName' })
+	await Preferences.remove({ key: 'passcode' })
 
 	await logoutKeycloak()
 
