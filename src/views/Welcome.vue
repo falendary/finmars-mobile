@@ -1,10 +1,10 @@
 <template>
 	<ion-page>
-		<ion-content class='ion-padding welcome-page'>
+		<ion-content class="ion-padding welcome-page">
 
 			<vue-particles
-				id='tsparticles'
-				:particlesInit='particlesInit'
+				id="tsparticles"
+				:particlesInit="particlesInit"
 				:options="{
 									fpsLimit: 120,
 
@@ -33,92 +33,70 @@
 			/>
 
 
-			<div class='welcome-page-container center aic' style='height: 100%'>
-				<div style='width: 90%'>
-					<h1 class='tac'>Welcome to Finmars</h1>
+			<div class="welcome-page-container center aic" style="height: 100%">
+				<div style="width: 90%">
+					<h1 class="tac">Welcome to Finmars</h1>
 
 					<ion-select
-						v-model='region'
-						label='Region'
-						placeholder='Choose region'
+						v-model="region"
+						label="Region"
+						placeholder="Choose region"
 					>
-						<ion-select-option v-for='item in publicRegions' :value='item.id' :disabled='!item.active'>
+						<ion-select-option v-for="item in regions" :value="item.id" :disabled="!item.active">
 							{{ item.name }}
 						</ion-select-option>
 					</ion-select>
 
 					<div v-if='region == "custom"'>
 
-						<div v-if='!customRegionIsAdvancedMode'>
+						<div class="finmars-black-input-container">
 
-							<div class='finmars-black-input-container'>
-
-								<label for=''>Region Code</label>
-								<input class='finmars-black-input' type='text' v-model='customRegionId'>
-
-							</div>
+							<label for="">Name</label>
+							<input class="finmars-black-input" type="text" v-model="customRegion.name">
 
 						</div>
 
-						<ion-button size='small' @click='customRegionIsAdvancedMode = !customRegionIsAdvancedMode'>
-							<span v-if='!customRegionIsAdvancedMode'>Toggle to Advanced</span>
-							<span v-if='customRegionIsAdvancedMode'>Toggle to Simple</span>
-						</ion-button>
+						<div class="finmars-black-input-container">
 
-						<div v-if='customRegionIsAdvancedMode'>
+							<label for="">Domain</label>
+							<input class="finmars-black-input" type="text" v-model="customRegion.domain">
 
-							<div class='finmars-black-input-container'>
+						</div>
 
-								<label for=''>Name</label>
-								<input class='finmars-black-input' type='text' v-model='customRegion.name'>
+						<div class="finmars-black-input-container">
 
-							</div>
+							<label for="">URL*</label>
+							<input class="finmars-black-input" type="text" v-model="customRegion.keycloakOpts.url">
 
-							<div class='finmars-black-input-container'>
+						</div>
 
-								<label for=''>Domain</label>
-								<input class='finmars-black-input' type='text' v-model='customRegion.domain'>
+						<div class="finmars-black-input-container">
 
-							</div>
+							<label for="">Realm*</label>
+							<input class="finmars-black-input" type="text" v-model="customRegion.keycloakOpts.realm">
 
-							<div class='finmars-black-input-container'>
+						</div>
 
-								<label for=''>URL*</label>
-								<input class='finmars-black-input' type='text' v-model='customRegion.keycloakOpts.url'>
+						<div class="finmars-black-input-container">
 
-							</div>
-
-							<div class='finmars-black-input-container'>
-
-								<label for=''>Realm*</label>
-								<input class='finmars-black-input' type='text' v-model='customRegion.keycloakOpts.realm'>
-
-							</div>
-
-							<div class='finmars-black-input-container'>
-
-								<label for=''>Client ID*</label>
-								<input class='finmars-black-input' type='text' v-model='customRegion.keycloakOpts.clientId'>
-
-							</div>
-
+							<label for="">Client ID*</label>
+							<input class="finmars-black-input" type="text" v-model="customRegion.keycloakOpts.clientId">
 
 						</div>
 
 					</div>
 
-					<div v-if="errorMessage" class='text-center text-error text-fs-small'>{{ errorMessage }} </div>
+					<div v-if="errorMessage" class="text-center text-error text-fs-small">{{ errorMessage }}</div>
 
 
-					<IonButton expand='full' @click='login()'>LOGIN</IonButton>
-
+					<IonButton expand="full" @click="login()">LOGIN</IonButton>
 
 
 				</div>
 
-				<div class='finmars-main-copyright'><span class='finmars-main-copyright-text'>Copyright ©</span> <span
-					class='finmars-main-copyright-text current-year'>{{ currentYear }}</span> <a href='https://finmars.com'
-																																											 class='finmars-site-link'>Finmars
+				<div class="finmars-main-copyright"><span class="finmars-main-copyright-text">Copyright ©</span> <span
+					class="finmars-main-copyright-text current-year">{{ currentYear }}</span> <a href="https://finmars.com"
+																																											 class="finmars-site-link">Finmars
 					SCSA</a></div>
 
 
@@ -129,7 +107,6 @@
 
 <script>
 	import { IonButton, IonContent, IonPage, IonSelect, IonSelectOption } from '@ionic/vue'
-	import { ref } from 'vue'
 	import { Preferences } from '@capacitor/preferences'
 	import '../keycloak.js'
 	import { useRouter } from 'vue-router'
@@ -144,11 +121,12 @@
 		data() {
 			return {
 				currentYear: new Date().getFullYear(),
-				customRegionId: '',
 				customRegionIsAdvancedMode: false,
 				errorMessage: '',
 				customRegion: {
 					id: 'custom',
+					isCustom: true,
+					active: true,
 					name: 'Custom',
 					domain: 'https://finmars.com',
 					keycloakOpts: {
@@ -163,7 +141,6 @@
 						name: 'Europe (eu-central)',
 						domain: 'https://finmars.com',
 						active: true,
-						visible: true,
 						keycloakOpts: {
 							url: 'https://eu-central.finmars.com',
 							realm: 'finmars',
@@ -175,45 +152,13 @@
 						name: 'Switzerland (eu-central-2)',
 						domain: 'https://eu-central-2.finmars.com',
 						active: false,
-						visible: true,
 						keycloakOpts: {
 							url: 'https://eu-central-2.finmars.com',
 							realm: 'finmars',
 							clientId: 'finmars'
 						}
-					},
-					{
-						id: 'stage',
-						name: 'RC (stage)',
-						domain: 'https://stage.finmars.com',
-						visible: false,
-						active: true,
-						keycloakOpts: {
-							url: 'https://stage-auth.finmars.com',
-							realm: 'finmars',
-							clientId: 'finmars'
-						}
-					},
-					{
-						id: 'dev',
-						name: 'Development (dev)',
-						domain: 'https://dev.finmars.com',
-						visible: false,
-						active: true,
-						keycloakOpts: {
-							url: 'https://dev-auth.finmars.com',
-							realm: 'finmars',
-							clientId: 'finmars'
-						}
-					},
-					{
-						id: 'custom',
-						name: 'Custom',
-						active: true,
-						visible: true,
 					}
 				],
-				publicRegions: [],
 				router: useRouter(),
 				region: 'eu-central'
 			}
@@ -222,33 +167,35 @@
 
 			async login() {
 
-				this.errorMessage = '';
+				this.errorMessage = ''
 
 
-				let regionObj;
+				let regionObj
 
-				if (this.region != 'custom') {
+				if (this.region !== 'custom') {
 
-					regionObj = this.regions.find((o) => o.id == this.region)
+					regionObj = this.regions.find((o) => o.id === this.region)
 
 				} else {
 
-					if (this.customRegionIsAdvancedMode) {
+					regionObj = Object.assign({}, this.customRegion)
 
-						regionObj = Object.assign({}, this.customRegion)
+					regionObj.id = regionObj.name + '_' + new Date().toISOString()
 
-					} else {
+					let custom_regions = this.regions.filter((item) => {
+						return item.isCustom
+					})
 
-						regionObj = this.regions.find((o) => o.id == this.customRegionId)
+					custom_regions.push(regionObj)
 
-					}
+					await Preferences.set({ key: 'custom_regions', value: JSON.stringify(custom_regions) })
 
 				}
 
-				console.log('welcome.login.region.value', this.region);
-				console.log('welcome.login.customRegionId', this.customRegionId);
-				console.log('welcome.login.customRegion', this.customRegion);
-				console.log('welcome.login.regionObj', regionObj);
+				console.log('welcome.login.region.value', this.region)
+				console.log('welcome.login.customRegion', this.customRegion)
+				console.log('welcome.login.regionObj', regionObj)
+
 
 				if (regionObj) {
 
@@ -271,16 +218,30 @@
 		},
 		async created() {
 
-			this.publicRegions = this.regions.filter((item) => {
-				return item.visible
+			let custom_regions = await Preferences.get({ key: 'custom_regions' })
+
+			console.log('custom_regions', custom_regions)
+
+			if (custom_regions && custom_regions.value) {
+				var custom_regions_objects = JSON.parse(custom_regions.value)
+				if (custom_regions_objects) {
+					this.regions = this.regions.concat(custom_regions_objects)
+				}
+			}
+
+			this.regions.push({
+				id: 'custom',
+				name: 'Add New Region',
+				active: true
 			})
+
 		}
 
 	}
 
 </script>
 
-<style lang='scss'>
+<style lang="scss">
 	ion-button {
 		margin-top: 20px;
 	}

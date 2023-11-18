@@ -54,6 +54,15 @@
 			</ion-button>
 
 			<ion-button
+				class="ion-margin-horizontal"
+				fill="outline"
+				expand="block"
+				@click="clearRegions()"
+			>
+				CLEAR REGIONS
+			</ion-button>
+
+			<ion-button style="margin-top: 8rem; margin-bottom: 4rem;"
 				class="ion-margin-horizontal logout"
 				fill="outline"
 				expand="block"
@@ -68,6 +77,7 @@
 
 <script>
 	import {
+		alertController,
 		IonButton,
 		IonDatetime,
 		IonDatetimeButton,
@@ -94,7 +104,7 @@
 			IonPage,
 			IonToolbar,
 			IonModal, IonDatetimeButton, IonDatetime,
-			ComplexTransactionList
+			ComplexTransactionList,
 		},
 		data() {
 			return {
@@ -135,6 +145,22 @@
 			async recovery() {
 
 				this.$router.push('/recovery')
+			},
+
+			async clearRegions() {
+
+				console.log("clearRegions?", alertController)
+
+				await Preferences.remove({ key: 'custom_regions'})
+
+				const alert = await alertController.create({
+					header: 'Custom Regions are cleared',
+					message: 'On next login you will see only default regions',
+					buttons: ['Ok'],
+				});
+
+				await alert.present()
+
 			},
 			changeSpace() {
 				this.$router.replace('/workspaces')
