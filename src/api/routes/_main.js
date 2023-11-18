@@ -75,9 +75,6 @@ export default {
 	widgetsStats: {
 		get: prefix + '/widgets/stats/'
 	},
-	mobileLayout: {
-		get: prefix + '/ui/mobile-layout/'
-	},
 	pricingPolicies: {
 		get: prefix + '/instruments/pricing-policy/'
 	}

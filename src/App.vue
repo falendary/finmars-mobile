@@ -343,7 +343,8 @@
 
 		--dot-size: 1px;
 		--dot-space: 22px;
-		--background: var(--ion-content-background), linear-gradient(90deg, var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center / var(--dot-space) var(--dot-space), linear-gradient(var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center / var(--dot-space) var(--dot-space), var(--dot-color);
+		//--background: var(--ion-content-background), linear-gradient(90deg, var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center / var(--dot-space) var(--dot-space), linear-gradient(var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center / var(--dot-space) var(--dot-space), var(--dot-color);
+		--background: var(--ion-content-background);
 	}
 
 	ion-modal ion-content {
@@ -400,5 +401,6 @@
 		position: relative;
 		color: #fff;
 	}
+
 
 </style>

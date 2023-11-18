@@ -38,6 +38,8 @@
 	import { useRouter } from 'vue-router'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
 	import useStore from '@/composables/useStore.js'
+	import formbricks from "@/services/formbricks";
+	import initFormbricks from '@/services/formbricks'
 
 	const router = useRouter()
 	const workspaces = ref([])
@@ -46,6 +48,13 @@
 	const processing = ref(false)
 
 	init()
+
+	async function fetchUser() {
+		let result = await useApi('user.get')
+		return result
+	}
+
+
 
 	async function init() {
 
@@ -65,6 +74,26 @@
 		}
 
 		workspaces.value = results
+
+		const user = await fetchUser()
+
+		await initFormbricks(user);
+
+
+		await Preferences.remove({
+			key: 'activeSpaceCode',
+		})
+
+		await Preferences.remove({
+			key: 'activeSpaceName',
+		})
+
+		let store = useStore()
+		store.activeSpace = null
+		store.activeSpaceName = null
+		store.activeSpaceCode = null
+
+
 	}
 
 	async function setWorkspace() {

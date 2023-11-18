@@ -174,14 +174,7 @@ export default {
 		this.route = useRoute()
 		this.router = useRouter()
 
-		console.log('GrandNav.store', this.store);
-		console.log('GrandNav.store.spaces', this.store.spaces);
-		console.log('GrandNav.store.activeSpaceCode', this.store.activeSpaceCode);
-
-
-		this.spaceStore = computed(() => this.store.spaces[this.store.activeSpaceCode]);
-
-		console.log('GrandNav.spaceStore', this.spaceStore.portfolioList)
+		this.spaceStore = this.store.activeSpaceStore
 
 		this.$emit('refresher', this.refresh)
 

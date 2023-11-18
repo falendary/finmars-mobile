@@ -68,13 +68,13 @@
 
 			<div class="portfolio-content">
 
-				<IndicatorsComp
-					:portfolioId="[$route.query.tab]"
-					:currency="spaceStore.settings.general.currency"
-					:pricing_policy="spaceStore.settings.general.pricing_policy"
-					:date="spaceStore.settings.general.date_to"
-					@refresher="indicatorsRefresher = $event"
-				/>
+<!--				<IndicatorsComp-->
+<!--					:portfolioId="[$route.query.tab]"-->
+<!--					:currency="spaceStore.settings.general.currency"-->
+<!--					:pricing_policy="spaceStore.settings.general.pricing_policy"-->
+<!--					:date="spaceStore.settings.general.date_to"-->
+<!--					@refresher="indicatorsRefresher = $event"-->
+<!--				/>-->
 
 				<!--			Pie Chart below-->
 
@@ -749,7 +749,7 @@
 			},
 
 			portfolio() {
-				return this.spaceStore.portfolioList.find((o) => o.user_code == this.$route.query.tab)
+				return this.spaceStore.portfolios.find((o) => o.user_code == this.$route.query.tab)
 			}
 		},
 		methods: {
@@ -1175,10 +1175,10 @@
 				if (event) event.target.complete()
 			}
 		},
-		created() {
+		async created() {
 
 			this.store = useStore()
-			this.spaceStore = computed(() => this.store.spaces[this.store.activeSpaceCode])
+			this.spaceStore = this.store.activeSpaceStore
 
 		},
 		async mounted() {
@@ -1191,7 +1191,7 @@
 			if (this.$route.query.tab) {
 				this.init()
 			} else {
-				this.$router.push({ query: { tab: this.spaceStore.portfolioList[0].user_code } })
+				this.$router.push({ query: { tab: this.spaceStore.settings.general.portfolios[0] } })
 			}
 
 			watch(

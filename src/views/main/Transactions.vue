@@ -122,10 +122,10 @@
 
 			}
 		},
-		created() {
+		async created() {
 
 			this.store = useStore()
-			this.spaceStore = computed(() => this.store.spaces[this.store.activeSpaceCode])
+			this.spaceStore = this.store.activeSpaceStore
 
 
 		},

@@ -137,7 +137,7 @@
 				this.$router.push('/recovery')
 			},
 			changeSpace() {
-				this.$router.push('/workspaces')
+				this.$router.replace('/workspaces')
 
 			},
 
@@ -145,7 +145,7 @@
 		async created() {
 
 			this.store = useStore()
-			this.spaceStore = computed(() => this.store.spaces[this.store.activeSpaceCode])
+			this.spaceStore = this.store.activeSpaceStore
 
 			let { value } = await Preferences.get({ key: 'activeSpaceCode' })
 			this.workspace = value

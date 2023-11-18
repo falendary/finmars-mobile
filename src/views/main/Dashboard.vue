@@ -1,5 +1,5 @@
 <template>
-	<ion-page>
+	<ion-page v-if="spaceStore">
 
 		<ion-header>
 			<ion-toolbar class="app-header">
@@ -89,7 +89,7 @@
 				</div>
 
 				<Indicators
-					:portfolioId="spaceStore.data.portfolios.map(item => item.user_code)"
+					:portfolioId="spaceStore.settings.general.portfolios"
 					:currency="spaceStore.settings.general.currency"
 					:pricing_policy="spaceStore.settings.general.pricing_policy"
 					:date="spaceStore.settings.general.date_to"
@@ -98,10 +98,10 @@
 
 				<div class="header">Portfolios</div>
 
-				<div class="portfolios" v-if="spaceStore.data.portfolios?.length">
+				<div class="portfolios" v-if="portfolios.length">
 					<div
 						class="portfolios_item"
-						v-for="item in spaceStore.data.portfolios"
+						v-for="item in portfolios"
 						v-bind:key="item.id"
 						@click="$router.push('/main/balance?tab=' + item.user_code)"
 					>
@@ -306,27 +306,30 @@
 				// TODO Consider refactor here
 				// Some weird logic that I do not like
 
-				this.spaceStore.data.portfolios = this.spaceStore.settings.general.portfolios.map((o, k) => {
+				console.log('DASHBOARD_CONTROLLER: fetchPortfolios', this.spaceStore.settings.general.portfolios);
+
+				this.portfolios = this.spaceStore.settings.general.portfolios.map((o, k) => {
 
 					useApi('reportsSummary.get', {
 						filters: {
 							portfolios: o,
+							pricing_policy: this.spaceStore.settings.general.pricing_policy,
 							currency: this.spaceStore.settings.general.currency,
 							date_to: this.spaceStore.settings.general.date_to,
 							date_from: this.spaceStore.settings.general.date_from
 						}
 					}).then((stats) => {
 						if (stats.error) {
-							this.spaceStore.data.portfolios[k].nav = '--'
-							this.spaceStore.data.portfolios[k].pl_range = '--'
-							this.spaceStore.data.portfolios[k].change.price = '--'
-							this.spaceStore.data.portfolios[k].change.percent = '--'
+							this.portfolios[k].nav = '--'
+							this.portfolios[k].pl_range = '--'
+							this.portfolios[k].change.price = '--'
+							this.portfolios[k].change.percent = '--'
 						}
 
-						this.spaceStore.data.portfolios[k].nav = stats.total.nav
-						this.spaceStore.data.portfolios[k].pl_range = stats.total.pl_range
-						this.spaceStore.data.portfolios[k].change.price = stats.total.pl_daily
-						this.spaceStore.data.portfolios[k].change.percent =
+						this.portfolios[k].nav = stats.total.nav
+						this.portfolios[k].pl_range = stats.total.pl_range
+						this.portfolios[k].change.price = stats.total.pl_daily
+						this.portfolios[k].change.percent =
 							Math.round(stats.performance.daily.grand_return * 100) / 100
 					})
 
@@ -343,7 +346,7 @@
 					}
 				})
 
-				console.log('this.spaceStore.data.portfolios', this.spaceStore.data.portfolios);
+				console.log('this.portfolios', this.portfolios);
 
 			},
 
@@ -353,19 +356,20 @@
 			}
 
 		},
-		created() {
+		async created() {
+
+			console.log('DASHBOARD_CONTROLLER: created')
 
 			this.store = useStore()
-			this.spaceStore = computed(() => this.store.spaces[this.store.activeSpaceCode])
+			this.spaceStore = this.store.activeSpaceStore
 
-			this.fetchUser()
+			console.log('DASHBOARD_CONTROLLER: this.spaceStore', this.spaceStore);
 
-			console.log('DASHBOARD_CONTROLLER: storeIsReady change')
+			await this.fetchUser()
 
 			this.init()
-			this.storeIsReady = true
 
-			watch([this.spaceStore.settings.dashboard, this.spaceStore.settings.general], () => {
+			watch([this.spaceStore.settings.general], () => {
 				this.transactionsOpts.end_date = this.spaceStore.settings.general.date_to
 				this.transactionsOpts.begin_date = dayjs(this.spaceStore.settings.general.date_to)
 					.add(-1, 'month')
@@ -386,7 +390,7 @@
 
 		},
 		mounted() {
-
+			console.log('DASHBOARD_CONTROLLER: mounted')
 		}
 	}
 

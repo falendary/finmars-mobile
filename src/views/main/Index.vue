@@ -75,23 +75,6 @@
 
 			<ion-content>
 				<ion-list lines="full">
-<!--					<ion-item>-->
-<!--						<ion-select-->
-<!--							v-model="spaceStore.settings.general.period"-->
-<!--							:label="`Period [${dayjs(spaceStore.settings.general.date_from).format(-->
-<!--								'DD MMM YYYY'-->
-<!--							)}]`"-->
-<!--							placeholder="Period"-->
-<!--							@ionChange="changeDataFrom"-->
-<!--						>-->
-<!--							<ion-select-option value="inception">-->
-<!--								Inception-->
-<!--							</ion-select-option>-->
-<!--							<ion-select-option value="ytd"> YTD</ion-select-option>-->
-<!--							<ion-select-option value="qtd"> QTD</ion-select-option>-->
-<!--							<ion-select-option value="mtd"> MTD</ion-select-option>-->
-<!--						</ion-select>-->
-<!--					</ion-item>-->
 
 					<ion-item v-if="spaceStore.settings.general.date_to">
 						<ion-label
@@ -115,14 +98,14 @@
 						<ion-datetime-button datetime="datetime_date_to" />
 					</ion-item>
 
-					<ion-item v-if="pricingPolicies?.length">
+					<ion-item v-if="spaceStore.pricingPolicies?.length">
 						<ion-select
 							v-model="spaceStore.settings.general.pricing_policy"
 							label="Pricing policy"
 							placeholder="Policy"
 						>
 							<ion-select-option
-								v-for="item in pricingPolicies"
+								v-for="item in spaceStore.pricingPolicies"
 								:value="item.user_code"
 							>
 								{{ item.short_name }}
@@ -130,14 +113,14 @@
 						</ion-select>
 					</ion-item>
 
-					<ion-item v-if="currencies?.length">
+					<ion-item v-if="spaceStore.currencies?.length">
 						<ion-select
 							v-model="spaceStore.settings.general.currency"
 							label="Reporting currency"
 							placeholder="Currency"
 						>
 							<ion-select-option
-								v-for="item in currencies"
+								v-for="item in spaceStore.currencies"
 								:value="item.user_code"
 							>
 								{{ item.short_name }}
@@ -153,7 +136,7 @@
 							:multiple="true"
 						>
 							<ion-select-option
-								v-for="item in spaceStore.portfolioListStock"
+								v-for="item in spaceStore.portfolios"
 								:value="item.user_code"
 							>
 								{{ item.name }}
@@ -279,99 +262,6 @@
 				this.isOpen = false
 				this.$router.push('/main/more')
 			},
-			async fetchPortfolios() {
-				let res = await useApi('portfolioLight.get', {
-					filters: {
-						page_size: '1000'
-					}
-				})
-
-				this.spaceStore.settings.general.portfoliosObjects = res.results;
-
-				if (res && !res.error) {
-					this.spaceStore.portfolioListStock = res.results.map((o) => {
-						return {
-							id: o.id,
-							name: o.name,
-							user_code: o.user_code,
-							price: '-',
-							change: {
-								price: '-',
-								percent: '-'
-							}
-						}
-					})
-
-					console.log('fetchPortfolios.spaceStore.settings.general.portfolios', this.spaceStore.settings.general.portfolios);
-
-					if (!this.spaceStore.settings.general.portfolios.length) {
-						res.results.forEach((item) => {
-
-							if (this.spaceStore.settings.general.portfolios.length < 5) {
-								if (item.first_transaction.date) {
-									this.spaceStore.settings.general.portfolios.push(item.user_code);
-								}
-							}
-
-						})
-					}
-
-
-					 if (this.spaceStore.settings.general.portfolios?.length) {
-						 this.spaceStore.portfolioList = this.spaceStore.portfolioListStock.filter((o) =>
-							 this.spaceStore.settings.general.portfolios.includes(o.user_code))
-					 } else {
-						 this.spaceStore.portfolioList = this.spaceStore.portfolioListStock
-					 }
-
-
-
-
-
-				} else {
-					this.spaceStore.portfolioListStock = []
-					this.spaceStore.portfolioList = []
-				}
-
-				console.log('fetchPortfolios.spaceStore', this.spaceStore)
-
-			},
-
-			async fetchCurrencies() {
-				let res = await useApi('currencyLight.get')
-
-				if (res && !res.error) {
-					this.currencies = res.results
-				} else {
-					this.currencies.value = []
-				}
-
-				this.store.spaces[this.store.activeSpaceCode].currencies = this.currencies
-			},
-
-			async fetchPolicies() {
-				let res = await useApi('pricingPolicies.get')
-
-				if (res && !res.error) {
-					this.pricingPolicies = res.results
-
-					if (!this.spaceStore.settings.general.pricing_policy) {
-						this.spaceStore.settings.general.pricing_policy = res.results[0].user_code
-					}
-
-					console.log('this.spaceStore.settings.general.pricing_policy', this.spaceStore.settings.general.pricing_policy)
-
-				} else {
-					this.pricingPolicies = []
-				}
-			},
-			async fetchUser() {
-				let result = await useApi('user.get')
-				this.username = result.first_name || result.username
-
-				await Preferences.set({ key: 'username', value: this.username})
-			},
-
 			changeDataFrom() {
 
 				console.log('changeDataFrom');
@@ -434,11 +324,9 @@
 
 			this.store = useStore()
 			this.store.globalProcessing = true;
-			this.spaceStore = await this.store.getActiveSpaceStore()
+			await this.store.initSpaceStore();
 
-			console.log("IndexController.activeSpaceCode", this.store.activeSpaceCode)
-
-
+			this.spaceStore = this.store.activeSpaceStore
 
 			console.log('Index.spaceStore', this.spaceStore)
 			console.log('Index.store.activeSpaceCode', this.store.activeSpaceCode)
@@ -447,21 +335,6 @@
 			let result = this.adjustDates(this.spaceStore.settings.general.date_to, this.spaceStore.settings.general.date_from)
 
 			this.spaceStore.settings.general.date_from = result.date_from;
-
-			await this.fetchCurrencies()
-			await this.fetchPortfolios()
-			await this.fetchPolicies()
-			await this.fetchUser()
-
-
-			this.portfoliosWatch = this.$watch(
-				() => this.spaceStore.settings.general.portfolios,
-				() => {
-					this.spaceStore.portfolioList = this.spaceStore.portfolioListStock.filter((o) =>
-						this.spaceStore.settings.general.portfolios.includes(o.user_code)
-					)
-				}
-			)
 
 			this.dateToWatch = this.$watch(
 				() => this.spaceStore.settings.general.date_to,
