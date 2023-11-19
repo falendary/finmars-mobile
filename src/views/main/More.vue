@@ -171,7 +171,7 @@
 		async created() {
 
 			this.store = useStore()
-			this.spaceStore = this.store.activeSpaceStore
+			this.spaceStore = computed(() => this.store.getActiveSpaceStore());
 
 			let { value } = await Preferences.get({ key: 'activeSpaceCode' })
 			this.workspace = value

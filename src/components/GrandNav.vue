@@ -174,7 +174,7 @@ export default {
 		this.route = useRoute()
 		this.router = useRouter()
 
-		this.spaceStore = this.store.activeSpaceStore
+		this.spaceStore = computed(() => this.store.getActiveSpaceStore());
 
 		this.$emit('refresher', this.refresh)
 

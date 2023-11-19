@@ -10,15 +10,17 @@ export default defineStore('store', {
 			member: null,
 			activeSpaceCode: null,
 			globalProcessing: false,
-			spaces: {}
+			activeSpace: null,
+			activeSpaceStore: null
 		}
 	},
 	getters: {
-		activeSpaceStore(state) {
-			return state.spaces[state.activeSpaceCode]
-		}
+
 	},
 	actions: {
+		getActiveSpaceStore() {
+			return this.activeSpaceStore
+		},
 		async fetchPortfolios() {
 			let res = await useApi('portfolioLight.get', {
 				filters: {
@@ -26,34 +28,16 @@ export default defineStore('store', {
 				}
 			})
 
-			this.spaces[this.activeSpaceCode].portfolios = res.results;
-
-			if (res && !res.error) {
-
-				if (!this.spaces[this.activeSpaceCode].settings.general.portfolios.length) {
-					res.results.forEach((item) => {
-
-						if (this.spaces[this.activeSpaceCode].settings.general.portfolios.length < 5) {
-							if (item.first_transaction.date) {
-								this.spaces[this.activeSpaceCode].settings.general.portfolios.push(item.user_code);
-							}
-						}
-
-					})
-				}
-
-			} else {
-				this.spaces[this.activeSpaceCode].portfolios = []
-			}
+			this.activeSpaceStore.portfolios = res.results
 
 		},
 		async fetchCurrencies() {
 			let res = await useApi('currencyLight.get')
 
 			if (res && !res.error) {
-				this.spaces[this.activeSpaceCode].currencies = res.results
+				this.activeSpaceStore.currencies = res.results
 			} else {
-				this.spaces[this.activeSpaceCode].currencies = []
+				this.activeSpaceStore.currencies = []
 			}
 
 		},
@@ -62,14 +46,14 @@ export default defineStore('store', {
 			let res = await useApi('pricingPolicies.get')
 
 			if (res && !res.error) {
-				this.spaces[this.activeSpaceCode].pricingPolicies = res.results
+				this.activeSpaceStore.pricingPolicies = res.results
 
-				if (!this.spaces[this.activeSpaceCode].settings.general.pricing_policy) {
-					this.spaces[this.activeSpaceCode].settings.general.pricing_policy = res.results[0].user_code
+				if (!this.activeSpaceStore.settings.general.pricing_policy) {
+					this.activeSpaceStore.settings.general.pricing_policy = res.results[0].user_code
 				}
 
 			} else {
-				this.spaces[this.activeSpaceCode].pricingPolicies = []
+				this.activeSpaceStore.pricingPolicies = []
 			}
 
 		},
@@ -77,33 +61,42 @@ export default defineStore('store', {
 			let result = await useApi('user.get')
 			this.username = result.first_name || result.username
 
-			await Preferences.set({ key: 'username', value: this.username})
+			await Preferences.set({ key: 'username', value: this.username })
 		},
 		async initSpaceStore() {
 
-			console.log('initSpaceStore')
+			console.log('STORE: initSpaceStore')
 
 			let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
 			let { value: activeSpaceName } = await Preferences.get({ key: 'activeSpaceName' })
 
-			console.log('initSpaceStore.activeSpaceCode', activeSpaceCode)
+			console.log('STORE: initSpaceStore.activeSpaceCode', activeSpaceCode)
 
 			this.activeSpaceCode = activeSpaceCode
 			this.activeSpaceName = activeSpaceName
 
-			if (this.spaces[this.activeSpaceCode]) {
-				// seems already inited, skip
-				console.log("STORE: already exists", activeSpaceCode);
-				return
-			}
+			// TODO WTF
+			// Some shitty code in that vue router, framework
+			// seems that IndexComponent start by router before everything
+			// then keycloak interrupt this, checks login, after it redirects back,
+			// but because has been created .activeSpaceStore, but not finished (settings from device is not applied)
+			// we can see a bug where or portfolios is []
 
-			console.log("STORE: Creating new space store", activeSpaceCode);
+
+			// if (this.activeSpaceStore) {
+			// 	// seems already inited, skip
+			// 	console.log('STORE: already exists', activeSpaceCode)
+			// 	return
+			// }
+
+			console.log('STORE: Creating new space store', activeSpaceCode)
 
 			let date_from = dayjs().add(-3, 'month').format('YYYY-MM-DD')
 			let date_to = dayjs().add(-1, 'day').format('YYYY-MM-DD')
 			let currency = 'USD' // TODO consider to take default from backend
 
-			this.spaces[this.activeSpaceCode] = {
+
+			this.activeSpaceStore = {
 				portfolios: [],
 				currencies: [],
 				pricingPolicies: [],
@@ -128,7 +121,7 @@ export default defineStore('store', {
 						sumByKey: 'total',
 						consolidateAccounts: true
 					}
-				},
+				}
 			}
 
 			await this.fetchCurrencies()
@@ -141,32 +134,45 @@ export default defineStore('store', {
 
 			if (value) {
 
-				console.log("STORE: found settings in device storage. Applying...")
+				console.log('STORE: found settings in device storage. Applying...')
 
 				let settingsFromDevice = JSON.parse(value)
 
 				for (let prop in settingsFromDevice) {
-					this.spaces[this.activeSpaceCode].settings[prop] = settingsFromDevice[prop]
+					this.activeSpaceStore.settings[prop] = settingsFromDevice[prop]
 				}
 
 			}
 
-			watch(this.spaces[this.activeSpaceCode].settings, (newVal) => {
+			if (!this.activeSpaceStore.settings.general.portfolios.length) {
+				this.activeSpaceStore.portfolios.forEach((item) => {
 
-				console.log("STORE: settings changed")
+					if (this.activeSpaceStore.settings.general.portfolios.length < 5) {
+						if (item.first_transaction.date) {
+							this.activeSpaceStore.settings.general.portfolios.push(item.user_code)
+						}
+					}
+
+				})
+			}
+
+			watch(this.activeSpaceStore.settings, (newVal) => {
+
+				console.log('STORE: settings changed')
 
 				Preferences.set({ key: this.activeSpaceCode + '_settings', value: JSON.stringify(newVal) })
-			})
+			}, { deep: true })
 
-
+			console.log('STORE: initSpaceStore.done')
 
 		},
 		async clear() {
-			this.spaces = {}
-			this.activeSpaceCode = null
-			this.activeSpaceName = null
-			this.member = null
-			this.globalProcessing = false
+			this.activeSpaceStore = null;
+			this.activeSpace = null;
+			this.activeSpaceCode = null;
+			this.activeSpaceName = null;
+			this.member = null;
+			this.globalProcessing = false;
 		}
 	}
 })

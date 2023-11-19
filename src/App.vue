@@ -156,9 +156,11 @@
 
 					if (activeSpaceCode) {
 
+
+
 						console.log("APP_INIT: has activeSpaceCode. redirect to dashboard")
 
-						this.$router.push('/main/dashboard');
+						this.$router.replace('/main/dashboard');
 						// if (this.$router.currentRoute.path === '/login') {
 						// 	console.log("APP_INIT: On login page. Redirecting to dashboard");
 						// 	this.$router.push('/main/dashboard');
@@ -170,7 +172,7 @@
 
 						console.log("APP_INIT: has activeSpaceCode. redirect to workspaces")
 
-						this.$router.push('/workspaces')
+						this.$router.replace('/workspaces')
 					}
 
 					console.log('this.store.globalProcessing', this.store.globalProcessing);
@@ -181,7 +183,7 @@
 
 					await Preferences.remove({ key: 'kcTokens' })
 
-					this.$router.push('/welcome')
+					this.$router.replace('/welcome')
 
 				}
 
@@ -197,15 +199,15 @@
 					await initKeycloak()
 					this.store.globalProcessing = false
 					if (activeSpaceCode) {
-						this.$router.push('/main/dashboard')
+						this.$router.replace('/main/dashboard')
 					} else {
-						this.$router.push('/workspaces')
+						this.$router.replace('/workspaces')
 					}
 				} else {
 
 					console.log('APP_INIT: Nothing, its first open, wait until user select region. Keycloak IS NOT INITED')
 
-					this.$router.push('/welcome')
+					this.$router.replace('/welcome')
 
 				}
 

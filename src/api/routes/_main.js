@@ -61,14 +61,6 @@ export default {
 	transactionUserField: {
 		get: prefix + '/ui/complex-transaction-user-field/primary/'
 	},
-
-	// Надо отделить
-	reportsSummary: {
-		get: prefix + '/reports/summary/'
-	},
-	reportsSummaryPortfolios: {
-		get: prefix + '/reports/summary/portfolios/'
-	},
 	widgetsHistory: {
 		get: prefix + '/widgets/history/{type}/'
 	},

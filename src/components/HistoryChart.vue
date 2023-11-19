@@ -503,7 +503,7 @@
 		async created() {
 
 			this.store = useStore()
-			this.spaceStore = this.store.activeSpaceStore
+			this.spaceStore = computed(() => this.store.getActiveSpaceStore());
 
 			this.$emit('refresher', this.refresh)
 

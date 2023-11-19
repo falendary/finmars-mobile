@@ -1,5 +1,5 @@
 <template>
-	<ion-page v-if="spaceStore">
+	<ion-page>
 
 		<ion-header>
 			<ion-toolbar class="app-header">
@@ -47,142 +47,148 @@
 				<ion-refresher-content />
 			</ion-refresher>
 
-			<div class="welcome-block">
-				Welcome Back, {{ username }}
+			<div v-if="spaceStore.settings.general.portfolios.length">
+
+				<div class="welcome-block">
+					Welcome Back, {{ username }}
+				</div>
+
+				<div class="dashboard-content">
+
+					<div class="header">Grand Total</div>
+
+					<grand-nav @refresher="grandNavRefresher = $event"></grand-nav>
+
+					<!--				<div class="header flex sb aic">-->
+					<!--					<div>All Portfolios</div>-->
+					<!--					<div class="header_info">-->
+					<!--						{{ dayjs(spaceStore.settings.general.date_to).format('DD MMM YYYY') }}-->
+					<!--					</div>-->
+					<!--				</div>-->
+
+					<div
+						class="main_chart"
+						v-if="store.layout?.dashboard?.isShowHistoryChart"
+					>
+						<div class="main_chart_h">Net Asset Value (NAV)</div>
+						<div class="main_chart_price">
+							- {{ spaceStore.settings.general.currency }}
+						</div>
+
+						<div
+							v-show="isReadyChart"
+							style="height: 80px; width: calc(100% + 10px); margin: 0 0 -5px -5px"
+						>
+							<canvas id="myChart"><p>Chart</p></canvas>
+						</div>
+						<div
+							v-show="!isReadyChart"
+							class="center aic"
+							style="height: 80px; margin: 0 0 -5px -5px"
+						>
+							<IonSpinner style="width: 100px" color="primary" name="bubbles" />
+						</div>
+					</div>
+
+					<!--				<Indicators-->
+					<!--					:portfolioId="spaceStore.settings.general.portfolios"-->
+					<!--					:currency="spaceStore.settings.general.currency"-->
+					<!--					:pricing_policy="spaceStore.settings.general.pricing_policy"-->
+					<!--					:date="spaceStore.settings.general.date_to"-->
+					<!--					@refresher="indicatorsRefresher = $event"-->
+					<!--				/>-->
+
+					<div class="header">Portfolios</div>
+
+					<div class="portfolios" v-if="portfolios.length">
+						<div
+							class="portfolios_item"
+							v-for="item in portfolios"
+							v-bind:key="item.id"
+							@click="$router.push('/main/balance?tab=' + item.user_code)"
+						>
+							<div class="pi_first_line flex aic sb">
+								<div class="pi_header">{{ item.name }}</div>
+								<div class="pi_price_change">
+									<IonSkeletonText
+										v-if="item.change.price == '-'"
+										:animated="true"
+										style="width: 60px; height: 24px"
+									/>
+									<template v-else>{{ $format(item.change.price) }}</template>
+								</div>
+							</div>
+							<div class="flex aic sb">
+								<div class="pi_price">
+									<IonSkeletonText
+										v-if="item.nav == '-'"
+										:animated="true"
+										style="width: 100px; height: 24px"
+									/>
+									<template v-else
+									>{{ $format(item.nav) }}
+										{{ spaceStore.settings.general.currency }}
+									</template
+									>
+								</div>
+
+								<IonSkeletonText
+									v-if="item.change.percent == '-'"
+									:animated="true"
+									style="width: 80px; height: 25px"
+								/>
+								<ChangePrice v-else :percent="item.change.percent" />
+							</div>
+						</div>
+					</div>
+
+					<div class="portfolios" v-if="portfolios === null">
+						<div class="portfolios_item" v-for="item in [1, 1, 1]">
+							<div class="pi_first_line flex aic sb">
+								<div class="pi_header">
+									<IonSkeletonText
+										:animated="true"
+										style="width: 130px; height: 24px"
+									/>
+								</div>
+								<div class="pi_price_change">
+									<IonSkeletonText
+										:animated="true"
+										style="width: 60px; height: 24px"
+									/>
+								</div>
+							</div>
+							<div class="flex aic sb">
+								<div class="pi_price">
+									<IonSkeletonText
+										:animated="true"
+										style="width: 100px; height: 24px"
+									/>
+								</div>
+								<IonSkeletonText
+									:animated="true"
+									style="width: 80px; height: 25px"
+								/>
+							</div>
+						</div>
+					</div>
+
+					<div class="header" v-if="currentMonth">Transactions in {{ currentMonth }}</div>
+
+					<ComplexTransactionList
+						:options="transactionsOpts"
+					/>
+
+				</div>
+
 			</div>
 
-			<div class="dashboard-content">
+			<div v-if="!spaceStore.settings.general.portfolios.length">
 
-				<div class="header">Grand Total</div>
-
-				<grand-nav @refresher="grandNavRefresher = $event"></grand-nav>
-
-				<!--				<div class="header flex sb aic">-->
-				<!--					<div>All Portfolios</div>-->
-				<!--					<div class="header_info">-->
-				<!--						{{ dayjs(spaceStore.settings.general.date_to).format('DD MMM YYYY') }}-->
-				<!--					</div>-->
-				<!--				</div>-->
-
-				<div
-					class="main_chart"
-					v-if="store.layout?.dashboard?.isShowHistoryChart"
-				>
-					<div class="main_chart_h">Net Asset Value (NAV)</div>
-					<div class="main_chart_price">
-						- {{ spaceStore.settings.general.currency }}
-					</div>
-
-					<div
-						v-show="isReadyChart"
-						style="height: 80px; width: calc(100% + 10px); margin: 0 0 -5px -5px"
-					>
-						<canvas id="myChart"><p>Chart</p></canvas>
-					</div>
-					<div
-						v-show="!isReadyChart"
-						class="center aic"
-						style="height: 80px; margin: 0 0 -5px -5px"
-					>
-						<IonSpinner style="width: 100px" color="primary" name="bubbles" />
-					</div>
-				</div>
-
-				<Indicators
-					:portfolioId="spaceStore.settings.general.portfolios"
-					:currency="spaceStore.settings.general.currency"
-					:pricing_policy="spaceStore.settings.general.pricing_policy"
-					:date="spaceStore.settings.general.date_to"
-					@refresher="indicatorsRefresher = $event"
-				/>
-
-				<div class="header">Portfolios</div>
-
-				<div class="portfolios" v-if="portfolios.length">
-					<div
-						class="portfolios_item"
-						v-for="item in portfolios"
-						v-bind:key="item.id"
-						@click="$router.push('/main/balance?tab=' + item.user_code)"
-					>
-						<div class="pi_first_line flex aic sb">
-							<div class="pi_header">{{ item.name }}</div>
-							<div class="pi_price_change">
-								<IonSkeletonText
-									v-if="item.change.price == '-'"
-									:animated="true"
-									style="width: 60px; height: 24px"
-								/>
-								<template v-else>{{ $format(item.change.price) }}</template>
-							</div>
-						</div>
-						<div class="flex aic sb">
-							<div class="pi_price">
-								<IonSkeletonText
-									v-if="item.nav == '-'"
-									:animated="true"
-									style="width: 100px; height: 24px"
-								/>
-								<template v-else
-								>{{ $format(item.nav) }}
-									{{ spaceStore.settings.general.currency }}
-								</template
-								>
-							</div>
-
-							<IonSkeletonText
-								v-if="item.change.percent == '-'"
-								:animated="true"
-								style="width: 80px; height: 25px"
-							/>
-							<ChangePrice v-else :percent="item.change.percent" />
-						</div>
-					</div>
-				</div>
-
-				<div class="portfolios" v-if="portfolios === null">
-					<div class="portfolios_item" v-for="item in [1, 1, 1]">
-						<div class="pi_first_line flex aic sb">
-							<div class="pi_header">
-								<IonSkeletonText
-									:animated="true"
-									style="width: 130px; height: 24px"
-								/>
-							</div>
-							<div class="pi_price_change">
-								<IonSkeletonText
-									:animated="true"
-									style="width: 60px; height: 24px"
-								/>
-							</div>
-						</div>
-						<div class="flex aic sb">
-							<div class="pi_price">
-								<IonSkeletonText
-									:animated="true"
-									style="width: 100px; height: 24px"
-								/>
-							</div>
-							<IonSkeletonText
-								:animated="true"
-								style="width: 80px; height: 25px"
-							/>
-						</div>
-					</div>
-				</div>
-
-				<div class="portfolios" v-if="portfolios?.length === 0">
-					No portfolios
-				</div>
-
-				<div class="header" v-if="currentMonth">Transactions in {{ currentMonth }}</div>
-
-				<ComplexTransactionList
-					:options="transactionsOpts"
-				/>
+				<p class="text-center">Nothing to view</p>
+				<p class="text-center">Please select Portfolios in Settings</p>
 
 			</div>
-
 
 		</ion-content>
 
@@ -205,6 +211,7 @@
 	} from '@ionic/vue'
 
 	import Indicators from '@/components/Indicators.vue'
+	import IndicatorsComp from '@/components/Indicators.vue'
 	import ChangePrice from '@/components/ChangePrice.vue'
 	import GrandNav from '@/components/GrandNav.vue'
 
@@ -223,7 +230,6 @@
 	import useApi from '@/composables/useApi.js'
 	import useStore from '@/composables/useStore'
 	import ComplexTransactionList from '@/components/ComplexTransactionList.vue'
-	import IndicatorsComp from '@/components/Indicators.vue'
 	// Stores the controller so that the chart initialization routine can look it up
 	Chart.register(
 		LineElement,
@@ -301,12 +307,12 @@
 			},
 			async fetchPortfolios() {
 
-				this.portfolios = [];
+				this.portfolios = []
 
 				// TODO Consider refactor here
 				// Some weird logic that I do not like
 
-				console.log('DASHBOARD_CONTROLLER: fetchPortfolios', this.spaceStore.settings.general.portfolios);
+				console.log('DASHBOARD_CONTROLLER: fetchPortfolios', JSON.stringify(this.spaceStore.settings.general.portfolios, null, 4))
 
 				this.portfolios = this.spaceStore.settings.general.portfolios.map((o, k) => {
 
@@ -346,7 +352,7 @@
 					}
 				})
 
-				console.log('this.portfolios', this.portfolios);
+				console.log('this.portfolios', this.portfolios)
 
 			},
 
@@ -361,22 +367,28 @@
 			console.log('DASHBOARD_CONTROLLER: created')
 
 			this.store = useStore()
-			this.spaceStore = this.store.activeSpaceStore
+			this.spaceStore = computed(() => this.store.getActiveSpaceStore());
 
-			console.log('DASHBOARD_CONTROLLER: this.spaceStore', this.spaceStore);
+			console.log('DASHBOARD_CONTROLLER: this.spaceStore', this.spaceStore)
 
-			await this.fetchUser()
+			this.fetchUser()
 
-			this.init()
 
-			watch([this.spaceStore.settings.general], () => {
+
+			watch(this.spaceStore.settings.general, () => {
+
+				console.log("DASHBOARD_CONTROLLER: watch this.spaceStore.settings.general")
+
 				this.transactionsOpts.end_date = this.spaceStore.settings.general.date_to
 				this.transactionsOpts.begin_date = dayjs(this.spaceStore.settings.general.date_to)
 					.add(-1, 'month')
 					.format('YYYY-MM-DD')
 
-				this.refresh()
-			})
+				this.init()
+
+			}, { deep: true })
+
+			this.init();
 
 			this.transactionsOpts = {
 				end_date: this.spaceStore.settings.general.date_to,

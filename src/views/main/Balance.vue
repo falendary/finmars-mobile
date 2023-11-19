@@ -10,6 +10,9 @@
 
 					<div class="display-flex flex-end flex-align-center">
 
+						<ion-icon :icon="icons.searchOutline" size="small" @click="openSearchDialog($event)"
+											style="margin-right: 8px"></ion-icon>
+
 						<ion-select
 							v-model="spaceStore.settings.general.currency"
 							placeholder="Currency"
@@ -68,13 +71,13 @@
 
 			<div class="portfolio-content">
 
-<!--				<IndicatorsComp-->
-<!--					:portfolioId="[$route.query.tab]"-->
-<!--					:currency="spaceStore.settings.general.currency"-->
-<!--					:pricing_policy="spaceStore.settings.general.pricing_policy"-->
-<!--					:date="spaceStore.settings.general.date_to"-->
-<!--					@refresher="indicatorsRefresher = $event"-->
-<!--				/>-->
+				<!--				<IndicatorsComp-->
+				<!--					:portfolioId="[$route.query.tab]"-->
+				<!--					:currency="spaceStore.settings.general.currency"-->
+				<!--					:pricing_policy="spaceStore.settings.general.pricing_policy"-->
+				<!--					:date="spaceStore.settings.general.date_to"-->
+				<!--					@refresher="indicatorsRefresher = $event"-->
+				<!--				/>-->
 
 				<!--			Pie Chart below-->
 
@@ -226,40 +229,40 @@
 							<div class="flex sb jcfe">
 
 								<div class="flex sb jcfe">
-								<div class="item-icon" @click="openInstrumentModal($event, item)" v-if="item.item_type == 1">
+									<div class="item-icon" @click="openInstrumentModal($event, item)" v-if="item.item_type == 1">
 
-									<div :style="{'background': getIconColor(item['instrument.instrument_type.name'][0])}"
-											 class="item-icon-icon">
-										{{ item['instrument.instrument_type.name'][0] }}
+										<div :style="{'background': getIconColor(item['instrument.instrument_type.name'][0])}"
+												 class="item-icon-icon">
+											{{ item['instrument.instrument_type.name'][0] }}
+										</div>
+
 									</div>
 
-								</div>
+									<div class="item-icon" v-if="item.item_type == 2">
 
-								<div class="item-icon" v-if="item.item_type == 2">
+										<div :style="{'background': getIconColor('C')}"
+												 class="item-icon-icon">
+											C
+										</div>
 
-									<div :style="{'background': getIconColor('C')}"
-											 class="item-icon-icon">
-										C
 									</div>
 
-								</div>
+									<div class="item-icon" v-if="item.item_type != 1 && item.item_type != 2">
 
-								<div class="item-icon" v-if="item.item_type != 1 && item.item_type != 2">
+										<div :style="{'background': getIconColor('O')}"
+												 class="item-icon-icon">
+											O
+										</div>
 
-									<div :style="{'background': getIconColor('O')}"
-											 class="item-icon-icon">
-										O
 									</div>
 
-								</div>
-
-								<div class="instr_name" @click="activateInstrument($event, item)">
-									{{
-										item.name.length > 80
-											? item.name.slice(0, 80) + '...'
-											: item.name
-									}}
-								</div>
+									<div class="instr_name" @click="activateInstrument($event, item)">
+										{{
+											item.name.length > 80
+												? item.name.slice(0, 80) + '...'
+												: item.name
+										}}
+									</div>
 
 								</div>
 								<div class="instr_market_value instr_first" @click="activateInstrument($event, item)">
@@ -406,7 +409,7 @@
 					<div style="padding-bottom: 4rem;" v-if="fullInstrument">
 
 						<ion-item>
-							<ion-label class="ion-text-wrap selectable">{{fullInstrument.name}}</ion-label>
+							<ion-label class="ion-text-wrap selectable">{{ fullInstrument.name }}</ion-label>
 						</ion-item>
 
 						<h1>Metrics</h1>
@@ -415,7 +418,8 @@
 							<ion-label>
 								Position Return
 							</ion-label>
-							<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.position_return) }}</ion-badge>
+							<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.position_return) }}
+							</ion-badge>
 						</ion-item>
 
 
@@ -431,16 +435,17 @@
 							<ion-label>
 								Modified Duration
 							</ion-label>
-							<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.modified_duration) }}</ion-badge>
+							<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.modified_duration) }}
+							</ion-badge>
 						</ion-item>
 
 
 						<div class="display-flex" style="justify-content: flex-end; padding-right: 0.5rem; margin-top: 0.5rem">
-						<ion-button size='small'  @click='showMoreInstrumentData = !showMoreInstrumentData'>
+							<ion-button size="small" @click="showMoreInstrumentData = !showMoreInstrumentData">
 
-							<span v-if="!showMoreInstrumentData">Show More</span>
-							<span v-if="showMoreInstrumentData">Hide</span>
-						</ion-button>
+								<span v-if="!showMoreInstrumentData">Show More</span>
+								<span v-if="showMoreInstrumentData">Hide</span>
+							</ion-button>
 						</div>
 
 						<div v-if="showMoreInstrumentData">
@@ -449,49 +454,56 @@
 								<ion-label>
 									Net Cost Price
 								</ion-label>
-								<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.net_cost_price) }}</ion-badge>
+								<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.net_cost_price) }}
+								</ion-badge>
 							</ion-item>
 
 							<ion-item v-if="selectedInstrument.gross_cost_price">
 								<ion-label>
 									Gross Cost Price
 								</ion-label>
-								<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.gross_cost_price) }}</ion-badge>
+								<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.gross_cost_price) }}
+								</ion-badge>
 							</ion-item>
 
 							<ion-item v-if="selectedInstrument.return_annually">
 								<ion-label>
 									Return Annually
 								</ion-label>
-								<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.return_annually) }}</ion-badge>
+								<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.return_annually) }}
+								</ion-badge>
 							</ion-item>
 
 							<ion-item v-if="selectedInstrument.time_invested">
 								<ion-label>
 									Time Invested
 								</ion-label>
-								<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.time_invested) }}</ion-badge>
+								<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.time_invested) }}
+								</ion-badge>
 							</ion-item>
 
 							<ion-item v-if="selectedInstrument.position_size">
 								<ion-label>
 									Position Size
 								</ion-label>
-								<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.position_size) }}</ion-badge>
+								<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.position_size) }}
+								</ion-badge>
 							</ion-item>
 
 							<ion-item v-if="selectedInstrument.amount_invested">
 								<ion-label>
 									Amount Invested
 								</ion-label>
-								<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.amount_invested) }}</ion-badge>
+								<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.amount_invested) }}
+								</ion-badge>
 							</ion-item>
 
 							<ion-item v-if="selectedInstrument.market_value">
 								<ion-label>
 									Market Value
 								</ion-label>
-								<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.market_value) }}</ion-badge>
+								<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.market_value) }}
+								</ion-badge>
 							</ion-item>
 
 							<ion-item v-if="selectedInstrument.exposure">
@@ -535,7 +547,9 @@
 								<ion-label>
 									Price
 								</ion-label>
-								<ion-badge color="primary" class="selectable">{{ roundToTwo(selectedInstrument.instrument_principal_price) }}</ion-badge>
+								<ion-badge color="primary" class="selectable">
+									{{ roundToTwo(selectedInstrument.instrument_principal_price) }}
+								</ion-badge>
 							</ion-item>
 
 							<ion-item v-if="selectedInstrument.fx_rate">
@@ -546,9 +560,7 @@
 							</ion-item>
 
 
-
 						</div>
-
 
 
 						<h1>Description</h1>
@@ -575,7 +587,7 @@
 							</ion-label>
 						</ion-item>
 
-						<ion-item >
+						<ion-item>
 							<ion-label>
 								<p>Pricing Currency</p>
 								<h2 class="selectable">{{ fullInstrument.pricing_currency_object.short_name }}</h2>
@@ -583,7 +595,7 @@
 						</ion-item>
 
 
-						<ion-item >
+						<ion-item>
 							<ion-label>
 								<p>Accrued Currency</p>
 								<h2 class="selectable">{{ fullInstrument.accrued_currency_object.short_name }}</h2>
@@ -609,12 +621,16 @@
 
 							<ion-item v-for="attribute in fullInstrumentAttributes" :key="attribute.id">
 								<ion-label>
-									<p>{{attribute.attribute_type_object.name}}</p>
+									<p>{{ attribute.attribute_type_object.name }}</p>
 
-									<h2 v-if="attribute.attribute_type_object.value_type == 10" class="selectable ion-text-wrap">{{ attribute.value_string }}</h2>
-									<h2 v-if="attribute.attribute_type_object.value_type == 20" class="selectable">{{ attribute.value_float }}</h2>
-									<h2 v-if="attribute.attribute_type_object.value_type == 30" class="selectable">{{ attribute.classifier_object.name }}</h2>
-									<h2 v-if="attribute.attribute_type_object.value_type == 40" class="selectable">{{ attribute.value_date }}</h2>
+									<h2 v-if="attribute.attribute_type_object.value_type == 10" class="selectable ion-text-wrap">
+										{{ attribute.value_string }}</h2>
+									<h2 v-if="attribute.attribute_type_object.value_type == 20" class="selectable">
+										{{ attribute.value_float }}</h2>
+									<h2 v-if="attribute.attribute_type_object.value_type == 30" class="selectable">
+										{{ attribute.classifier_object.name }}</h2>
+									<h2 v-if="attribute.attribute_type_object.value_type == 40" class="selectable">{{ attribute.value_date
+										}}</h2>
 								</ion-label>
 							</ion-item>
 
@@ -627,6 +643,50 @@
 				</ion-content>
 			</ion-modal>
 
+			<ion-modal ref="modal" :is-open="searchModalIsOpen">
+				<ion-header>
+					<ion-toolbar>
+						<ion-title>
+							<div class="flex align-center">
+								{{ activePortfolio }}
+								<div v-show="searchProcessing" style="margin-left: 8px; padding: 8px 0;">
+									<progress-circular diameter="20"></progress-circular>
+								</div>
+							</div>
+						</ion-title>
+						<ion-buttons slot="end">
+							<ion-button @click="searchModalIsOpen = false;">Close</ion-button>
+						</ion-buttons>
+					</ion-toolbar>
+				</ion-header>
+				<ion-content class="ion-padding" style="padding-bottom: 1rem;">
+
+					<div>
+
+						<ion-searchbar id="searchBar" :debounce="1000" @ionInput="handleSearch($event)"></ion-searchbar>
+
+						<div style="margin-top: 0.5rem; min-height: 50vh;" class="position-relative">
+
+							<ion-item v-for="(item, index) in searchResults" v-bind:key="index"
+												@click="submitSearchResult($event, item)" style="justify-content: space-between">
+
+								{{ item.name }}
+
+								{{ $format(item.market_value) }}
+
+							</ion-item>
+
+							<div v-if="searchProcessing" class="loading-overlay">
+
+							</div>
+
+						</div>
+
+
+					</div>
+
+				</ion-content>
+			</ion-modal>
 
 		</ion-content>
 	</ion-page>
@@ -648,6 +708,7 @@
 		IonPage,
 		IonRefresher,
 		IonRefresherContent,
+		IonSearchbar,
 		IonSelect,
 		IonSelectOption,
 		IonSkeletonText,
@@ -663,13 +724,15 @@
 	import useApi from '@/composables/useApi'
 	import useStore from '@/composables/useStore'
 	import { Pagination } from 'swiper'
-	import { cogOutline } from 'ionicons/icons'
+	import { cogOutline, searchOutline } from 'ionicons/icons'
 
 	import { Bar, Doughnut } from 'vue-chartjs'
 	import metaService from '@/services/metaService.js'
+	import ProgressCircular from '@/components/ProgressCircular.vue'
 
 	export default {
 		components: {
+			ProgressCircular,
 			IonItem,
 			IonContent,
 			IonTitle,
@@ -689,6 +752,7 @@
 			IonPage,
 			IonToolbar,
 			IonModal, IonDatetimeButton, IonDatetime,
+			IonSearchbar,
 
 			Doughnut,
 			Bar
@@ -697,11 +761,13 @@
 		data() {
 			return {
 				icons: {
-					cogOutline
+					cogOutline,
+					searchOutline
 				},
 				Pagination: Pagination,
 				store: null,
 				spaceStore: null,
+				activePortfolio: null,
 				categoriesTotalSum: null,
 				transactionsOpts: null,
 				isOpenTransactions: false,
@@ -715,6 +781,9 @@
 				activeCategory: null,
 				detailSubcat: {},
 				chartSettingsModalIsOpen: false,
+				searchModalIsOpen: false,
+				searchProcessing: false,
+				searchResults: [],
 
 				numericBalanceReportAttributes: [],
 				groupByAttributes: [],
@@ -753,6 +822,118 @@
 			}
 		},
 		methods: {
+			openSearchDialog() {
+				this.searchResults = []
+				this.searchModalIsOpen = true
+
+				console.log('openSearchDialog.this.$refs', this.$refs)
+				setTimeout(async () => {
+					document.querySelector('#searchBar input').focus()
+				}, 100)
+
+			},
+			async handleSearch(event) {
+
+				this.searchProcessing = true
+
+
+				try {
+					console.log('handleSearch', event)
+
+					const searchQuery = event.target.value.toLowerCase()
+
+					let res = await useApi('backendBalanceReportItems.post', {
+						body: {
+							account_mode: this.spaceStore.settings.balance.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
+							accounts: [],
+							accounts_cash: [],
+							accounts_position: [],
+							allocation_detailing: true,
+							allocation_mode: 0,
+							approach_multiplier: 0.5,
+							calculate_pl: true,
+							calculationGroup: 'portfolio',
+							complex_transaction_statuses_filter: 'booked',
+							cost_method: 1,
+							custom_fields_to_calculate: '',
+							expression_iterations_count: 1,
+							frontend_request_options: {
+								columns: [],
+								filter_settings: [],
+								globalTableSearch: searchQuery,
+								page: 1,
+								groups_values: [],
+								groups_types: []
+							},
+							pl_include_zero: false,
+							portfolio_mode: 1,
+							portfolios: [this.$route.query.tab],
+							pricing_policy: this.spaceStore.settings.general.pricing_policy,
+							report_currency: this.spaceStore.settings.general.currency,
+							report_date: this.spaceStore.settings.general.date_to,
+							report_type: 1,
+							show_balance_exposure_details: false,
+							show_transaction_details: true,
+							strategies1: [],
+							strategies2: [],
+							strategies3: [],
+							strategy1_mode: 0,
+							strategy2_mode: 0,
+							strategy3_mode: 0
+						}
+					})
+
+					this.searchProcessing = false
+
+					this.searchResults = res.items
+
+				} catch (error) {
+
+					this.searchResults = []
+					this.searchProcessing = false
+
+				}
+
+			},
+			async submitSearchResult(event, item) {
+
+				console.log('submitSearchResult.item', item)
+
+				this.searchProcessing = true
+
+				this.categories.forEach((category) => {
+
+					// because we use user_code instead of names and other non unique fields for relations
+					// also because of user_code not equal to name of instrument type
+					// probably will cause error if Account Name and Account User Code are different
+					// TODO consider refactor in future
+					// 2023-11-18 szhitenev
+					if (this.spaceStore.settings.balance.groupByKey === 'instrument.instrument_type.name') {
+
+						if (category.___group_identifier === item['instrument.instrument_type.user_code']) {
+							this.activeCategory = category
+						}
+
+					} else {
+
+						if (category.___group_identifier === item[this.spaceStore.settings.balance.groupByKey]) {
+							this.activeCategory = category
+						}
+
+					}
+
+
+				})
+
+				await this.fetchPositions()
+
+				console.log('submitSearchResult.activeCategory', this.activeCategory)
+
+				this.activateInstrument(event, item)
+
+				this.searchModalIsOpen = false
+				this.searchProcessing = false
+			},
 			getIconColor(letter) {
 				return metaService.getIconColor(letter)
 			},
@@ -760,14 +941,14 @@
 
 				console.log('openInstrumentModal.item', item)
 
-				this.selectedInstrument = item;
+				this.selectedInstrument = item
 				this.fullInstrument = await useApi('instrument.get', {
 					params: { id: item['instrument.id'] }
 				})
 
 				this.fullInstrumentAttributes = this.fullInstrument.attributes.filter((attribute) => {
 
-					if (attribute.attribute_type_object.user_code.indexOf('pricing_policy_') !== -1 ) {
+					if (attribute.attribute_type_object.user_code.indexOf('pricing_policy_') !== -1) {
 						return false
 					}
 
@@ -801,7 +982,7 @@
 						return false
 					}
 
-					return true;
+					return true
 
 				})
 
@@ -811,8 +992,8 @@
 			},
 			closeInstrumentModal() {
 				this.isInstrumentModelOpen = false
-				this.fullInstrument = null;
-				this.selectedInstrument = null;
+				this.fullInstrument = null
+				this.selectedInstrument = null
 			},
 			activateInstrument($event, item) {
 
@@ -844,8 +1025,10 @@
 			},
 			async init() {
 
-				this.activeCategory = null
-				this.isOpenTransactions = false
+				this.activePortfolio = this.$route.query.tab;
+				this.activeCategory = null;
+				this.searchModalIsOpen = false;
+				this.isOpenTransactions = false;
 
 				this.transactionsOpts = {
 					end_date: this.spaceStore.settings.general.date_to,
@@ -1029,7 +1212,11 @@
 					}
 				}
 
+				this.activeCategory = this.categories[0]
+
 				this.chartProcessing = false
+
+				this.fetchPositions();
 
 
 				// console.log('createChart.chartData', this.chartData)
@@ -1178,7 +1365,7 @@
 		async created() {
 
 			this.store = useStore()
-			this.spaceStore = this.store.activeSpaceStore
+			this.spaceStore = computed(() => this.store.getActiveSpaceStore());
 
 		},
 		async mounted() {

@@ -77,11 +77,7 @@
 				<ion-list lines="full">
 
 					<ion-item v-if="spaceStore.settings.general.date_to">
-						<ion-label
-						>Date
-							{{ tab == 'pnl' || tab == 'transactions' ? 'to' : '' }}
-						</ion-label
-						>
+						<ion-label>Date</ion-label>
 
 						<ion-modal
 							:keep-contents-mounted="true"
@@ -236,6 +232,7 @@
 			return {
 				processing: false,
 				currentYear: new Date().getFullYear(),
+				spaceStore: null,
 				store: null,
 				currencies: [],
 				pricingPolicies: [],
@@ -244,7 +241,6 @@
 				username: null,
 				isOpen: false,
 				themeToggle: false,
-				tab: null,
 				dayjs: dayjs,
 				icons: {
 					settingsSharp,
@@ -324,9 +320,10 @@
 
 			this.store = useStore()
 			this.store.globalProcessing = true;
+
 			await this.store.initSpaceStore();
 
-			this.spaceStore = this.store.activeSpaceStore
+			this.spaceStore = computed(() => this.store.getActiveSpaceStore());
 
 			console.log('Index.spaceStore', this.spaceStore)
 			console.log('Index.store.activeSpaceCode', this.store.activeSpaceCode)
@@ -335,6 +332,7 @@
 			let result = this.adjustDates(this.spaceStore.settings.general.date_to, this.spaceStore.settings.general.date_from)
 
 			this.spaceStore.settings.general.date_from = result.date_from;
+
 
 			this.dateToWatch = this.$watch(
 				() => this.spaceStore.settings.general.date_to,
@@ -355,22 +353,10 @@
 			this.processing = false
 			this.store.globalProcessing = false;
 
-			this.tab = computed(() => {
-				if (!this.$route) return null
-				if (!this.$route.path.includes('/main/')) return null
-				return this.$route.path.replace('/main/', '')
-			})
 
 		},
 		beforeUnmount() {
 
-			if (this.activeSpaceWatch) {
-				this.activeSpaceWatch();
-			}
-
-			if (this.portfoliosWatch) {
-				this.portfoliosWatch();  // stop the watcher when the component is being destroyed
-			}
 
 			if (this.dateToWatch) {
 				this.dateToWatch();

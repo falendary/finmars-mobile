@@ -66,7 +66,7 @@ function createAppVue() {
 	app.config.errorHandler = (err, ) => {
 		console.error('Caught a global error', err);
 		// You can navigate the user to a recovery page or log them out here
-		router.push('/recovery');
+		router.replace('/recovery');
 	};
 
 	app.mount('#app')
