@@ -79,6 +79,19 @@
 				<!--					@refresher="indicatorsRefresher = $event"-->
 				<!--				/>-->
 
+				<div v-if="portfolioHistory && portfolioHistoryItems.length">
+
+					<div class="portfolio-metric-grid-container">
+						<div v-for="metric in portfolioHistoryItems" :key="metric.key" class="portfolio-metric-card">
+							<h3>{{ metric.name }}</h3>
+							<p v-if="metric.value !== null">{{ metric.value }}</p>
+							<p v-else>-</p>
+						</div>
+					</div>
+
+
+				</div>
+
 				<!--			Pie Chart below-->
 
 				<div class="header flex aic sb">
@@ -667,14 +680,27 @@
 
 						<div style="margin-top: 0.5rem; min-height: 50vh;" class="position-relative">
 
-							<ion-item v-for="(item, index) in searchResults" v-bind:key="index"
-												@click="submitSearchResult($event, item)" style="justify-content: space-between">
+							<div v-if="searchResults.length && searchQuery">
 
-								{{ item.name }}
+								<ion-item v-for="(item, index) in searchResults" v-bind:key="index"
+													@click="submitSearchResult($event, item)" style="justify-content: space-between">
 
-								{{ $format(item.market_value) }}
+									{{ item.name }}
 
-							</ion-item>
+									{{ $format(item.market_value) }}
+
+								</ion-item>
+
+							</div>
+
+							<div v-if="!searchResults.length && searchQuery && !searchProcessing" class="text-center">
+
+								<ion-icon :icon="icons.telescopeOutline" size="large"></ion-icon>
+
+								<h1>No Results Found</h1>
+								<p>Try different search</p>
+
+							</div>
 
 							<div v-if="searchProcessing" class="loading-overlay">
 
@@ -724,11 +750,12 @@
 	import useApi from '@/composables/useApi'
 	import useStore from '@/composables/useStore'
 	import { Pagination } from 'swiper'
-	import { cogOutline, searchOutline } from 'ionicons/icons'
+	import { cogOutline, searchOutline, telescopeOutline } from 'ionicons/icons'
 
 	import { Bar, Doughnut } from 'vue-chartjs'
 	import metaService from '@/services/metaService.js'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
+	import se from '../../../android/app/build/intermediates/assets/debug/public/assets/Transactions-345243a9.js'
 
 	export default {
 		components: {
@@ -762,13 +789,16 @@
 			return {
 				icons: {
 					cogOutline,
-					searchOutline
+					searchOutline,
+					telescopeOutline
 				},
 				Pagination: Pagination,
 				store: null,
 				spaceStore: null,
 				activePortfolio: null,
 				categoriesTotalSum: null,
+				portfolioHistory: null,
+				portfolioHistoryItems: [],
 				transactionsOpts: null,
 				isOpenTransactions: false,
 				chartProcessing: true,
@@ -784,6 +814,7 @@
 				searchModalIsOpen: false,
 				searchProcessing: false,
 				searchResults: [],
+				searchQuery: null,
 
 				numericBalanceReportAttributes: [],
 				groupByAttributes: [],
@@ -822,8 +853,129 @@
 			}
 		},
 		methods: {
+			se() {
+				return se
+			},
+
+			async getPortfolioHistory() {
+
+				this.portfolioHistory = null
+				this.portfolioHistoryItems = []
+
+				const data = await useApi('portfolioHistory.get', {
+					filters: {
+						status: 'ok',
+						period_type: 'ytd',
+						portfolio__user_code: this.activePortfolio,
+						pricing_policy__user_code: this.spaceStore.settings.general.pricing_policy,
+						currency__user_code: this.spaceStore.settings.general.currency,
+						date_before: this.spaceStore.settings.general.date_to,
+						date_after: this.spaceStore.settings.general.date_to
+					}
+				})
+
+
+				if (data.results.length) {
+					this.portfolioHistory = data.results[0]
+
+					this.portfolioHistoryItems.push({
+						'name': 'NAV',
+						'key': 'nav',
+						'value': this.$format(this.portfolioHistory.nav) + ' ' + this.spaceStore.settings.general.currency
+					})
+					this.portfolioHistoryItems.push({
+						'name': 'Total',
+						'key': 'total',
+						'value': this.$format(this.portfolioHistory.total) + ' ' + this.spaceStore.settings.general.currency
+					})
+
+					this.portfolioHistoryItems.push({
+						'name': 'Cash Flow',
+						'key': 'cash_flow',
+						'value': this.$format(this.portfolioHistory.cash_flow) + ' ' + this.spaceStore.settings.general.currency
+					})
+
+					if (this.portfolioHistory.cumulative_return) {
+
+						this.portfolioHistoryItems.push({
+							'name': 'Return',
+							'key': 'cumulative_return',
+							'value': parseFloat(this.portfolioHistory.cumulative_return * 100).toFixed(2) + '%'
+						})
+
+					}
+
+					if (this.portfolioHistory.annualized_return) {
+						this.portfolioHistoryItems.push({
+							'name': 'Annualized Return',
+							'key': 'annualized_return',
+							'value': parseFloat(this.portfolioHistory.annualized_return * 100).toFixed(2) + '%'
+						})
+					}
+
+					if (this.portfolioHistory.portfolio_volatility) {
+						this.portfolioHistoryItems.push({
+							'name': 'Portfolio Volatility',
+							'key': 'portfolio_volatility',
+							'value': parseFloat(this.portfolioHistory.portfolio_volatility).toFixed(2)
+						})
+					}
+
+					if (this.portfolioHistory.annualized_portfolio_volatility) {
+						this.portfolioHistoryItems.push({
+							'name': 'Annualized Portfolio Volatility',
+							'key': 'annualized_portfolio_volatility',
+							'value': parseFloat(this.portfolioHistory.annualized_portfolio_volatility).toFixed(2) + '%'
+						})
+					}
+
+					if (this.portfolioHistory.sharpe_ratio) {
+						this.portfolioHistoryItems.push({
+							'name': 'Sharpe Ratio',
+							'key': 'sharpe_ratio',
+							'value': parseFloat(this.portfolioHistory.sharpe_ratio).toFixed(2)
+						})
+					}
+
+					if (this.portfolioHistory.max_annualized_drawdown) {
+						this.portfolioHistoryItems.push({
+							'name': 'Max Annualized Drawdown',
+							'key': 'max_annualized_drawdown',
+							'value': parseFloat(this.portfolioHistory.max_annualized_drawdown).toFixed(2)
+						})
+					}
+
+					if (this.portfolioHistory.betta) {
+						this.portfolioHistoryItems.push({
+							'name': 'Betta',
+							'key': 'betta',
+							'value': parseFloat(this.portfolioHistory.betta).toFixed(2)
+						})
+					}
+
+					if (this.portfolioHistory.alpha) {
+						this.portfolioHistoryItems.push({
+							'name': 'Alpha',
+							'key': 'alpha',
+							'value': parseFloat(this.portfolioHistory.alpha).toFixed(2)
+						})
+					}
+
+					if (this.portfolioHistory.correlation) {
+						this.portfolioHistoryItems.push({
+							'name': 'Correlation',
+							'key': 'correlation',
+							'value': parseFloat(this.portfolioHistory.correlation).toFixed(2)
+						})
+					}
+
+				}
+
+			},
+
 			openSearchDialog() {
 				this.searchResults = []
+				this.searchQuery = '';
 				this.searchModalIsOpen = true
 
 				console.log('openSearchDialog.this.$refs', this.$refs)
@@ -840,7 +992,7 @@
 				try {
 					console.log('handleSearch', event)
 
-					const searchQuery = event.target.value.toLowerCase()
+					this.searchQuery = event.target.value.toLowerCase()
 
 					let res = await useApi('backendBalanceReportItems.post', {
 						body: {
@@ -860,7 +1012,7 @@
 							frontend_request_options: {
 								columns: [],
 								filter_settings: [],
-								globalTableSearch: searchQuery,
+								globalTableSearch: this.searchQuery,
 								page: 1,
 								groups_values: [],
 								groups_types: []
@@ -1025,10 +1177,11 @@
 			},
 			async init() {
 
-				this.activePortfolio = this.$route.query.tab;
-				this.activeCategory = null;
-				this.searchModalIsOpen = false;
-				this.isOpenTransactions = false;
+				this.activePortfolio = this.$route.query.tab
+				this.activeCategory = null
+				this.searchModalIsOpen = false
+				this.isOpenTransactions = false
+				this.portfolioHistoryItems = []
 
 				this.transactionsOpts = {
 					end_date: this.spaceStore.settings.general.date_to,
@@ -1039,6 +1192,7 @@
 				}
 
 				await this.createChart()
+				await this.getPortfolioHistory()
 
 			},
 			async fetchBalanceReportAttributes() {
@@ -1216,7 +1370,7 @@
 
 				this.chartProcessing = false
 
-				this.fetchPositions();
+				this.fetchPositions()
 
 
 				// console.log('createChart.chartData', this.chartData)
@@ -1365,7 +1519,7 @@
 		async created() {
 
 			this.store = useStore()
-			this.spaceStore = computed(() => this.store.getActiveSpaceStore());
+			this.spaceStore = computed(() => this.store.getActiveSpaceStore())
 
 		},
 		async mounted() {
@@ -1381,7 +1535,7 @@
 				this.$router.push({ query: { tab: this.spaceStore.settings.general.portfolios[0] } })
 			}
 
-			watch(
+			this.tabWatch = watch(
 				() => this.$route.query.tab,
 				async (newVal, oldVal) => {
 
@@ -1397,7 +1551,7 @@
 				}
 			)
 
-			watch(this.spaceStore.settings.general, async () => {
+			this.settingsWatch = watch(this.spaceStore.settings.general, async () => {
 
 				await this.init()
 
@@ -1410,12 +1564,29 @@
 
 			})
 
+		},
+		beforeUnmount() {
+
+			// https://vuejs.org/guide/essentials/watchers.html#stopping-a-watcher
+			if (this.tabWatch) {
+				this.tabWatch()
+			}
+
+			if (this.settingsWatch) {
+				this.settingsWatch()
+			}
+
 		}
 	}
 
 </script>
 
 <style lang="scss" scoped>
+
+	.portfolio-content {
+		margin-top: 0.5rem;
+	}
+
 	.header {
 		color: var(--ion-text-color);
 		padding: 0 15px;
@@ -1612,4 +1783,36 @@
 			color: #747474;
 		}
 	}
+
+	.portfolio-metric-grid-container {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
+		gap: 10px;
+		padding: 10px;
+	}
+
+	.portfolio-metric-card {
+
+		h3 {
+			font-weight: bold;
+			font-size: .8rem;
+			margin: 0 0 0.5rem;
+		}
+
+		p {
+			margin: 0;
+			color: var(--ion-color-neutral)
+		}
+
+		background: var(--ion-card-background);
+		border: 1px solid var(--ion-border-color);
+		border-radius: 8px; /* Rounded corners */
+		padding: 0.5rem;
+		text-align: left;
+
+		font-size: .9rem;
+
+
+	}
+
 </style>

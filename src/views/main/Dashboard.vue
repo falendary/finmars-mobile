@@ -109,14 +109,6 @@
 						>
 							<div class="pi_first_line flex aic sb">
 								<div class="pi_header">{{ item.name }}</div>
-								<div class="pi_price_change">
-									<IonSkeletonText
-										v-if="item.change.price == '-'"
-										:animated="true"
-										style="width: 60px; height: 24px"
-									/>
-									<template v-else>{{ $format(item.change.price) }}</template>
-								</div>
 							</div>
 							<div class="flex aic sb">
 								<div class="pi_price">
@@ -133,11 +125,11 @@
 								</div>
 
 								<IonSkeletonText
-									v-if="item.change.percent == '-'"
+									v-if="item.cumulative_return == '-'"
 									:animated="true"
 									style="width: 80px; height: 25px"
 								/>
-								<ChangePrice v-else :percent="item.change.percent" />
+								<ChangePrice v-else :percent="item.cumulative_return" />
 							</div>
 						</div>
 					</div>
@@ -316,27 +308,30 @@
 
 				this.portfolios = this.spaceStore.settings.general.portfolios.map((o, k) => {
 
-					useApi('reportsSummary.get', {
+					useApi('portfolioHistory.get', {
 						filters: {
-							portfolios: o,
-							pricing_policy: this.spaceStore.settings.general.pricing_policy,
-							currency: this.spaceStore.settings.general.currency,
-							date_to: this.spaceStore.settings.general.date_to,
-							date_from: this.spaceStore.settings.general.date_from
+							status: 'ok',
+							period_type: 'ytd',
+							portfolio__user_code: o,
+							pricing_policy__user_code: this.spaceStore.settings.general.pricing_policy,
+							currency__user_code: this.spaceStore.settings.general.currency,
+							date_before: this.spaceStore.settings.general.date_to,
+							date_after: this.spaceStore.settings.general.date_to
 						}
-					}).then((stats) => {
-						if (stats.error) {
-							this.portfolios[k].nav = '--'
-							this.portfolios[k].pl_range = '--'
-							this.portfolios[k].change.price = '--'
-							this.portfolios[k].change.percent = '--'
-						}
+					}).then((data) => {
 
-						this.portfolios[k].nav = stats.total.nav
-						this.portfolios[k].pl_range = stats.total.pl_range
-						this.portfolios[k].change.price = stats.total.pl_daily
-						this.portfolios[k].change.percent =
-							Math.round(stats.performance.daily.grand_return * 100) / 100
+
+						if (!data.results.length) {
+							this.portfolios[k].nav = '--'
+							this.portfolios[k].cumulative_return = '--'
+						} else {
+
+							let item = data.results[0]
+
+							this.portfolios[k].nav = item.nav
+							this.portfolios[k].cumulative_return = Math.round(item.cumulative_return * 100)
+
+						}
 					})
 
 					return {
@@ -344,11 +339,7 @@
 						name: o,
 						user_code: o,
 						nav: '-',
-						pl_range: '-',
-						change: {
-							price: '-',
-							percent: '-'
-						}
+						cumulative_return: '-'
 					}
 				})
 
@@ -367,17 +358,16 @@
 			console.log('DASHBOARD_CONTROLLER: created')
 
 			this.store = useStore()
-			this.spaceStore = computed(() => this.store.getActiveSpaceStore());
+			this.spaceStore = computed(() => this.store.getActiveSpaceStore())
 
 			console.log('DASHBOARD_CONTROLLER: this.spaceStore', this.spaceStore)
 
 			this.fetchUser()
 
 
-
 			watch(this.spaceStore.settings.general, () => {
 
-				console.log("DASHBOARD_CONTROLLER: watch this.spaceStore.settings.general")
+				console.log('DASHBOARD_CONTROLLER: watch this.spaceStore.settings.general')
 
 				this.transactionsOpts.end_date = this.spaceStore.settings.general.date_to
 				this.transactionsOpts.begin_date = dayjs(this.spaceStore.settings.general.date_to)
@@ -388,7 +378,7 @@
 
 			}, { deep: true })
 
-			this.init();
+			this.init()
 
 			this.transactionsOpts = {
 				end_date: this.spaceStore.settings.general.date_to,

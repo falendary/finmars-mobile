@@ -1,7 +1,7 @@
 <template>
 	<ion-page>
 
-<!-- show globalProcessing here in App.vue		-->
+		<!-- show globalProcessing here in App.vue		-->
 		<ion-tabs v-if="!processing">
 
 			<ion-router-outlet></ion-router-outlet>
@@ -81,7 +81,7 @@
 
 						<ion-modal
 							:keep-contents-mounted="true"
-							@didDismiss="changeDataFrom"
+
 						>
 							<ion-datetime
 								id="datetime_date_to"
@@ -143,6 +143,14 @@
 
 				<br />
 
+				<ion-button
+					class="ion-margin-horizontal"
+					fill="outline"
+					expand="block"
+					@click="calculate()"
+				>
+					Calculate
+				</ion-button>
 
 				<ion-button
 					class="ion-margin-horizontal"
@@ -154,13 +162,6 @@
 				</ion-button>
 
 
-
-
-
-
-
-
-
 			</ion-content>
 		</ion-modal>
 
@@ -170,6 +171,7 @@
 
 <script>
 	import {
+		alertController,
 		IonButton,
 		IonButtons,
 		IonContent,
@@ -192,8 +194,7 @@
 		IonToolbar
 	} from '@ionic/vue'
 	import { barChartOutline, close, layersOutline, readerOutline, settingsOutline, settingsSharp } from 'ionicons/icons'
-	import { computed, } from 'vue'
-	import { Preferences } from '@capacitor/preferences'
+	import { computed } from 'vue'
 	import useStore from '@/composables/useStore'
 	import useApi from '@/composables/useApi'
 	import dayjs from 'dayjs'
@@ -258,51 +259,49 @@
 				this.isOpen = false
 				this.$router.push('/main/more')
 			},
-			changeDataFrom() {
+			async calculate() {
 
-				console.log('changeDataFrom');
+				this.spaceStore.settings.general.portfolios.forEach((portfolio) => {
 
-				const funcs = {
-					inception: () => {
-						this.spaceStore.settings.general.date_from = '0001-01-01'
-					},
-					ytd: () => {
-						this.spaceStore.settings.general.date_from = dayjs(this.spaceStore.settings.general.date_to)
-							.add(-1, 'year')
-							.format('YYYY-MM-DD')
-					},
-					qtd: () => {
-						console.log(
-							'dayjs(this.spaceStore.settings.general.date_to).quarter():',
-							dayjs(this.spaceStore.settings.general.date_to).quarter()
-						)
-						this.spaceStore.settings.general.date_from = dayjs(this.spaceStore.settings.general.date_to)
-							.quarter(dayjs(this.spaceStore.settings.general.date_to).quarter() - 1)
-							.format('YYYY-MM-DD')
-					},
-					mtd: () => {
-						this.spaceStore.settings.general.date_from = dayjs(this.spaceStore.settings.general.date_to)
-							.add(-1, 'month')
-							.format('YYYY-MM-DD')
-					}
-				}
+					useApi('portfolioHistoryCalculate.post', {
+						body: {
+							'portfolio': portfolio,
+							'currency': this.spaceStore.settings.general.currency,
+							'pricing_policy': this.spaceStore.settings.general.pricing_policy,
+							'date': this.spaceStore.settings.general.date_to,
+							'segmentation_type': 'business_days_end_of_months',
+							'period_type': 'ytd',
+							'cost_method': 1, // avco
+							'performance_method': 'modified_dietz',
+							'benchmark': 'sp_500'
+						}
+					})
 
-				funcs[this.spaceStore.settings.general.period]()
+				})
+
+				const alert = await alertController.create({
+					header: 'Calculation is in progress',
+					message: 'Please, wait for a few minutes and refresh the page',
+					buttons: ['Ok'],
+				});
+
+				await alert.present()
+
 			},
 			adjustDates(date_to, date_from) {
 				// Convert the dates from strings (if they are) to Date objects
-				const toDate = (typeof date_to === 'string') ? new Date(date_to) : date_to;
-				const fromDate = (typeof date_from === 'string') ? new Date(date_from) : date_from;
+				const toDate = (typeof date_to === 'string') ? new Date(date_to) : date_to
+				const fromDate = (typeof date_from === 'string') ? new Date(date_from) : date_from
 
 				// Check if toDate is less than fromDate
 				if (toDate <= fromDate) {
 					// Subtract 30 days from fromDate
-					fromDate.setDate(fromDate.getDate() - 30);
+					fromDate.setDate(fromDate.getDate() - 30)
 
 					// If fromDate is still greater than toDate after subtracting 30 days,
 					// then reset fromDate to be the same as toDate
 					if (fromDate > toDate) {
-						fromDate.setTime(toDate.getTime());
+						fromDate.setTime(toDate.getTime())
 					}
 				}
 
@@ -310,7 +309,7 @@
 				return {
 					date_to: (typeof date_to === 'string') ? toDate.toISOString().split('T')[0] : toDate,
 					date_from: (typeof date_from === 'string') ? fromDate.toISOString().split('T')[0] : fromDate
-				};
+				}
 			}
 
 		},
@@ -319,11 +318,11 @@
 			this.processing = true
 
 			this.store = useStore()
-			this.store.globalProcessing = true;
+			this.store.globalProcessing = true
 
-			await this.store.initSpaceStore();
+			await this.store.initSpaceStore()
 
-			this.spaceStore = computed(() => this.store.getActiveSpaceStore());
+			this.spaceStore = computed(() => this.store.getActiveSpaceStore())
 
 			console.log('Index.spaceStore', this.spaceStore)
 			console.log('Index.store.activeSpaceCode', this.store.activeSpaceCode)
@@ -331,19 +330,19 @@
 			// Adjust dates, just in case date_from bigger then date_to
 			let result = this.adjustDates(this.spaceStore.settings.general.date_to, this.spaceStore.settings.general.date_from)
 
-			this.spaceStore.settings.general.date_from = result.date_from;
+			this.spaceStore.settings.general.date_from = result.date_from
 
 
 			this.dateToWatch = this.$watch(
 				() => this.spaceStore.settings.general.date_to,
 				() => {
 
-					console.log('this.spaceStore.settings.general.date_to', this.spaceStore.settings.general.date_to);
-					console.log('this.spaceStore.settings.general.date_from', this.spaceStore.settings.general.date_from);
+					console.log('this.spaceStore.settings.general.date_to', this.spaceStore.settings.general.date_to)
+					console.log('this.spaceStore.settings.general.date_from', this.spaceStore.settings.general.date_from)
 
 					let result = this.adjustDates(this.spaceStore.settings.general.date_to, this.spaceStore.settings.general.date_from)
 
-					this.spaceStore.settings.general.date_from = result.date_from;
+					this.spaceStore.settings.general.date_from = result.date_from
 
 				}
 			)
@@ -351,15 +350,16 @@
 
 			console.log('INDEX_CONTROLLER: Store is ready')
 			this.processing = false
-			this.store.globalProcessing = false;
+			this.store.globalProcessing = false
 
 
 		},
 		beforeUnmount() {
 
 
+			// https://vuejs.org/guide/essentials/watchers.html#stopping-a-watcher
 			if (this.dateToWatch) {
-				this.dateToWatch();
+				this.dateToWatch()
 			}
 
 		}
@@ -469,7 +469,7 @@
 			ion-datetime-button.header-date-button {
 
 				display: inline-block;
-				font-size: .6rem;
+				font-size: .55rem;
 
 				//padding: 0.2rem;
 				border-bottom: 1px dotted var(--ion-date-button-border-color);

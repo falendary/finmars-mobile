@@ -81,250 +81,255 @@
 				@refresher="portfoliosRefresher = $event"
 			/>
 
-<!--			<IndicatorsComp-->
-<!--				:portfolioId="[$route.query.tab]"-->
-<!--				:date_from="spaceStore.settings.general.date_from"-->
-<!--				type="pl"-->
-<!--				:currency="spaceStore.settings.general.currency"-->
-<!--				:pricing_policy="spaceStore.settings.general.pricing_policy"-->
-<!--				:date="spaceStore.settings.general.date_to"-->
-<!--				@refresher="indicatorsRefresher = $event"-->
-<!--			/>-->
+			<!--			<IndicatorsComp-->
+			<!--				:portfolioId="[$route.query.tab]"-->
+			<!--				:date_from="spaceStore.settings.general.date_from"-->
+			<!--				type="pl"-->
+			<!--				:currency="spaceStore.settings.general.currency"-->
+			<!--				:pricing_policy="spaceStore.settings.general.pricing_policy"-->
+			<!--				:date="spaceStore.settings.general.date_to"-->
+			<!--				@refresher="indicatorsRefresher = $event"-->
+			<!--			/>-->
 
 			<!--			Pie Chart below-->
 
-			<div class="header flex aic sb">
-				Profit & Loss
+			<div class="portfolio-content">
 
-				<ion-icon :icon="icons.cogOutline" size="large" @click="chartSettingsModalIsOpen = true"></ion-icon>
+				<div class="header flex aic sb">
+					Profit & Loss
 
-			</div>
+					<ion-icon :icon="icons.cogOutline" size="large" @click="chartSettingsModalIsOpen = true"></ion-icon>
 
-			<div v-show="!chartProcessing">
+				</div>
 
-				<div class="balance_block">
+				<div v-show="!chartProcessing">
+
+					<div class="balance_block">
+						<div class="bb_header_line flex sb aic">
+							<div class="bb_header">{{ groupByName }}</div>
+							<div class="bb_price">
+								{{ $format(categoriesTotalSum) }}
+								{{ spaceStore.settings.general.currency }}
+							</div>
+						</div>
+
+						<div class="flex sb">
+							<div
+								class="balance_chart_wrap"
+								style="width: 100%;"
+								:style="{ height: chartHeight + 'px' }"
+								v-if="spaceStore.settings.pl.isChartView && chartData"
+							>
+
+								<Bar :options="chartData.options" :data="chartData.data"></Bar>
+
+							</div>
+
+							<div v-if="!spaceStore.settings.pl.isChartView"
+									 class="balance_labels"
+									 :style="!spaceStore.settings.pl.isChartView ? 'margin-left: 0;' : ''"
+							>
+								<div
+									class="balance_labels_item flex aic sb"
+									v-for="(item, index) in categories"
+									v-bind:key="index"
+									:class="{ active: activeCategory && activeCategory.___group_name == item.___group_name }"
+									@click="
+										;(activeCategory = item), (isOpenTransactions = false), (fetchPositions())
+									"
+								>
+									<div class="flex aic">
+
+										<div
+											class="balance_labels_percent"
+											style="width: 24px;
+    border-radius: 50%;"
+											:style="{
+												backgroundColor: colorByCat(item.___group_name, index),
+											}"
+										>
+											&nbsp;
+										</div>
+
+										<!--									<div-->
+										<!--										class="balance_labels_percent"-->
+										<!--										:style="{-->
+										<!--												backgroundColor: colorByCat(item.___group_name, index),-->
+										<!--											}"-->
+										<!--									>-->
+										<!--										<span v-if="item.subtotal[spaceStore.settings.pl.sumByKey] < 0">-</span>{{ roundToTwo(-->
+										<!--										(Math.abs(item.subtotal[spaceStore.settings.pl.sumByKey]) / categoriesTotalSum) *-->
+										<!--										100-->
+										<!--									)-->
+										<!--										}}%-->
+										<!--									</div>-->
+										<div class="balance_labels_text">{{ item.___group_name }}</div>
+									</div>
+
+									<div class="balance_labels_price" v-show="!spaceStore.settings.pl.isChartView"
+											 :class="{ 'negative-number': item.subtotal[spaceStore.settings.pl.sumByKey] < 0}">
+										{{ $format(item.subtotal[spaceStore.settings.pl.sumByKey]) }}
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div v-show="!categories.length">
+						<div class="nodata_wrap center aic">
+							<div>
+								<h3>No data</h3>
+
+								<p>No data</p>
+							</div>
+						</div>
+					</div>
+
+				</div>
+
+				<div v-show="chartProcessing" class="balance_block">
+
 					<div class="bb_header_line flex sb aic">
-						<div class="bb_header">{{ groupByName }}</div>
+						<div class="bb_header">
+							<IonSkeletonText
+								style="height: 22px; width: 100px"
+								:animated="true"
+							/>
+						</div>
 						<div class="bb_price">
-							{{ $format(categoriesTotalSum) }}
-							{{ spaceStore.settings.general.currency }}
+							<IonSkeletonText
+								style="height: 22px; width: 120px"
+								:animated="true"
+							/>
 						</div>
 					</div>
 
 					<div class="flex sb">
-						<div
-							class="balance_chart_wrap"
-							style="width: 100%;"
-							:style="{ height: chartHeight + 'px' }"
-							v-if="spaceStore.settings.pl.isChartView && chartData"
-						>
+						<ion-skeleton-text
+							class="balance_chart_wrap balance_chart_wrap_skeleton"
+							:animated="true"
+							style="width: 145px; height: 145px"
+						/>
 
-							<Bar :options="chartData.options" :data="chartData.data"></Bar>
-
-						</div>
-
-						<div v-if="!spaceStore.settings.pl.isChartView"
-								 class="balance_labels"
-								 :style="!spaceStore.settings.pl.isChartView ? 'margin-left: 0;' : ''"
-						>
+						<div class="balance_labels">
 							<div
-								class="balance_labels_item flex aic sb"
-								v-for="(item, index) in categories"
-								v-bind:key="index"
-								:class="{ active: activeCategory && activeCategory.___group_name == item.___group_name }"
-								@click="
-										;(activeCategory = item), (isOpenTransactions = false), (fetchPositions())
-									"
+								class="balance_labels_item flex aic"
+								v-for="(subcat, index) in [3, 3, 3]" v-bind:key="index"
 							>
-								<div class="flex aic">
+								<IonSkeletonText style="height: 32px" :animated="true" />
 
-									<div
-										class="balance_labels_percent"
-										style="width: 24px;
-    border-radius: 50%;"
-										:style="{
-												backgroundColor: colorByCat(item.___group_name, index),
-											}"
-									>
-										&nbsp;
+							</div>
+						</div>
+					</div>
+
+				</div>
+
+				<!-- Positions below-->
+
+				<div v-if="!positionsProcessing && activeCategory">
+					<div class="header flex aic sb">Details</div>
+
+					<div class="balance_block instr_block" v-if="!positionsError">
+						<div class="bb_header_line instr_block_header flex sb aifs">
+							<div class="bb_header">{{ activeCategory.___group_name }}</div>
+							<div>
+								<div class="bb_price">
+									{{ $format(activeCategory.subtotal[spaceStore.settings.pl.sumByKey]) }}
+									{{ spaceStore.settings.general.currency }}
+								</div>
+								<!-- <div class="instr_block_change flex jcfe">
+									<div class="instr_change_percent instr_first minus">
+										{{ $format(1254) }}
 									</div>
-
-<!--									<div-->
-<!--										class="balance_labels_percent"-->
-<!--										:style="{-->
-<!--												backgroundColor: colorByCat(item.___group_name, index),-->
-<!--											}"-->
-<!--									>-->
-<!--										<span v-if="item.subtotal[spaceStore.settings.pl.sumByKey] < 0">-</span>{{ roundToTwo(-->
-<!--										(Math.abs(item.subtotal[spaceStore.settings.pl.sumByKey]) / categoriesTotalSum) *-->
-<!--										100-->
-<!--									)-->
-<!--										}}%-->
-<!--									</div>-->
-									<div class="balance_labels_text">{{ item.___group_name }}</div>
-								</div>
-
-								<div class="balance_labels_price" v-show="!spaceStore.settings.pl.isChartView" :class="{ 'negative-number': item.subtotal[spaceStore.settings.pl.sumByKey] < 0}">
-									{{ $format(item.subtotal[spaceStore.settings.pl.sumByKey]) }}
-								</div>
+									<div class="instr_change_percent instr_second plus">YTD</div>
+								</div> -->
 							</div>
 						</div>
-					</div>
-				</div>
-				<div v-show="!categories.length">
-					<div class="nodata_wrap center aic">
-						<div>
-							<h3>No data</h3>
 
-							<p>No data</p>
-						</div>
-					</div>
-				</div>
-
-			</div>
-
-			<div v-show="chartProcessing" class="balance_block">
-
-				<div class="bb_header_line flex sb aic">
-					<div class="bb_header">
-						<IonSkeletonText
-							style="height: 22px; width: 100px"
-							:animated="true"
-						/>
-					</div>
-					<div class="bb_price">
-						<IonSkeletonText
-							style="height: 22px; width: 120px"
-							:animated="true"
-						/>
-					</div>
-				</div>
-
-				<div class="flex sb">
-					<ion-skeleton-text
-						class="balance_chart_wrap balance_chart_wrap_skeleton"
-						:animated="true"
-						style="width: 145px; height: 145px"
-					/>
-
-					<div class="balance_labels">
 						<div
-							class="balance_labels_item flex aic"
-							v-for="(subcat, index) in [3, 3, 3]" v-bind:key="index"
-						>
-							<IonSkeletonText style="height: 32px" :animated="true" />
-
-						</div>
-					</div>
-				</div>
-
-			</div>
-
-			<!-- Positions below-->
-
-			<div v-if="!positionsProcessing && activeCategory">
-				<div class="header flex aic sb">Details</div>
-
-				<div class="balance_block instr_block" v-if="!positionsError">
-					<div class="bb_header_line instr_block_header flex sb aifs">
-						<div class="bb_header">{{ activeCategory.___group_name }}</div>
-						<div>
-							<div class="bb_price">
-								{{ $format(activeCategory.subtotal[spaceStore.settings.pl.sumByKey]) }}
-								{{ spaceStore.settings.general.currency }}
-							</div>
-							<!-- <div class="instr_block_change flex jcfe">
-								<div class="instr_change_percent instr_first minus">
-									{{ $format(1254) }}
-								</div>
-								<div class="instr_change_percent instr_second plus">YTD</div>
-							</div> -->
-						</div>
-					</div>
-
-					<div
-						class="instruments"
-						v-for="(item, index) in positions"
-						v-bind:key="index"
-						:class="{
+							class="instruments"
+							v-for="(item, index) in positions"
+							v-bind:key="index"
+							:class="{
 							active: transactionsOpts.filter_entry_user_code == item.user_code,
 						}"
-						@click="
+							@click="
 							;(transactionsOpts.filter_entry_user_code = item.user_code),
 								(isOpenTransactions = true)
 						"
-					>
-						<div class="flex sb jcfe">
-							<div class="instr_name">
-								{{
-									item.name.length > 80
-										? item.name.slice(0, 80) + '...'
-										: item.name
-								}}
+						>
+							<div class="flex sb jcfe">
+								<div class="instr_name">
+									{{
+										item.name.length > 80
+											? item.name.slice(0, 80) + '...'
+											: item.name
+									}}
+								</div>
+								<div class="instr_market_value instr_first" :class="{ 'negative-number': item.total < 0}">
+									{{ $format(item.total) }}
+								</div>
 							</div>
-							<div class="instr_market_value instr_first" :class="{ 'negative-number': item.total < 0}">
-								{{ $format(item.total) }}
+							<div class="flex sb">
+								<div class="instr_pos">{{ $format(item.position_size) }}</div>
+
+								<!--							<div class="flex" v-if="item.item_type != 2">-->
+								<!--								<div class="instr_change_percent instr_first">-->
+								<!--									{{ $format(item.change.value) }}-->
+								<!--								</div>-->
+								<!--								<div-->
+								<!--									class="instr_change_percent instr_second"-->
+								<!--									:class="[item.change.percent > 0 ? 'plus' : 'minus']"-->
+								<!--								>-->
+								<!--									{{ item.change.percent }}%-->
+								<!--								</div>-->
+								<!--							</div>-->
 							</div>
 						</div>
-						<div class="flex sb">
-							<div class="instr_pos">{{ $format(item.position_size) }}</div>
+					</div>
 
-							<!--							<div class="flex" v-if="item.item_type != 2">-->
-							<!--								<div class="instr_change_percent instr_first">-->
-							<!--									{{ $format(item.change.value) }}-->
-							<!--								</div>-->
-							<!--								<div-->
-							<!--									class="instr_change_percent instr_second"-->
-							<!--									:class="[item.change.percent > 0 ? 'plus' : 'minus']"-->
-							<!--								>-->
-							<!--									{{ item.change.percent }}%-->
-							<!--								</div>-->
-							<!--							</div>-->
+					<div class="balance_block instr_block" v-if="positionsError">
+						<div class="bb_header_line instr_block_header flex sb aifs">
+							<div class="bb_header">{{ activeCategory.___group_name }}</div>
+						</div>
+						<div style="padding: 0 0.5rem">
+							{{ positionsError }}
 						</div>
 					</div>
+
 				</div>
 
-				<div class="balance_block instr_block" v-if="positionsError">
-					<div class="bb_header_line instr_block_header flex sb aifs">
-						<div class="bb_header">{{ activeCategory.___group_name }}</div>
-					</div>
-					<div style="padding: 0 0.5rem">
-						{{ positionsError }}
-					</div>
+				<div v-if="positionsProcessing" class="balance_block" style="margin-top: 1rem">
+
+					<IonSkeletonText
+						:animated="true"
+						style="width: 240px; height: 24px; margin-bottom: 0.3rem"
+					/>
+
+					<IonSkeletonText
+						:animated="true"
+						style="width: 160px; height: 24px; margin-bottom: 0.3rem"
+					/>
+
+					<IonSkeletonText
+						:animated="true"
+						style="width: 240px; height: 24px; margin-bottom: 0.3rem"
+					/>
+
 				</div>
 
-			</div>
+				<!-- Transactions below-->
 
-			<div v-if="positionsProcessing" class="balance_block" style="margin-top: 1rem">
+				<template v-if="isOpenTransactions">
+					<div class="header flex aic sb">Transactions</div>
 
-				<IonSkeletonText
-					:animated="true"
-					style="width: 240px; height: 24px; margin-bottom: 0.3rem"
-				/>
-
-				<IonSkeletonText
-					:animated="true"
-					style="width: 160px; height: 24px; margin-bottom: 0.3rem"
-				/>
-
-				<IonSkeletonText
-					:animated="true"
-					style="width: 240px; height: 24px; margin-bottom: 0.3rem"
-				/>
+					<TransactionListComp
+						v-if="transactionsOpts.filter_entry_user_code"
+						:options="transactionsOpts"
+						:reportType="'pl'"
+					/>
+				</template>
 
 			</div>
-
-			<!-- Transactions below-->
-
-			<template v-if="isOpenTransactions">
-				<div class="header flex aic sb">Transactions</div>
-
-				<TransactionListComp
-					v-if="transactionsOpts.filter_entry_user_code"
-					:options="transactionsOpts"
-					:reportType="'pl'"
-				/>
-			</template>
 
 			<ion-modal ref="modal" :is-open="chartSettingsModalIsOpen">
 				<ion-header>
@@ -709,7 +714,7 @@
 						return Math.floor(item.subtotal[this.spaceStore.settings.pl.sumByKey])
 					})
 
-					this.minPercent  = 10
+					this.minPercent = 10
 
 					this.chartData.data = {
 						labels: this.categories.map((item) => {
@@ -739,7 +744,7 @@
 										res = -100
 									}
 
-									return  res
+									return res
 								}),
 								backgroundColor: this.categories.map((item, index) => {
 									return this.colorByCat(item, index)
@@ -747,12 +752,12 @@
 								borderColor: this.categories.map((item, index) => {
 									return this.colorByCat(item, index)
 								}),
-								borderWidth: 2,
+								borderWidth: 2
 							}
 						]
 					}
 
-					console.log('this.chartData', this.chartData);
+					console.log('this.chartData', this.chartData)
 
 					this.chartData.options = {
 						responsive: true,
@@ -767,15 +772,15 @@
 									label: function(context) {
 										let labelIndex = context.dataIndex
 
-										console.log('context', context);
-										console.log('labelIndex', labelIndex);
+										console.log('context', context)
+										console.log('labelIndex', labelIndex)
 
 										if (context.datasetIndex === 0) {
 											labelIndex =
 												context.chart.data.datasets[0].data.length + labelIndex
 										}
 
-										console.log('labelIndex', labelIndex);
+										console.log('labelIndex', labelIndex)
 
 										return (
 											'Value' +
@@ -811,18 +816,17 @@
 								})
 
 
-
 								if (array.length > 0) {
-									const firstElement = array[0];
-									const datasetIndex = firstElement.datasetIndex;
-									const dataIndex = firstElement.index;
+									const firstElement = array[0]
+									const datasetIndex = firstElement.datasetIndex
+									const dataIndex = firstElement.index
 
 									// Highlight the clicked bar, for example, by setting its opacity to 1
 									this.data.datasets[datasetIndex].borderColor[dataIndex] = vueThis.colorByCat(this.data.labels[clickedBarIndex + 1], clickedBarIndex + 1)
 
 								}
 
-								this.update();
+								this.update()
 
 
 								let activeCategory = null
@@ -844,9 +848,9 @@
 						}
 					}
 
-					const categoriesCount = this.chartData.data.labels.length;
-					const heightPerCategory = 70; // Set desired height for each category
-					this.chartHeight = categoriesCount * heightPerCategory;
+					const categoriesCount = this.chartData.data.labels.length
+					const heightPerCategory = 70 // Set desired height for each category
+					this.chartHeight = categoriesCount * heightPerCategory
 
 					this.chartProcessing = false
 
@@ -1006,7 +1010,7 @@
 		async created() {
 
 			this.store = useStore()
-			this.spaceStore = computed(() => this.store.getActiveSpaceStore());
+			this.spaceStore = computed(() => this.store.getActiveSpaceStore())
 
 
 		},
@@ -1056,6 +1060,11 @@
 </script>
 
 <style lang="scss" scoped>
+
+	.portfolio-content {
+		margin-top: 0.5rem;
+	}
+
 	.header {
 		color: var(--ion-text-color);
 		padding: 0 15px;

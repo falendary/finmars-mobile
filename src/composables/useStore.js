@@ -102,7 +102,6 @@ export default defineStore('store', {
 				pricingPolicies: [],
 				settings: {
 					general: {
-						period: 'inception',
 						date_to,
 						date_from,
 						currency,

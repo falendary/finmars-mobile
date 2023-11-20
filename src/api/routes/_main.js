@@ -69,5 +69,11 @@ export default {
 	},
 	pricingPolicies: {
 		get: prefix + '/instruments/pricing-policy/'
+	},
+	portfolioHistory: {
+		get: prefix + '/portfolios/portfolio-history/'
+	},
+	portfolioHistoryCalculate: {
+		post: prefix + '/portfolios/portfolio-history/calculate/'
 	}
 }
