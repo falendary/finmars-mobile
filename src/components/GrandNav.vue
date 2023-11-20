@@ -227,6 +227,8 @@ export default {
 		display: inline-block;
 		padding: 0.5rem 1.5rem;
 		line-height: 1;
+		font-size: 1.2rem;
+		margin-right: 0;
 	}
 
 
