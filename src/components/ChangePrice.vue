@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-  
+
   const props = defineProps({
     percent: Number
   })
@@ -35,7 +35,7 @@
 			color: rgba(52, 199, 89, 1);
 		}
 		&.minus {
-			background: rgba(255, 221, 228, 0.5);
+			background: var(--ion-background-color);
 			color: #ff2d55;
 		}
 		&.neutral {

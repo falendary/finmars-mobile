@@ -742,8 +742,6 @@
 		IonToolbar
 	} from '@ionic/vue'
 
-
-	import IndicatorsComp from '@/components/Indicators.vue'
 	import HistoryChartComp from '@/components/HistoryChart.vue'
 	import TransactionListComp from '@/components/TransactionList.vue'
 
@@ -752,10 +750,9 @@
 	import { Pagination } from 'swiper'
 	import { cogOutline, searchOutline, telescopeOutline } from 'ionicons/icons'
 
-	import { Bar, Doughnut } from 'vue-chartjs'
+	import {  Doughnut } from 'vue-chartjs'
 	import metaService from '@/services/metaService.js'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
-	import se from '../../../android/app/build/intermediates/assets/debug/public/assets/Transactions-345243a9.js'
 
 	export default {
 		components: {
@@ -766,7 +763,6 @@
 			IonButton,
 			IonButtons,
 			IonIcon,
-			IndicatorsComp,
 			HistoryChartComp,
 			TransactionListComp,
 			IonSkeletonText,
@@ -782,7 +778,7 @@
 			IonSearchbar,
 
 			Doughnut,
-			Bar
+
 
 		},
 		data() {
@@ -853,9 +849,6 @@
 			}
 		},
 		methods: {
-			se() {
-				return se
-			},
 
 			async getPortfolioHistory() {
 

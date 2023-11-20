@@ -171,7 +171,7 @@
 
 <script>
 	import {
-		alertController,
+		// alertController,
 		IonButton,
 		IonButtons,
 		IonContent,
@@ -193,6 +193,7 @@
 		IonToggle,
 		IonToolbar
 	} from '@ionic/vue'
+
 	import { barChartOutline, close, layersOutline, readerOutline, settingsOutline, settingsSharp } from 'ionicons/icons'
 	import { computed } from 'vue'
 	import useStore from '@/composables/useStore'
@@ -279,13 +280,13 @@
 
 				})
 
-				const alert = await alertController.create({
-					header: 'Calculation is in progress',
-					message: 'Please, wait for a few minutes and refresh the page',
-					buttons: ['Ok'],
-				});
-
-				await alert.present()
+				// const alert = await alertController.create({
+				// 	header: 'Calculation is in progress',
+				// 	message: 'Please, wait for a few minutes and refresh the page',
+				// 	buttons: ['Ok'],
+				// });
+				//
+				// await alert.present()
 
 			},
 			adjustDates(date_to, date_from) {
