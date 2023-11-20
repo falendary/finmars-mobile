@@ -171,6 +171,7 @@
 
 <script>
 	import {
+		alertController,
 		// alertController,
 		IonButton,
 		IonButtons,
@@ -280,13 +281,13 @@
 
 				})
 
-				// const alert = await alertController.create({
-				// 	header: 'Calculation is in progress',
-				// 	message: 'Please, wait for a few minutes and refresh the page',
-				// 	buttons: ['Ok'],
-				// });
-				//
-				// await alert.present()
+				const alert = await alertController.create({
+					header: 'Calculation is in progress',
+					message: 'Please, wait for a few minutes and refresh the page',
+					buttons: ['Ok'],
+				});
+
+				await alert.present()
 
 			},
 			adjustDates(date_to, date_from) {
