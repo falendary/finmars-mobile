@@ -5,13 +5,18 @@
 		<div v-if="!processing">
 
 			<div v-if="!errorMessage" class="grand-nav-value-holder">
-				<div class="grand-nav-value">{{ grandTotalVerbose }} </div>
+				<div class="grand-nav-value">{{ grandTotalVerbose }}</div>
 				<div class="grand-nav-currency">{{ spaceStore.settings.general.currency }}</div>
+
+
+				<div class="explore-button" @click="goToExplore()">
+					Explore
+				</div>
 
 			</div>
 
 			<div v-if="errorMessage" class="text-center text-fs-small">
-				{{errorMessage}}
+				{{ errorMessage }}
 			</div>
 
 
@@ -64,15 +69,18 @@ export default {
 	},
 
 	methods: {
+		goToExplore() {
+			this.$router.push('/explore')
+		},
 		async refresh() {
-			this.grandTotal = 0;
+			this.grandTotal = 0
 			await nextTick()
 			await this.getGrandNav()
 		},
 		async getGrandNav() {
 
-			this.processing = true;
-			this.errorMessage = '';
+			this.processing = true
+			this.errorMessage = ''
 
 			let res = await useApi('backendBalanceReportGroups.post', {
 				body: {
@@ -92,24 +100,24 @@ export default {
 					frontend_request_options: {
 						columns: [
 							{
-								"key": "portfolio.name",
-								"name": "Portfolio. Name",
-								"value_type": 10
+								'key': 'portfolio.name',
+								'name': 'Portfolio. Name',
+								'value_type': 10
 							},
 							{
-								"key": "market_value",
-								"name": "Balance. Market value",
-								"report_settings": {
-									"subtotal_formula_id": 1 // sum
+								'key': 'market_value',
+								'name': 'Balance. Market value',
+								'report_settings': {
+									'subtotal_formula_id': 1 // sum
 								},
-								"value_type": 20
+								'value_type': 20
 							}
 						],
 						groups_types: [
 							{
-								"key": "portfolio.name",
-								"name": "Portfolio. Name",
-								"value_type": 10
+								'key': 'portfolio.name',
+								'name': 'Portfolio. Name',
+								'value_type': 10
 							}
 						],
 						page: 1,
@@ -125,8 +133,8 @@ export default {
 					strategies3: [],
 					strategy1_mode: 0,
 					strategy2_mode: 0,
-					strategy3_mode: 0,
-				},
+					strategy3_mode: 0
+				}
 			})
 
 
@@ -138,7 +146,7 @@ export default {
 				try {
 					res.items.forEach((item) => {
 
-						this.grandTotal = this.grandTotal + item.subtotal.market_value;
+						this.grandTotal = this.grandTotal + item.subtotal.market_value
 
 					})
 
@@ -147,7 +155,10 @@ export default {
 						this.errorMessage = 'Could not calculate NAV. (Check prices)'
 
 					} else {
-						this.grandTotalVerbose = this.grandTotal.toLocaleString('de-CH', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+						this.grandTotalVerbose = this.grandTotal.toLocaleString('de-CH', {
+							minimumFractionDigits: 0,
+							maximumFractionDigits: 0
+						})
 					}
 				} catch (e) {
 					this.errorMessage = 'Could not calculate NAV. (Check prices)'
@@ -157,7 +168,7 @@ export default {
 				this.errorMessage = 'Could not get NAV'
 			}
 
-			this.processing = false;
+			this.processing = false
 
 		}
 
@@ -174,7 +185,7 @@ export default {
 		this.route = useRoute()
 		this.router = useRouter()
 
-		this.spaceStore = computed(() => this.store.getActiveSpaceStore());
+		this.spaceStore = computed(() => this.store.getActiveSpaceStore())
 
 		this.$emit('refresher', this.refresh)
 
@@ -203,9 +214,19 @@ export default {
 		font-size: 2.5rem;
 		font-weight: bold;
 	}
+
 	.grand-nav-currency {
 		font-size: 1rem;
 		opacity: .7;
+	}
+
+	.explore-button {
+		margin: 1rem;
+		border: var(--ion-color-primary) 1px solid;
+		border-radius: 0.25rem;
+		display: inline-block;
+		padding: 0.5rem 1.5rem;
+		line-height: 1;
 	}
 
 
