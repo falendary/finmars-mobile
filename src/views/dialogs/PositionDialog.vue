@@ -4,7 +4,7 @@
 			<ion-toolbar>
 				<ion-title>Position</ion-title>
 				<ion-buttons slot="end">
-					<ion-button @click="closeInstrumentModal()">Close</ion-button>
+					<ion-button @click="closePositionDialog()">Close</ion-button>
 				</ion-buttons>
 			</ion-toolbar>
 		</ion-header>
@@ -322,7 +322,7 @@
 		},
 		emits: ['close'],
 		methods: {
-			closeInstrumentModal() {
+			closePositionDialog() {
 				this.$emit('close')
 			},
 			async getFullInstrument() {

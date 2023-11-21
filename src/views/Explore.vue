@@ -208,7 +208,7 @@
 						<div class="flex sb jcfe">
 
 							<div class="flex sb jcfe">
-								<div class="item-icon" @click="openInstrumentModal($event, item)" v-if="item.item_type == 1">
+								<div class="item-icon" @click="openPositionModal($event, item)" v-if="item.item_type == 1">
 
 									<div :style="{'background': getIconColor(item['instrument.instrument_type.name'][0])}"
 											 class="item-icon-icon">
@@ -373,68 +373,17 @@
 			</ion-modal>
 
 			<position-dialog
-				:position="selectedInstrument"
-				:isOpen="isInstrumentDialogOpen"
-				@close="isInstrumentDialogOpen = false"
+				:position="selectedPosition"
+				:isOpen="isPositionDialogOpen"
+				@close="isPositionDialogOpen = false"
 			></position-dialog>
 
-			<ion-modal ref="modal" :is-open="searchModalIsOpen">
-				<ion-header>
-					<ion-toolbar>
-						<ion-title>
-							<div class="flex align-center">
-								Explore
-								<div v-show="searchProcessing" style="margin-left: 8px; padding: 8px 0;">
-									<progress-circular diameter="20"></progress-circular>
-								</div>
-							</div>
-						</ion-title>
-						<ion-buttons slot="end">
-							<ion-button @click="searchModalIsOpen = false;">Close</ion-button>
-						</ion-buttons>
-					</ion-toolbar>
-				</ion-header>
-				<ion-content class="ion-padding" style="padding-bottom: 1rem;">
-
-					<div>
-
-						<ion-searchbar id="searchBar" :debounce="1000" @ionInput="handleSearch($event)"></ion-searchbar>
-
-						<div style="margin-top: 0.5rem; min-height: 50vh;" class="position-relative">
-
-							<div v-if="searchResults.length && searchQuery">
-
-								<ion-item v-for="(item, index) in searchResults" v-bind:key="index"
-													@click="submitSearchResult($event, item)" style="justify-content: space-between">
-
-									{{ item.name }}
-
-									{{ $format(item.market_value) }}
-
-								</ion-item>
-
-							</div>
-
-							<div v-if="!searchResults.length && searchQuery && !searchProcessing" class="text-center">
-
-								<ion-icon :icon="icons.telescopeOutline" size="large"></ion-icon>
-
-								<h1>No Results Found</h1>
-								<p>Try different search</p>
-
-							</div>
-
-							<div v-if="searchProcessing" class="loading-overlay">
-
-							</div>
-
-						</div>
-
-
-					</div>
-
-				</ion-content>
-			</ion-modal>
+			<search-dialog
+				:portfolios="spaceStore.settings.general.portfolios"
+				@resultSelectCallback="submitSearchResult"
+				:isOpen="isSearchDialogOpen"
+				@close="isSearchDialogOpen = false"
+			></search-dialog>
 
 		</ion-content>
 	</ion-page>
@@ -476,9 +425,11 @@
 	import metaService from '@/services/metaService.js'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
 	import PositionDialog from '@/views/dialogs/PositionDialog.vue'
+	import SearchDialog from '@/views/dialogs/SearchDialog.vue'
 
 	export default {
 		components: {
+			SearchDialog,
 			PositionDialog,
 			ProgressCircular,
 			IonItem,
@@ -501,7 +452,9 @@
 			IonModal, IonDatetimeButton, IonDatetime,
 			IonSearchbar,
 
-			Doughnut
+			Doughnut,
+
+
 
 
 		},
@@ -529,20 +482,14 @@
 				activeCategory: null,
 				detailSubcat: {},
 				chartSettingsModalIsOpen: false,
-				searchModalIsOpen: false,
-				searchProcessing: false,
-				searchResults: [],
-				searchQuery: null,
+				isSearchDialogOpen: false,
 
 				numericBalanceReportAttributes: [],
 				groupByAttributes: [],
 				chartData: null,
-				isInstrumentDialogOpen: false,
-				fullInstrument: null, // Full Instrument object from API
-				selectedInstrument: null, // clicked instrument (data from report)
-				fullInstrumentAttributes: [],
-				activeInstrument: null,
-				showMoreInstrumentData: false
+				isPositionDialogOpen: false,
+				selectedPosition: null, // clicked instrument (data from report)
+
 			}
 		},
 		computed: {
@@ -569,84 +516,12 @@
 		methods: {
 
 			openSearchDialog() {
-				this.searchResults = []
-				this.searchQuery = ''
-				this.searchModalIsOpen = true
-
-				console.log('openSearchDialog.this.$refs', this.$refs)
-				setTimeout(async () => {
-					document.querySelector('#searchBar input').focus()
-				}, 100)
+				this.isSearchDialogOpen = true
 
 			},
-			async handleSearch(event) {
-
-				this.searchProcessing = true
-
-
-				try {
-					console.log('handleSearch', event)
-
-					this.searchQuery = event.target.value.toLowerCase()
-
-					let res = await useApi('backendBalanceReportItems.post', {
-						body: {
-							account_mode: this.spaceStore.settings.balance.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
-							accounts: [],
-							accounts_cash: [],
-							accounts_position: [],
-							allocation_detailing: true,
-							allocation_mode: 0,
-							approach_multiplier: 0.5,
-							calculate_pl: true,
-							calculationGroup: 'portfolio',
-							complex_transaction_statuses_filter: 'booked',
-							cost_method: 1,
-							custom_fields_to_calculate: '',
-							expression_iterations_count: 1,
-							frontend_request_options: {
-								columns: [],
-								filter_settings: [],
-								globalTableSearch: this.searchQuery,
-								page: 1,
-								groups_values: [],
-								groups_types: []
-							},
-							pl_include_zero: false,
-							portfolio_mode: 1,
-							portfolios:  this.spaceStore.settings.general.portfolios,
-							pricing_policy: this.spaceStore.settings.general.pricing_policy,
-							report_currency: this.spaceStore.settings.general.currency,
-							report_date: this.spaceStore.settings.general.date_to,
-							report_type: 1,
-							show_balance_exposure_details: false,
-							show_transaction_details: true,
-							strategies1: [],
-							strategies2: [],
-							strategies3: [],
-							strategy1_mode: 0,
-							strategy2_mode: 0,
-							strategy3_mode: 0
-						}
-					})
-
-					this.searchProcessing = false
-
-					this.searchResults = res.items
-
-				} catch (error) {
-
-					this.searchResults = []
-					this.searchProcessing = false
-
-				}
-
-			},
-			async submitSearchResult(event, item) {
+			async submitSearchResult(item) {
 
 				console.log('submitSearchResult.item', item)
-
-				this.searchProcessing = true
 
 				this.categories.forEach((category) => {
 
@@ -669,25 +544,22 @@
 
 					}
 
-
 				})
 
 				await this.fetchPositions()
 
 				console.log('submitSearchResult.activeCategory', this.activeCategory)
 
-				this.activateInstrument(event, item)
+				this.activateInstrument(new Event('click'), item)
 
-				this.searchModalIsOpen = false
-				this.searchProcessing = false
 			},
 			getIconColor(letter) {
 				return metaService.getIconColor(letter)
 			},
-			async openInstrumentModal($event, item) {
+			async openPositionModal($event, item) {
 
-				this.selectedInstrument = item
-				this.isInstrumentDialogOpen = true
+				this.selectedPosition = item
+				this.isPositionDialogOpen = true
 
 			},
 			activateInstrument($event, item) {
@@ -707,7 +579,7 @@
 			async init() {
 
 				this.activeCategory = null
-				this.searchModalIsOpen = false
+				this.isSearchDialogOpen = false
 				this.isOpenTransactions = false
 				this.transactionsOpts = {
 					end_date: this.spaceStore.settings.general.date_to,
