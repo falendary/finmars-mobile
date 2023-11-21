@@ -324,7 +324,7 @@
 
 				let res = await useApi('backendPLReportGroups.post', {
 					body: {
-						account_mode: this.spaceStore.settings.balance.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
+						account_mode: this.spaceStore.settings.general.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
 						accounts: [],
 						accounts_cash: [],
 						accounts_position: [],

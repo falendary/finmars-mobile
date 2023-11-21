@@ -139,6 +139,18 @@
 							</ion-select-option>
 						</ion-select>
 					</ion-item>
+
+					<ion-item>
+						<ion-checkbox
+							v-model="spaceStore.settings.general.consolidateAccounts"
+							labelPlacement="start"
+							class="chart_view"
+						>
+							Consolidate Accounts
+						</ion-checkbox>
+					</ion-item>
+
+
 				</ion-list>
 
 				<br />
@@ -172,9 +184,9 @@
 <script>
 	import {
 		alertController,
-		// alertController,
 		IonButton,
 		IonButtons,
+		IonCheckbox,
 		IonContent,
 		IonDatetime,
 		IonDatetimeButton,
@@ -207,6 +219,7 @@
 
 	export default {
 		components: {
+			IonCheckbox,
 			ProgressCircular,
 			IonTabs,
 			IonRouterOutlet,
@@ -284,8 +297,8 @@
 				const alert = await alertController.create({
 					header: 'Calculation is in progress',
 					message: 'Please, wait for a few minutes and refresh the page',
-					buttons: ['Ok'],
-				});
+					buttons: ['Ok']
+				})
 
 				await alert.present()
 

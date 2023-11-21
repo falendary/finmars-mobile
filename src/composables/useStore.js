@@ -106,7 +106,8 @@ export default defineStore('store', {
 						date_from,
 						currency,
 						pricing_policy: null, // should be picked first from pricingPolicies list if not selected
-						portfolios: []
+						portfolios: [],
+						consolidateAccounts: false
 					},
 					balance: {
 						isChartView: true,

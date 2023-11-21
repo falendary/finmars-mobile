@@ -81,15 +81,15 @@
 				@refresher="portfoliosRefresher = $event"
 			/>
 
-<!--			<IndicatorsComp-->
-<!--				:portfolioId="[$route.query.tab]"-->
-<!--				:date_from="spaceStore.settings.general.date_from"-->
-<!--				type="pl"-->
-<!--				:currency="spaceStore.settings.general.currency"-->
-<!--				:pricing_policy="spaceStore.settings.general.pricing_policy"-->
-<!--				:date="spaceStore.settings.general.date_to"-->
-<!--				@refresher="indicatorsRefresher = $event"-->
-<!--			/>-->
+			<!--			<IndicatorsComp-->
+			<!--				:portfolioId="[$route.query.tab]"-->
+			<!--				:date_from="spaceStore.settings.general.date_from"-->
+			<!--				type="pl"-->
+			<!--				:currency="spaceStore.settings.general.currency"-->
+			<!--				:pricing_policy="spaceStore.settings.general.pricing_policy"-->
+			<!--				:date="spaceStore.settings.general.date_to"-->
+			<!--				@refresher="indicatorsRefresher = $event"-->
+			<!--			/>-->
 
 			<!--			Pie Chart below-->
 
@@ -151,22 +151,23 @@
 										&nbsp;
 									</div>
 
-<!--									<div-->
-<!--										class="balance_labels_percent"-->
-<!--										:style="{-->
-<!--												backgroundColor: colorByCat(item.___group_name, index),-->
-<!--											}"-->
-<!--									>-->
-<!--										<span v-if="item.subtotal[spaceStore.settings.pl.sumByKey] < 0">-</span>{{ roundToTwo(-->
-<!--										(Math.abs(item.subtotal[spaceStore.settings.pl.sumByKey]) / categoriesTotalSum) *-->
-<!--										100-->
-<!--									)-->
-<!--										}}%-->
-<!--									</div>-->
+									<!--									<div-->
+									<!--										class="balance_labels_percent"-->
+									<!--										:style="{-->
+									<!--												backgroundColor: colorByCat(item.___group_name, index),-->
+									<!--											}"-->
+									<!--									>-->
+									<!--										<span v-if="item.subtotal[spaceStore.settings.pl.sumByKey] < 0">-</span>{{ roundToTwo(-->
+									<!--										(Math.abs(item.subtotal[spaceStore.settings.pl.sumByKey]) / categoriesTotalSum) *-->
+									<!--										100-->
+									<!--									)-->
+									<!--										}}%-->
+									<!--									</div>-->
 									<div class="balance_labels_text">{{ item.___group_name }}</div>
 								</div>
 
-								<div class="balance_labels_price" v-show="!spaceStore.settings.pl.isChartView" :class="{ 'negative-number': item.subtotal[spaceStore.settings.pl.sumByKey] < 0}">
+								<div class="balance_labels_price" v-show="!spaceStore.settings.pl.isChartView"
+										 :class="{ 'negative-number': item.subtotal[spaceStore.settings.pl.sumByKey] < 0}">
 									{{ $format(item.subtotal[spaceStore.settings.pl.sumByKey]) }}
 								</div>
 							</div>
@@ -249,12 +250,10 @@
 						v-for="(item, index) in positions"
 						v-bind:key="index"
 						:class="{
-							active: transactionsOpts.filter_entry_user_code == item.user_code,
+							active: activePosition.id == item.id,
 						}"
-						@click="
-							;(transactionsOpts.filter_entry_user_code = item.user_code),
-								(isOpenTransactions = true)
-						"
+						@click="activatePosition($event, item)"
+
 					>
 						<div class="flex sb jcfe">
 							<div class="instr_name">
@@ -270,6 +269,10 @@
 						</div>
 						<div class="flex sb">
 							<div class="instr_pos">{{ $format(item.position_size) }}</div>
+							<div class="instr_pos" v-if="item['account.name'] && item['account.name'] != '-'">{{ item['account.name']
+								}}
+							</div>
+
 
 							<!--							<div class="flex" v-if="item.item_type != 2">-->
 							<!--								<div class="instr_change_percent instr_first">-->
@@ -348,16 +351,6 @@
 								class="chart_view"
 							>
 								Chart view
-							</ion-checkbox>
-						</div>
-
-						<div style="margin-bottom: 1rem">
-							<ion-checkbox
-								v-model="spaceStore.settings.pl.consolidateAccounts"
-								labelPlacement="start"
-								class="chart_view"
-							>
-								Consolidate Accounts
 							</ion-checkbox>
 						</div>
 
@@ -494,7 +487,8 @@
 				categoriesTotalSum: null,
 				chartData: null,
 				positionsError: '',
-				chartHeight: 200
+				chartHeight: 200,
+				activePosition: {}
 			}
 		},
 		computed: {
@@ -523,6 +517,14 @@
 			}
 		},
 		methods: {
+			activatePosition($event, item) {
+
+				this.activePosition = item;
+
+				this.transactionsOpts.filter_entry_user_code = item.user_code
+				this.isOpenTransactions = true
+
+			},
 			roundToTwo(num) {
 				return +(Math.round(num + 'e+2') + 'e-2')
 			},
@@ -711,7 +713,7 @@
 						return Math.floor(item.subtotal[this.spaceStore.settings.pl.sumByKey])
 					})
 
-					this.minPercent  = 10
+					this.minPercent = 10
 
 					this.chartData.data = {
 						labels: this.categories.map((item) => {
@@ -741,7 +743,7 @@
 										res = -100
 									}
 
-									return  res
+									return res
 								}),
 								backgroundColor: this.categories.map((item, index) => {
 									return this.colorByCat(item, index)
@@ -749,12 +751,12 @@
 								borderColor: this.categories.map((item, index) => {
 									return this.colorByCat(item, index)
 								}),
-								borderWidth: 2,
+								borderWidth: 2
 							}
 						]
 					}
 
-					console.log('this.chartData', this.chartData);
+					console.log('this.chartData', this.chartData)
 
 					this.chartData.options = {
 						responsive: true,
@@ -769,15 +771,15 @@
 									label: function(context) {
 										let labelIndex = context.dataIndex
 
-										console.log('context', context);
-										console.log('labelIndex', labelIndex);
+										console.log('context', context)
+										console.log('labelIndex', labelIndex)
 
 										if (context.datasetIndex === 0) {
 											labelIndex =
 												context.chart.data.datasets[0].data.length + labelIndex
 										}
 
-										console.log('labelIndex', labelIndex);
+										console.log('labelIndex', labelIndex)
 
 										return (
 											'Value' +
@@ -813,18 +815,17 @@
 								})
 
 
-
 								if (array.length > 0) {
-									const firstElement = array[0];
-									const datasetIndex = firstElement.datasetIndex;
-									const dataIndex = firstElement.index;
+									const firstElement = array[0]
+									const datasetIndex = firstElement.datasetIndex
+									const dataIndex = firstElement.index
 
 									// Highlight the clicked bar, for example, by setting its opacity to 1
 									this.data.datasets[datasetIndex].borderColor[dataIndex] = vueThis.colorByCat(this.data.labels[clickedBarIndex + 1], clickedBarIndex + 1)
 
 								}
 
-								this.update();
+								this.update()
 
 
 								let activeCategory = null
@@ -846,9 +847,9 @@
 						}
 					}
 
-					const categoriesCount = this.chartData.data.labels.length;
-					const heightPerCategory = 70; // Set desired height for each category
-					this.chartHeight = categoriesCount * heightPerCategory;
+					const categoriesCount = this.chartData.data.labels.length
+					const heightPerCategory = 70 // Set desired height for each category
+					this.chartHeight = categoriesCount * heightPerCategory
 
 					this.chartProcessing = false
 
@@ -867,7 +868,7 @@
 
 				let res = await useApi('backendPLReportGroups.post', {
 					body: {
-						account_mode: this.spaceStore.settings.pl.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
+						account_mode: this.spaceStore.settings.general.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
 						accounts: [],
 						accounts_cash: [],
 						accounts_position: [],
@@ -936,7 +937,7 @@
 
 					let res = await useApi('backendPLReportItems.post', {
 						body: {
-							account_mode: 0, // Ignore Accounts, important
+							account_mode: this.spaceStore.settings.general.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
 							accounts: [],
 							accounts_cash: [],
 							accounts_position: [],
@@ -1008,7 +1009,7 @@
 		async created() {
 
 			this.store = useStore()
-			this.spaceStore = computed(() => this.store.getActiveSpaceStore());
+			this.spaceStore = computed(() => this.store.getActiveSpaceStore())
 
 
 		},
@@ -1217,8 +1218,8 @@
 
 	.instr_pos {
 		color: #747474;
-		font-size: 14px;
-		line-height: 24px;
+		font-size: 0.65rem;
+		margin-top: 0.5rem;
 	}
 
 	.instr_market_value {

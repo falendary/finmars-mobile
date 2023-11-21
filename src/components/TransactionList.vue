@@ -129,9 +129,10 @@
 
 <script setup>
 	import dayjs from 'dayjs'
-	import { ref, watch } from 'vue'
+	import { computed, ref, watch } from 'vue'
 	import useApi from '@/composables/useApi'
 	import { IonSkeletonText } from '@ionic/vue'
+	import useStore from '@/composables/useStore.js'
 
 	const props = defineProps({
 		displayMode: String,
@@ -144,13 +145,13 @@
 	let transactions = ref(null)
 	let userFieldsMap = ref(null)
 
-	let transaction_classes = []
-	let transaction_portfolios = []
-	let item_currencies = []
+	// let transaction_classes = []
+	// let transaction_portfolios = []
+	// let item_currencies = []
 
 	// need for frontend_request_options
 	// only columns that requested will be shown
-	const columns = [
+	/*const columns = [
 		{
 			"key": "entry_currency.short_name",
 			"name": "Transaction. Entry Currency. Short Name",
@@ -1298,7 +1299,10 @@
 			},
 			"value_type": 20
 		}
-	]
+	]*/
+
+	const store = useStore()
+	const spaceStore = computed(() => store.getActiveSpaceStore())
 
 	init()
 
@@ -1311,8 +1315,8 @@
 		let res = await fetchReport()
 
 		// transaction_classes = res.item_transaction_classes
-		transaction_portfolios = res.item_portfolios
-		item_currencies = res.item_currencies
+		// transaction_portfolios = res.item_portfolios
+		// item_currencies = res.item_currencies
 
 		transactions.value = res.items.sort(
 			(a, b) =>
@@ -1361,27 +1365,27 @@
 
 		}
 
-		if (props.options.portfolios) {
-
-			filters.push({
-				content_type: 'portfolios.portfolio',
-				filtersListIndex: 1,
-				key: 'portfolio.user_code',
-				name: 'Portfolio. User code',
-				options: {
-					enabled: true,
-					exclude_empty_cells: false,
-					filter_type: 'equal',
-					filter_values: props.options.portfolios,
-					use_from_above: {
-						attrs_entity_type: 'balance-report', // report
-						key: 'portfolio.user_code'
-					}
-				},
-				value_type: 10
-			})
-
-		}
+		// if (props.options.portfolios) {
+		//
+		// 	filters.push({
+		// 		content_type: 'portfolios.portfolio',
+		// 		filtersListIndex: 1,
+		// 		key: 'portfolio.user_code',
+		// 		name: 'Portfolio. User code',
+		// 		options: {
+		// 			enabled: true,
+		// 			exclude_empty_cells: false,
+		// 			filter_type: 'equal',
+		// 			filter_values: props.options.portfolios,
+		// 			use_from_above: {
+		// 				attrs_entity_type: 'balance-report', // report
+		// 				key: 'portfolio.user_code'
+		// 			}
+		// 		},
+		// 		value_type: 10
+		// 	})
+		//
+		// }
 
 
 		var filter_settings = []
@@ -1403,14 +1407,9 @@
 		let res = await useApi('backendTransactionReportItems.post', {
 			body: {
 				accounts: [],
-				accounts_cash: [],
-				accounts_object: [],
-				accounts_position: [],
-				approach_multiplier: 0.5,
 				begin_date: props.options.begin_date,
 				calculationGroup: 'portfolio',
 				complex_transaction_statuses_filter: 'booked',
-				cost_method: 1,
 				custom_fields_to_calculate: '',
 				date_field: 'accounting_date',
 				// depth_level: props.reportType == 'pl' ? 'base_transaction' : 'entry',
@@ -1418,24 +1417,19 @@
 				end_date: props.options.end_date,
 				expression_iterations_count: 1,
 				frontend_request_options: {
-					columns: columns,
+					// columns: columns,
+					columns: [],
 					groups_types: [],
 					page: 1,
 					filter_settings: filter_settings,
 
 				},
 				filters: filters,
-				portfolio_mode: 1,
-				pricing_policy: 1,
-				portfolios: [],
+				portfolios: props.options.portfolios,
 				strategies1: [],
 				strategies2: [],
 				strategies3: [],
-				strategy1_mode: 0,
-				strategy2_mode: 0,
-				strategy3_mode: 0,
 				table_font_size: 'small',
-				task_id: null
 			}
 		})
 		let x = {

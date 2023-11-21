@@ -50,9 +50,9 @@
 				<ion-refresher-content />
 			</ion-refresher>
 
-			<div class="header flex sb aic">
-				<div>Explore</div>
-			</div>
+<!--			<div class="header flex sb aic">-->
+<!--				<div>Explore</div>-->
+<!--			</div>-->
 
 			<div class="portfolio-content">
 
@@ -202,7 +202,7 @@
 						v-for="(item, index) in positions"
 						v-bind:key="index"
 						:class="{
-							active: transactionsOpts.filter_entry_user_code == item.user_code,
+							active: activePosition.id == item.id,
 						}"
 					>
 						<div class="flex sb jcfe">
@@ -235,7 +235,7 @@
 
 								</div>
 
-								<div class="instr_name" @click="activateInstrument($event, item)">
+								<div class="instr_name" @click="activatePosition($event, item)">
 									{{
 										item.name.length > 80
 											? item.name.slice(0, 80) + '...'
@@ -244,12 +244,14 @@
 								</div>
 
 							</div>
-							<div class="instr_market_value instr_first" @click="activateInstrument($event, item)">
+							<div class="instr_market_value instr_first" @click="activatePosition($event, item)">
 								{{ $format(item.market_value) }}
 							</div>
 						</div>
 						<div class="flex sb">
 							<div class="instr_pos">{{ $format(item.position_size) }}</div>
+							<div class="instr_pos" v-if="item['account.name'] && item['account.name'] != '-'">{{ item['account.name'] }}</div>
+							<div class="instr_pos" v-if="item['portfolio.user_code'] && item['portfolio.user_code'] != '-'">{{ item['portfolio.user_code'] }}</div>
 
 							<!--							<div class="flex" v-if="item.item_type != 2">-->
 							<!--								<div class="instr_change_percent instr_first">-->
@@ -295,6 +297,7 @@
 				<TransactionListComp
 					v-if="transactionsOpts.filter_entry_user_code"
 					:options="transactionsOpts"
+					:reportType="'balance'"
 				/>
 			</template>
 
@@ -320,16 +323,6 @@
 								Chart view
 							</ion-checkbox>
 						</div>
-						<div style="margin-bottom: 1rem">
-							<ion-checkbox
-								v-model="spaceStore.settings.balance.consolidateAccounts"
-								labelPlacement="start"
-								class="chart_view"
-							>
-								Consolidate Accounts
-							</ion-checkbox>
-						</div>
-
 
 						<ion-item v-if="numericBalanceReportAttributes?.length">
 							<ion-select
@@ -373,7 +366,7 @@
 			</ion-modal>
 
 			<position-dialog
-				:position="selectedPosition"
+				:position="selectedPositionForDialog"
 				:isOpen="isPositionDialogOpen"
 				@close="isPositionDialogOpen = false"
 			></position-dialog>
@@ -488,7 +481,8 @@
 				groupByAttributes: [],
 				chartData: null,
 				isPositionDialogOpen: false,
-				selectedPosition: null, // clicked instrument (data from report)
+				selectedPositionForDialog: null, // clicked instrument (data from report)
+				activePosition: {  } // clicked for transaction filter
 
 			}
 		},
@@ -550,7 +544,7 @@
 
 				console.log('submitSearchResult.activeCategory', this.activeCategory)
 
-				this.activateInstrument(new Event('click'), item)
+				this.activatePosition(new Event('click'), item)
 
 			},
 			getIconColor(letter) {
@@ -558,11 +552,15 @@
 			},
 			async openPositionModal($event, item) {
 
-				this.selectedPosition = item
+				this.selectedPositionForDialog = item
 				this.isPositionDialogOpen = true
 
 			},
-			activateInstrument($event, item) {
+			activatePosition($event, item) {
+
+				console.log('activatePosition', item);
+
+				this.activePosition = item;
 
 				this.transactionsOpts.filter_entry_user_code = item.user_code
 				this.isOpenTransactions = true
@@ -779,7 +777,7 @@
 
 				let res = await useApi('backendBalanceReportGroups.post', {
 					body: {
-						account_mode: this.spaceStore.settings.balance.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
+						account_mode: this.spaceStore.settings.general.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
 						accounts: [],
 						accounts_cash: [],
 						accounts_position: [],
@@ -843,7 +841,7 @@
 
 				let res = await useApi('backendBalanceReportItems.post', {
 					body: {
-						account_mode: this.spaceStore.settings.balance.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
+						account_mode: this.spaceStore.settings.general.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
 						accounts: [],
 						accounts_cash: [],
 						accounts_position: [],
@@ -1116,9 +1114,8 @@
 
 	.instr_pos {
 		color: #747474;
-		font-size: 14px;
-		line-height: 24px;
-		margin-left: 2.4rem;
+		font-size: 0.65rem;
+		margin-top: 0.5rem;
 	}
 
 	.instr_market_value {

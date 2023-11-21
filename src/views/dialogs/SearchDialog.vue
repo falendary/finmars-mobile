@@ -21,37 +21,39 @@
 						<div v-for="(item, index) in searchResults" v-bind:key="index" @click="submitSearchResult($event, item)"
 								 class="search-result-item">
 
-							<ion-card>
+							<div class="search-result-item-card">
 
-								<ion-card-header>
-									<ion-card-subtitle>{{ item.name }}</ion-card-subtitle>
-								</ion-card-header>
+								<div class="search-result-item-card-header">
+									{{ item.name }}
+								</div>
 
-								<ion-item>
-									<ion-label>
-										Market Value
-									</ion-label>
-									{{ $format(item.market_value) }}
+								<div class="search-result-item-card-content">
+									<ion-item>
+										<ion-label>
+											Market Value
+										</ion-label>
+										{{ $format(item.market_value) }}
 
-								</ion-item>
+									</ion-item>
 
-								<ion-item v-if="item['portfolio.user_code'] && item['portfolio.user_code'] != '-'">
-									<ion-label>
-										Portfolio
-									</ion-label>
-									{{ item['portfolio.user_code'] }}
+									<ion-item v-if="item['portfolio.user_code'] && item['portfolio.user_code'] != '-'">
+										<ion-label>
+											Portfolio
+										</ion-label>
+										{{ item['portfolio.user_code'] }}
 
-								</ion-item>
+									</ion-item>
 
-								<ion-item v-if="item['account.user_code'] && item['account.user_code'] != '-'">
-									<ion-label>
-										Account
-									</ion-label>
-									{{ item['account.user_code'] }}
+									<ion-item v-if="item['account.user_code'] && item['account.user_code'] != '-'">
+										<ion-label>
+											Account
+										</ion-label>
+										{{ item['account.user_code'] }}
 
-								</ion-item>
+									</ion-item>
 
-							</ion-card>
+								</div>
+							</div>
 
 						</div>
 
@@ -164,7 +166,7 @@
 
 					let res = await useApi('backendBalanceReportItems.post', {
 						body: {
-							account_mode: this.spaceStore.settings.balance.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
+							account_mode: this.spaceStore.settings.general.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
 							accounts: [],
 							accounts_cash: [],
 							accounts_position: [],
@@ -252,8 +254,29 @@
 
 <style lang="scss" scoped>
 
-	.search-result-item {
+	.search-result-item-card {
 
+		background: var(--ion-card-background);
+		padding: 9px;
+		padding-top: 6px;
+		//border-radius: 5px;
+		border-radius: 1.5rem;
+		//width: 132px;
+		width: 100%;
+		min-height: 170px;
+		padding: 1rem;
+		box-sizing: border-box;
+		box-shadow: var(--ion-card-box-shadow);
+		border: 1px dotted var(--ion-card-border-color);
+		margin-bottom: 1rem;
+
+	}
+
+	.search-result-item-card-header {
+		font-size: .8rem;
+		padding: 0.25rem 0.5rem;
+		opacity: .7;
+		margin-bottom: 0.25rem;
 	}
 
 
