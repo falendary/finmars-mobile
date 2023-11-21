@@ -39,6 +39,8 @@ import {
 	PieController,
 	PointElement, Title, Tooltip
 } from 'chart.js'
+import RoundToTwo from '@/plugins/RoundToTwo.js'
+import CopyToClipboard from '@/plugins/CopyToClipboard.js'
 
 let pinia, app
 
@@ -59,7 +61,7 @@ function createAppVue() {
 		dsn: "https://9ac2652235044ecb84403bb1511a6e2b@sentry.finmars.com/7",
 	});
 
-	app.use(router).use(IonicVue).use(NumberFormat).use(pinia).use(Particles);
+	app.use(router).use(IonicVue).use(NumberFormat).use(RoundToTwo).use(CopyToClipboard).use(pinia).use(Particles);
 
 	app.component('IonPage', IonPage).component('IonContent', IonContent)
 
