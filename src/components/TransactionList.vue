@@ -94,6 +94,32 @@
 				No transactions
 			</div>
 
+
+			<div v-if="count > page * page_size">
+
+				<div class="display-flex" style="margin-top: 1rem; justify-content: space-between; align-items: center">
+					<div style="font-size: .8rem; opacity: .7;">
+						Transactions {{ transactions.length}} / {{count}}
+					</div>
+
+					<div class="display-flex align-center justify-center" v-if="loadMoreProcessing">
+						<progress-circular diameter="20"></progress-circular>
+					</div>
+
+				</div>
+
+
+				<ion-button
+					class="ion-margin-horizontal"
+					fill="outline"
+					expand="block"
+					@click="loadMore()"
+				>
+					Load More
+				</ion-button>
+
+			</div>
+
 		</div>
 
 
@@ -138,15 +164,18 @@
 
 <script>
 
-	import { IonSkeletonText } from '@ionic/vue'
+	import { IonButton, IonSkeletonText } from '@ionic/vue'
 	import { computed } from 'vue'
 	import useStore from '@/composables/useStore.js'
 
 	import dayjs from 'dayjs'
 	import useApi from '@/composables/useApi.js'
+	import ProgressCircular from '@/components/ProgressCircular.vue'
 
 	export default {
 		components: {
+			ProgressCircular,
+			IonButton,
 			IonSkeletonText
 			// settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline
 		},
@@ -172,6 +201,10 @@
 				userFieldsMap: [],
 				displayMode: 'full',
 				processing: false,
+				count: 0,
+				page_size: 40,
+				page: 1,
+				loadMoreProcessing: false
 			}
 		},
 		methods: {
@@ -243,10 +276,10 @@
 							// columns: columns,
 							columns: [],
 							groups_types: [],
-							page: 1,
 							filter_settings: filter_settings
 
 						},
+						page: this.page,
 						filters: filters,
 						portfolios: this.options.portfolios,
 						strategies1: [],
@@ -267,27 +300,52 @@
 					)
 				}
 
+				this.count = res.count
+
 				return res
+			},
+
+			async loadMore() {
+
+				this.loadMoreProcessing = true;
+
+				this.page = this.page + 1
+
+				let res = await this.fetchReport()
+
+				res.items.sort(
+					(a, b) =>
+						new Date(b.accounting_date).getTime() -
+						new Date(a.accounting_date).getTime()
+				).forEach((item) => {
+					this.transactions.push(item)
+				})
+
+
+				this.loadMoreProcessing = false;
+
 			},
 
 			async init() {
 
-				this.processing = true;
+				this.processing = true
 
 				this.transactions = []
 				let res = await this.fetchReport()
 
-				this.transactions = res.items.sort(
+				res.items.sort(
 					(a, b) =>
 						new Date(b.accounting_date).getTime() -
 						new Date(a.accounting_date).getTime()
-				)
+				).forEach((item) => {
+					this.transactions.push(item)
+				})
 
 				const transactionUserFieldsRes = await useApi('transactionUserField.get')
 
 				this.userFieldsMap = transactionUserFieldsRes.results.filter((o) => o.is_active)
 
-				this.processing = false;
+				this.processing = false
 			}
 
 		},
