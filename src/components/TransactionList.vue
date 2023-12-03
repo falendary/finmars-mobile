@@ -4,7 +4,7 @@
 		<div v-if="!processing">
 
 			<div v-if="transactions.length">
-				<div class="transactions_wrap" v-for="item in transactions" :key="item.id">
+				<div class="transactions_wrap" v-for="(item, index) in transactions" :key="index">
 					<div
 						class="transactions_item"
 						:class="{ active: openDescId == item.id }"
@@ -289,16 +289,16 @@
 					}
 				})
 
-				if (this.reportType == 'balance') {
-					res.items = res.items.filter(
-						(o) => o.entry_item_user_code == this.options.filter_entry_user_code
-					)
-				} else {
-					res.items = res.items.filter(
-						(o) =>
-							o.transaction_item_user_code == this.options.filter_entry_user_code
-					)
-				}
+				// if (this.reportType == 'balance') {
+				// 	res.items = res.items.filter(
+				// 		(o) => o.entry_item_user_code == this.options.filter_entry_user_code
+				// 	)
+				// } else {
+				// 	res.items = res.items.filter(
+				// 		(o) =>
+				// 			o.transaction_item_user_code == this.options.filter_entry_user_code
+				// 	)
+				// }
 
 				this.count = res.count
 
@@ -333,13 +333,7 @@
 				this.transactions = []
 				let res = await this.fetchReport()
 
-				res.items.sort(
-					(a, b) =>
-						new Date(b.accounting_date).getTime() -
-						new Date(a.accounting_date).getTime()
-				).forEach((item) => {
-					this.transactions.push(item)
-				})
+				this.transactions = res.items;
 
 				const transactionUserFieldsRes = await useApi('transactionUserField.get')
 
