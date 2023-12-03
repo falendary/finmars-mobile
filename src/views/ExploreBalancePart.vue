@@ -330,8 +330,6 @@
 				categoriesTotalSum: null,
 				chartProcessing: true,
 				positionsProcessing: false,
-				portfoliosRefresher: null,
-				indicatorsRefresher: null,
 				categories: [],
 				positions: [],
 				activeCategory: null,
@@ -418,8 +416,9 @@
 				this.activeCategory = null
 				this.isSearchDialogOpen = false
 
-				await this.createChart()
 				this.positions = [];
+				await this.createChart()
+
 
 			},
 			async fetchBalanceReportAttributes() {
@@ -732,13 +731,6 @@
 
 				this.init()
 
-				if (this.portfoliosRefresher) {
-					this.portfoliosRefresher(true)
-				}
-
-				if (this.indicatorsRefresher) {
-					this.indicatorsRefresher()
-				}
 
 				if (event) event.target.complete()
 			}
@@ -760,13 +752,6 @@
 			this.settingsWatch = watch(this.spaceStore.settings.general, async () => {
 
 				await this.init()
-
-				if (this.portfoliosRefresher) {
-					await this.portfoliosRefresher()
-				}
-				if (this.indicatorsRefresher) {
-					await this.indicatorsRefresher()
-				}
 
 			})
 

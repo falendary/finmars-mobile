@@ -1,29 +1,33 @@
 <template>
 	<div class="transactions">
-		<div class="transactions_wrap" v-for="item in transactions" :key="item.id">
-			<div
-				class="transactions_item"
-				:class="{ active: openDescId == item.id }"
-				@click="openDescId = item.id == openDescId ? null : item.id"
-			>
-				<div class="pi_first_line flex aic sb">
-					<div class="ti_date">
-						{{ dayjs(item.accounting_date).format('DD MMM YYYY') }}
-					</div>
-					<div class="ti_header">
-						{{
-							item['transaction_class.name']
-						}}
-					</div>
-				</div>
 
-				<div class="flex aic sb">
-					<div class="name">
-						{{
-							item.notes
-						}}
-					</div>
-					<div class="pos" v-if="displayMode != 'compact'">
+		<div v-if="!processing">
+
+			<div v-if="transactions.length">
+				<div class="transactions_wrap" v-for="item in transactions" :key="item.id">
+					<div
+						class="transactions_item"
+						:class="{ active: openDescId == item.id }"
+						@click="openDescId = item.id == openDescId ? null : item.id"
+					>
+						<div class="pi_first_line flex aic sb">
+							<div class="ti_date">
+								{{ dayjs(item.accounting_date).format('DD MMM YYYY') }}
+							</div>
+							<div class="ti_header">
+								{{
+									item['transaction_class.name']
+								}}
+							</div>
+						</div>
+
+						<div class="flex aic sb">
+							<div class="name">
+								{{
+									item.notes
+								}}
+							</div>
+							<div class="pos" v-if="displayMode != 'compact'">
 						<span
 							:class="[
 								item[
@@ -44,1413 +48,267 @@
 								)
 							}}</span
 						>
-						UNITS
-					</div>
-				</div>
-				<div class="flex sb">
-					<div class="desc">
-						{{
-							item['complex_transaction.text']?.slice(
-								0,
-								displayMode != 'compact' ? 30 : 40
-							)
-						}}
-					</div>
-					<div class="pos" v-if="displayMode != 'compact'">
+								UNITS
+							</div>
+						</div>
+						<div class="flex sb">
+							<div class="desc">
+								{{
+									item['complex_transaction.text']?.slice(
+										0,
+										displayMode != 'compact' ? 30 : 40
+									)
+								}}
+							</div>
+							<div class="pos" v-if="displayMode != 'compact'">
 						<span :class="[item.cash_consideration > 0 ? 'plus' : 'minus']">{{
 								$format(item.cash_consideration)
 							}}</span>
-						{{
-							item['settlement_currency.short_name']
-						}}
+								{{
+									item['settlement_currency.short_name']
+								}}
+							</div>
+						</div>
+					</div>
+
+					<div class="transactions_desc_block" v-if="openDescId == item.id">
+						<template v-for="field in userFieldsMap">
+							<div
+								class="tdb_row flex sb"
+								v-if="item['complex_transaction.' + field.key]"
+							>
+								<div class="tdb_prop">{{ field.name }}:</div>
+								<div class="tdb_value">
+									{{ item['complex_transaction.' + field.key] }}
+								</div>
+							</div>
+						</template>
+						<div class="tac" v-if="!userFieldsMap.length">No description</div>
 					</div>
 				</div>
 			</div>
-
-			<div class="transactions_desc_block" v-if="openDescId == item.id">
-				<template v-for="field in userFieldsMap">
-					<div
-						class="tdb_row flex sb"
-						v-if="item['complex_transaction.' + field.key]"
-					>
-						<div class="tdb_prop">{{ field.name }}:</div>
-						<div class="tdb_value">
-							{{ item['complex_transaction.' + field.key] }}
-						</div>
-					</div>
-				</template>
-				<div class="tac" v-if="!userFieldsMap.length">No description</div>
+			<div
+				class="transactions_wrap transactions_item"
+				v-if="transactions.length === 0"
+			>
+				No transactions
 			</div>
+
 		</div>
 
-		<template v-if="transactions === null">
+
+		<div v-if="processing">
 			<div class="transactions_wrap" v-for="item in [1, 1]">
 				<div class="transactions_item">
 					<div class="pi_first_line flex aic sb">
 						<div class="ti_date">
 							<IonSkeletonText
 								:animated="true"
-								style="width: 80px; height: 24px"
+								style="width: 80px; height: 24px; margin-bottom: 0.25rem"
 							/>
 						</div>
 						<div class="ti_header" style="width: 25%">
-							<IonSkeletonText :animated="true" style="height: 24px" />
+							<IonSkeletonText :animated="true" style="height: 24px ; margin-bottom: 0.25rem" />
 						</div>
 					</div>
 
 					<div class="flex aic sb">
 						<div class="name" style="width: 35%">
-							<IonSkeletonText :animated="true" style="height: 24px" />
+							<IonSkeletonText :animated="true" style="height: 24px; margin-bottom: 0.25rem" />
 						</div>
 						<div class="pos" style="width: 15%" v-if="displayMode != 'compact'">
-							<IonSkeletonText :animated="true" style="height: 24px" />
+							<IonSkeletonText :animated="true" style="height: 24px; margin-bottom: 0.25rem" />
 						</div>
 					</div>
 					<div class="flex sb">
 						<div class="desc" style="width: 50%">
-							<IonSkeletonText :animated="true" style="height: 24px" />
+							<IonSkeletonText :animated="true" style="height: 24px; margin-bottom: 0.25rem" />
 						</div>
 						<div class="pos" style="width: 25%" v-if="displayMode != 'compact'">
-							<IonSkeletonText :animated="true" style="height: 24px" />
+							<IonSkeletonText :animated="true" style="height: 24px; margin-bottom: 0.25rem" />
 						</div>
 					</div>
 				</div>
 			</div>
-		</template>
-
-		<div
-			class="transactions_wrap transactions_item"
-			v-if="transactions?.length === 0"
-		>
-			No transactions
 		</div>
+
+
 	</div>
 </template>
 
-<script setup>
-	import dayjs from 'dayjs'
-	import { computed, ref, watch } from 'vue'
-	import useApi from '@/composables/useApi'
+<script>
+
 	import { IonSkeletonText } from '@ionic/vue'
+	import { computed } from 'vue'
 	import useStore from '@/composables/useStore.js'
 
-	const props = defineProps({
-		displayMode: String,
-		reportType: String,
-		options: Object
-	})
+	import dayjs from 'dayjs'
+	import useApi from '@/composables/useApi.js'
 
-	let openDescId = ref(null)
-
-	let transactions = ref(null)
-	let userFieldsMap = ref(null)
-
-	// let transaction_classes = []
-	// let transaction_portfolios = []
-	// let item_currencies = []
-
-	// need for frontend_request_options
-	// only columns that requested will be shown
-	/*const columns = [
-		{
-			"key": "entry_currency.short_name",
-			"name": "Transaction. Entry Currency. Short Name",
-			"value_type": 10,
-		},
-		{
-			"key": "settlement_currency.short_name",
-			"name": "Transaction. Settlement Currency. Short Name",
-			"value_type": 10,
-		},
-		{
-			"key": "transaction_currency.short_name",
-			"name": "Transaction. Transaction Currency. Short Name",
-			"value_type": 10,
-		},
-		{
-			'content_type': 'transactions.complextransaction',
-			'isHidden': false,
-			'key': 'complex_transaction.code',
-			'layout_name': 'Trade ID',
-			'name': 'Complex Transaction. Code',
-			'options': {
-				'sort': 'DESC',
-				'sort_mode': 'default',
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'value_type': 20
-		},
-		{
-			'columns': true,
-			'content_type': 'transactions.complextransaction',
-			'filters': false,
-			'groups': false,
-			'isHidden': false,
-			'key': 'complex_transaction.user_date_1',
-			'layout_name': 'Date (Trade)',
-			'name': 'Complex Transaction. Date (Trade)',
-			'options': {
-				'sort': null,
-				'sort_settings': {
-					'mode': null
-				}
-			},
-			'orderNumber__': 24,
-			'style': {
-				'width': '100px'
-			},
-			'value_type': 40
-		},
-		{
-			'columns': true,
-			'content_type': 'reports.transactionreport',
-			'filters': false,
-			'groups': false,
-			'isHidden': false,
-			'key': 'cash_consideration',
-			'layout_name': 'Amount/Cash',
-			'name': 'Transaction. Cash consideration',
-			'options': {
-				'sort': null,
-				'sort_settings': {
-					'mode': null
-				}
-			},
-			'orderNumber__': 3,
-			'report_settings': {
-				'negative_color_format_id': 1,
-				'negative_format_id': 1,
-				'number_multiplier': null,
-				'number_prefix': '',
-				'number_suffix': '',
-				'percentage_format_id': 0,
-				'round_format_id': 1,
-				'subtotal_formula_id': 1,
-				'thousands_separator_format_id': 2,
-				'zero_format_id': 1
-			},
-			'style': {
-				'width': '100px'
-			},
-			'value_type': 20
-		},
-		{
-			'columns': true,
-			'isHidden': false,
-			'key': 'entry_amount',
-			'layout_name': 'Entry Amount',
-			'name': 'Transaction. Entry Amount',
-			'options': {
-				'numberFormat': {
-					'negative_color_format_id': 1,
-					'negative_format_id': 0,
-					'number_multiplier': null,
-					'number_prefix': '',
-					'number_suffix': '',
-					'percentage_format_id': 0,
-					'round_format_id': 3,
-					'subtotal_formula_id': 1,
-					'thousands_separator_format_id': 2,
-					'zero_format_id': 1
-				},
-				'sort': null,
-				'sort_settings': {
-					'mode': null
-				}
-			},
-			'report_settings': {
-				'subtotal_formula_id': 1
-			},
-			'style': {
-				'width': '100px'
-			},
-			'value_type': 20
-		},
-		{
-			'key': 'entry_item_user_code',
-			'layout_name': 'Entry User Code',
-			'name': 'Transaction. Entry User Code',
-			'value_type': 10
-		},
-		{
-			'content_type': 'transactions.complextransaction',
-			'isHidden': false,
-			'key': 'complex_transaction.text',
-			'layout_name': 'Description',
-			'name': 'Complex Transaction. Description',
-			'options': {
-				'sort': null,
-				'sort_settings': {
-					'mode': null
-				}
-			},
-			'style': {
-				'width': '319px'
-			},
-			'value_type': 10
-		},
-		{
-			'columns': true,
-			'content_type': 'transactions.complextransaction',
-			'filters': false,
-			'groups': false,
-			'isHidden': false,
-			'key': 'complex_transaction.user_text_4',
-			'layout_name': 'Instrument/Currency',
-			'name': 'Complex Transaction. Instrument',
-			'options': {
-				'sort': null,
-				'sort_settings': {
-					'mode': null
-				}
-			},
-			'orderNumber__': 3,
-			'style': {
-				'width': '118px'
-			},
-			'value_type': 10
-		},
-		{
-			'columns': true,
-			'content_type': 'reports.transactionreport',
-			'filters': false,
-			'groups': false,
-			'isHidden': false,
-			'key': 'position_size_with_sign',
-			'layout_name': 'Position/Quantity',
-			'name': 'Transaction. Position Size with sign',
-			'options': {
-				'sort': null,
-				'sort_settings': {
-					'mode': null
-				}
-			},
-			'orderNumber__': 2,
-			'report_settings': {
-				'negative_color_format_id': 1,
-				'negative_format_id': 1,
-				'number_multiplier': null,
-				'number_prefix': '',
-				'number_suffix': '',
-				'percentage_format_id': 0,
-				'round_format_id': 1,
-				'thousands_separator_format_id': 2,
-				'zero_format_id': 1
-			},
-			'style': {
-				'width': '73px'
-			},
-			'value_type': 20
-		},
-		{
-			'columns': true,
-			'content_type': 'transactions.complextransaction',
-			'filters': false,
-			'groups': false,
-			'isHidden': false,
-			'key': 'complex_transaction.user_number_7',
-			'layout_name': 'Price',
-			'name': 'Complex Transaction. Traded Price',
-			'options': {
-				'sort': null,
-				'sort_settings': {
-					'mode': null
-				}
-			},
-			'orderNumber__': 23,
-			'style': {
-				'width': '100px'
-			},
-			'value_type': 20
-		},
-		{
-			'columns': true,
-			'content_type': 'reports.transactionreport',
-			'filters': false,
-			'groups': false,
-			'isHidden': false,
-			'key': 'principal_with_sign',
-			'layout_name': 'Principal',
-			'name': 'Transaction. Principal with sign',
-			'options': {
-				'sort': null,
-				'sort_settings': {
-					'mode': null
-				}
-			},
-			'orderNumber__': 4,
-			'report_settings': {
-				'negative_color_format_id': 1,
-				'negative_format_id': 1,
-				'number_multiplier': null,
-				'number_prefix': '',
-				'number_suffix': '',
-				'percentage_format_id': 0,
-				'round_format_id': 1,
-				'thousands_separator_format_id': 2,
-				'zero_format_id': 1
-			},
-			'style': {
-				'width': '100px'
-			},
-			'value_type': 20
-		},
-		{
-			'columns': true,
-			'content_type': 'reports.transactionreport',
-			'filters': false,
-			'groups': false,
-			'isHidden': false,
-			'key': 'carry_with_sign',
-			'layout_name': 'Accrued',
-			'name': 'Transaction. Carry with sign',
-			'options': {
-				'sort': null,
-				'sort_settings': {
-					'mode': null
-				}
-			},
-			'orderNumber__': 5,
-			'report_settings': {
-				'negative_color_format_id': 1,
-				'negative_format_id': 1,
-				'number_multiplier': null,
-				'number_prefix': '',
-				'number_suffix': '',
-				'percentage_format_id': 0,
-				'round_format_id': 1,
-				'thousands_separator_format_id': 2,
-				'zero_format_id': 1
-			},
-			'style': {
-				'width': '100px'
-			},
-			'value_type': 20
-		},
-		{
-			'key': 'complex_transaction.user_text_1',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 1',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_2',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 2',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_3',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 3',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_5',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 5',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_6',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 6',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_7',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 7',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_8',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 8',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_9',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 9',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_10',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 10',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_11',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 11',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_12',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 12',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_13',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 13',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_14',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 14',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_15',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 15',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_16',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 16',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_17',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 17',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_18',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 18',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_19',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 19',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_text_20',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Text 20',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_1',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 1',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_2',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 2',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_3',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 3',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_4',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 4',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_5',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 5',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_6',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 6',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_8',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 8',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_10',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 10',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_9',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 9',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_11',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 11',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_12',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 12',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_13',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 13',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_14',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 14',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_15',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 15',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_16',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 16',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_17',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 17',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_18',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 18',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_19',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 19',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_number_20',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Number 20',
-			'value_type': 20,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_date_3',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Date 3',
-			'value_type': 40,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_date_2',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Date 2',
-			'value_type': 40,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_date_4',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Date 4',
-			'value_type': 40,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.user_date_5',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. User Date 5',
-			'value_type': 40,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'transaction_class.name',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Transaction. Transaction class. Name',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'notes',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Transaction. Notes',
-			'value_type': 10,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'isHidden': false
-		},
-		{
-			'key': 'complex_transaction.date',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Complex Transaction. Date',
-			'value_type': 40,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'___column_id': '666649592bc77832533730bdebdbe52c',
-			'isHidden': false
-		},
-		{
-			'key': 'accounting_date',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Transaction. Accounting date',
-			'value_type': 40,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'___column_id': '69f589c5396a46d6d1a46a8f3dc7cb6a',
-			'isHidden': false
-		},
-		{
-			'key': 'cash_date',
-			'groups': false,
-			'columns': true,
-			'filters': false,
-			'name': 'Transaction. Cash date',
-			'value_type': 40,
-			'options': {
-				'sort': null,
-				'sort_settings': {}
-			},
-			'style': {
-				'width': '100px'
-			},
-			'___column_id': '6f41d5d9f8f4752afb5e1aa9ea1b1236',
-			'isHidden': false
-		},
-		{
-			"key": "transaction_item_user_code",
-			"name": "Transaction. Transaction Item User Code",
-			"value_type": 10,
-			"options": {
-				"sort": null,
-				"sort_settings": {}
-			},
-			"columns": true,
-			"style": {
-				"width": "100px"
-			},
-			"___column_id": "9fb07d8799de83b347b9cc30c92a16a6"
-		},
-		{
-			"___column_id": "3e6cb9f296d2f740b343f42f878bff4a",
-			"columns": true,
-			"content_type": "reports.transactionreport",
-			"filters": false,
-			"groups": false,
-			"isHidden": false,
-			"key": "cash_consideration",
-			"layout_name": "Amount/Cash",
-			"name": "Transaction. Cash consideration",
-			"options": {
-				"sort": null,
-				"sort_settings": {
-					"mode": null
-				}
-			},
-			"orderNumber__": 3,
-			"report_settings": {
-				"negative_color_format_id": 1,
-				"negative_format_id": 1,
-				"number_multiplier": null,
-				"number_prefix": "",
-				"number_suffix": "",
-				"percentage_format_id": 0,
-				"round_format_id": 1,
-				"subtotal_formula_id": 1,
-				"thousands_separator_format_id": 2,
-				"zero_format_id": 1
-			},
-			"style": {
-				"width": "100px"
-			},
-			"value_type": 20
-		},
-		{
-			"___column_id": "0af49b3b463f39bd4fb22430e6e291f1",
-			"columns": true,
-			"content_type": "reports.transactionreport",
-			"filters": false,
-			"groups": false,
-			"isHidden": false,
-			"key": "carry_with_sign",
-			"layout_name": "Accrued",
-			"name": "Transaction. Carry with sign",
-			"options": {
-				"sort": null,
-				"sort_settings": {
-					"mode": null
-				}
-			},
-			"orderNumber__": 5,
-			"report_settings": {
-				"negative_color_format_id": 1,
-				"negative_format_id": 1,
-				"number_multiplier": null,
-				"number_prefix": "",
-				"number_suffix": "",
-				"percentage_format_id": 0,
-				"round_format_id": 1,
-				"thousands_separator_format_id": 2,
-				"zero_format_id": 1
-			},
-			"style": {
-				"width": "100px"
-			},
-			"value_type": 20
-		},
-		{
-			"___column_id": "92dca03a91a4f4c3a1d9a7c11de85a88",
-			"columns": true,
-			"content_type": "reports.transactionreport",
-			"filters": false,
-			"groups": false,
-			"isHidden": false,
-			"key": "principal_with_sign",
-			"layout_name": "Principal",
-			"name": "Transaction. Principal with sign",
-			"options": {
-				"sort": null,
-				"sort_settings": {
-					"mode": null
-				}
-			},
-			"orderNumber__": 4,
-			"report_settings": {
-				"negative_color_format_id": 1,
-				"negative_format_id": 1,
-				"number_multiplier": null,
-				"number_prefix": "",
-				"number_suffix": "",
-				"percentage_format_id": 0,
-				"round_format_id": 1,
-				"thousands_separator_format_id": 2,
-				"zero_format_id": 1
-			},
-			"style": {
-				"width": "100px"
-			},
-			"value_type": 20
-		}
-	]*/
-
-	const store = useStore()
-	const spaceStore = computed(() => store.getActiveSpaceStore())
-
-	init()
-
-	watch(props.options, (newval, oldVal) => {
-		init()
-	})
-
-	async function init() {
-		transactions.value = null
-		let res = await fetchReport()
-
-		// transaction_classes = res.item_transaction_classes
-		// transaction_portfolios = res.item_portfolios
-		// item_currencies = res.item_currencies
-
-		transactions.value = res.items.sort(
-			(a, b) =>
-				new Date(b.accounting_date).getTime() -
-				new Date(a.accounting_date).getTime()
-		)
-
-		const transactionUserFieldsRes = await useApi('transactionUserField.get')
-
-		userFieldsMap.value = transactionUserFieldsRes.results.filter((o) => o.is_active)
-	}
-
-
-	async function fetchReport() {
-
-		let filters = []
-
-		console.log('props.options.portfolios', props.options.portfolios)
-
-		if (props.options.filter_entry_user_code) {
-
-			if (props.reportType == 'balance') {
-
-				filters = [
-					{
-						key: 'entry_item_user_code',
-						groups: false,
-						columns: true,
-						filters: true,
-						name: 'Transaction. Entry Item User Code',
-						value_type: 10,
-						options: {
-							filter_type: 'equal',
-							filter_values: [props.options.filter_entry_user_code],
-							exclude_empty_cells: false,
-							enabled: true,
-							use_from_above: {}
-						}
-					}
-				]
-			} else {
-
-				filters = [] // pl context cant do entry sql filter
-
+	export default {
+		components: {
+			IonSkeletonText
+			// settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline
+		},
+		props: {
+			options: {
+				type: Object,
+				required: true
+			},
+			reportType: {
+				type: String,
+				required: true
 			}
+		},
+		data() {
+			return {
+				icons: {},
+				store: null,
+				spaceStore: null,
 
-		}
+				dayjs: dayjs,
+				openDescId: null,
+				transactions: [],
+				userFieldsMap: [],
+				displayMode: 'full',
+				processing: false,
+			}
+		},
+		methods: {
 
-		// if (props.options.portfolios) {
-		//
-		// 	filters.push({
-		// 		content_type: 'portfolios.portfolio',
-		// 		filtersListIndex: 1,
-		// 		key: 'portfolio.user_code',
-		// 		name: 'Portfolio. User code',
-		// 		options: {
-		// 			enabled: true,
-		// 			exclude_empty_cells: false,
-		// 			filter_type: 'equal',
-		// 			filter_values: props.options.portfolios,
-		// 			use_from_above: {
-		// 				attrs_entity_type: 'balance-report', // report
-		// 				key: 'portfolio.user_code'
-		// 			}
-		// 		},
-		// 		value_type: 10
-		// 	})
-		//
-		// }
+			async fetchReport() {
 
+				let filters = []
 
-		var filter_settings = []
+				console.log('props.options.portfolios', this.options.portfolios)
 
-		if (props.reportType == 'pl') {
-			filter_settings = [
-				{
-					'key': 'transaction_item_user_code',
-					'filter_type': 'contains',
-					'exclude_empty_cells': false,
-					'value_type': 10,
-					'value': [
-						props.options.filter_entry_user_code
+				if (this.options.filter_entry_user_code) {
+
+					if (this.reportType === 'balance') {
+
+						filters = [
+							{
+								key: 'entry_item_user_code',
+								groups: false,
+								columns: true,
+								filters: true,
+								name: 'Transaction. Entry Item User Code',
+								value_type: 10,
+								options: {
+									filter_type: 'equal',
+									filter_values: [this.options.filter_entry_user_code],
+									exclude_empty_cells: false,
+									enabled: true,
+									use_from_above: {}
+								}
+							}
+						]
+					} else {
+
+						filters = [] // pl context cant do entry sql filter
+
+					}
+
+				}
+
+				var filter_settings = []
+
+				if (this.reportType == 'pl') {
+					filter_settings = [
+						{
+							'key': 'transaction_item_user_code',
+							'filter_type': 'contains',
+							'exclude_empty_cells': false,
+							'value_type': 10,
+							'value': [
+								this.options.filter_entry_user_code
+							]
+						}
 					]
 				}
-			]
-		}
 
-		let res = await useApi('backendTransactionReportItems.post', {
-			body: {
-				accounts: [],
-				begin_date: props.options.begin_date,
-				calculationGroup: 'portfolio',
-				complex_transaction_statuses_filter: 'booked',
-				custom_fields_to_calculate: '',
-				date_field: 'accounting_date',
-				// depth_level: props.reportType == 'pl' ? 'base_transaction' : 'entry',
-				depth_level: props.options.dept_level,
-				end_date: props.options.end_date,
-				expression_iterations_count: 1,
-				frontend_request_options: {
-					// columns: columns,
-					columns: [],
-					groups_types: [],
-					page: 1,
-					filter_settings: filter_settings
+				let res = await useApi('backendTransactionReportItems.post', {
+					body: {
+						accounts: [],
+						begin_date: this.options.begin_date,
+						calculationGroup: 'portfolio',
+						complex_transaction_statuses_filter: 'booked',
+						custom_fields_to_calculate: '',
+						date_field: 'accounting_date',
+						// depth_level: props.reportType == 'pl' ? 'base_transaction' : 'entry',
+						depth_level: this.options.dept_level,
+						end_date: this.options.end_date,
+						expression_iterations_count: 1,
+						frontend_request_options: {
+							// columns: columns,
+							columns: [],
+							groups_types: [],
+							page: 1,
+							filter_settings: filter_settings
 
-				},
-				filters: filters,
-				portfolios: props.options.portfolios,
-				strategies1: [],
-				strategies2: [],
-				strategies3: [],
-				table_font_size: 'small'
+						},
+						filters: filters,
+						portfolios: this.options.portfolios,
+						strategies1: [],
+						strategies2: [],
+						strategies3: [],
+						table_font_size: 'small'
+					}
+				})
+
+				if (this.reportType == 'balance') {
+					res.items = res.items.filter(
+						(o) => o.entry_item_user_code == this.options.filter_entry_user_code
+					)
+				} else {
+					res.items = res.items.filter(
+						(o) =>
+							o.transaction_item_user_code == this.options.filter_entry_user_code
+					)
+				}
+
+				return res
+			},
+
+			async init() {
+
+				this.processing = true;
+
+				this.transactions = []
+				let res = await this.fetchReport()
+
+				this.transactions = res.items.sort(
+					(a, b) =>
+						new Date(b.accounting_date).getTime() -
+						new Date(a.accounting_date).getTime()
+				)
+
+				const transactionUserFieldsRes = await useApi('transactionUserField.get')
+
+				this.userFieldsMap = transactionUserFieldsRes.results.filter((o) => o.is_active)
+
+				this.processing = false;
 			}
-		})
-		let x = {
-			date_field: 'transaction_date'
+
+		},
+		async created() {
+
+			this.store = useStore()
+			this.spaceStore = computed(() => this.store.getActiveSpaceStore())
+
+
+		},
+		mounted() {
+
+			this.init()
+
+		},
+		beforeUnmount() {
+
 		}
-
-		// if (!props.options.filter_entry_user_code) return res
-
-		if (props.reportType == 'balance') {
-			res.items = res.items.filter(
-				(o) => o.entry_item_user_code == props.options.filter_entry_user_code
-			)
-		} else {
-			res.items = res.items.filter(
-				(o) =>
-					o.transaction_item_user_code == props.options.filter_entry_user_code
-			)
-		}
-
-		return res
 	}
+
+
 </script>
 
 <style lang="scss" scoped>

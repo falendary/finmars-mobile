@@ -546,8 +546,9 @@
 				this.isSearchDialogOpen = false
 				this.isOpenTransactions = false
 
-				await this.createChart()
 				this.positions = [];
+				await this.createChart()
+
 
 			},
 			async fetchBalanceReportAttributes() {

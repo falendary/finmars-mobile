@@ -55,7 +55,9 @@
 			</div>
 			<div class="position-item-chips">
 
-				<ion-chip :id="item.id + 'position_size'" v-if="item.position_size && itemType == 'balance'">{{ $format(item.position_size) }}</ion-chip>
+				<ion-chip :id="item.id + 'position_size'" v-if="item.position_size && itemType == 'balance'">
+					{{ $format(item.position_size) }}
+				</ion-chip>
 
 				<ion-chip :id="item.id + 'position_size'" v-if="item.position_size && itemType == 'pl'">Unrealized</ion-chip>
 				<ion-chip :id="item.id + 'position_size'" v-if="!item.position_size && itemType == 'pl'">Realized</ion-chip>
@@ -91,10 +93,10 @@
 			</div>
 		</div>
 
-		<TransactionListComp
+		<transaction-list-comp
 			v-if="item.is_active"
 			:options="item.transactionsOpts"
-			:reportType="'balance'"
+			:reportType="itemType"
 		/>
 
 	</div>

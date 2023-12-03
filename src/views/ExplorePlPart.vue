@@ -420,9 +420,8 @@
 
 				console.log('route.query.tab', this.$route.query.tab)
 
-				await this.createChart()
-
 				this.positions = [];
+				await this.createChart()
 
 			},
 			async fetchPLReportAttributes() {
@@ -878,6 +877,8 @@
 		async mounted() {
 
 			await this.fetchPLReportAttributes()
+
+			this.init()
 
 			watch(this.spaceStore.settings.general, async () => {
 

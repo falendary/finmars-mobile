@@ -523,8 +523,8 @@
 
 				this.activePortfolio = this.$route.query.tab
 
-				await this.createChart()
 				this.positions = [];
+				await this.createChart()
 
 			},
 			async fetchPLReportAttributes() {
