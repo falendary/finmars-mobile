@@ -81,17 +81,6 @@
 				@refresher="portfoliosRefresher = $event"
 			/>
 
-			<!--			<IndicatorsComp-->
-			<!--				:portfolioId="[$route.query.tab]"-->
-			<!--				:date_from="spaceStore.settings.general.date_from"-->
-			<!--				type="pl"-->
-			<!--				:currency="spaceStore.settings.general.currency"-->
-			<!--				:pricing_policy="spaceStore.settings.general.pricing_policy"-->
-			<!--				:date="spaceStore.settings.general.date_to"-->
-			<!--				@refresher="indicatorsRefresher = $event"-->
-			<!--			/>-->
-
-			<!--			Pie Chart below-->
 
 			<div class="portfolio-content"></div>
 
@@ -490,7 +479,6 @@
 				positionsProcessing: false,
 				colorsCat: {},
 				portfoliosRefresher: null,
-				indicatorsRefresher: null,
 				categories: [],
 				positions: [],
 				activeCategory: null,
@@ -503,7 +491,8 @@
 				chartData: null,
 				positionsError: '',
 				chartHeight: 200,
-				activePosition: {}
+				activePosition: {},
+				metricsBlockRefresher: null
 			}
 		},
 		computed: {
@@ -534,7 +523,7 @@
 		methods: {
 			activatePosition($event, item) {
 
-				this.activePosition = item;
+				this.activePosition = item
 
 				this.transactionsOpts.filter_entry_user_code = item.user_code
 				this.isOpenTransactions = true
@@ -1018,7 +1007,9 @@
 
 				this.init()
 				this.portfoliosRefresher(true)
-				this.indicatorsRefresher()
+				if (this.metricsBlockRefresher) {
+					this.metricsBlockRefresher()
+				}
 
 				if (event) event.target.complete()
 			}
@@ -1050,11 +1041,6 @@
 
 					await this.init()
 
-					if (this.indicatorsRefresher) {
-						await this.indicatorsRefresher()
-					}
-
-
 				}
 			)
 			watch(this.spaceStore.settings.general, async () => {
@@ -1064,9 +1050,7 @@
 				if (this.portfoliosRefresher) {
 					await this.portfoliosRefresher()
 				}
-				if (this.indicatorsRefresher) {
-					await this.indicatorsRefresher()
-				}
+
 
 			})
 

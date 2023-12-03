@@ -111,7 +111,7 @@
 		justify-content: space-between;
 		z-index: 100;
 		background: var(--ion-background-color);
-		color: var(--ion-color-base)
+		color: var(--ion-text-color);
 	}
 
 
