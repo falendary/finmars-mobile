@@ -227,7 +227,7 @@
 <style lang="scss" scoped>
 
 	.position-item {
-		padding: 0.25rem 0 ;
+		padding: 0.25rem;
 		margin-bottom: 0.5rem;
 
 		.transactions {

@@ -1,99 +1,12 @@
 <template>
 	<ion-page>
 
-		<ion-header>
-			<ion-toolbar class="app-header">
-
-				<div class="app-header-inner">
-
-					<div class="app-header-inner-space-name">{{ store.activeSpaceName || 'Finmars' }}</div>
-
-					<div class="display-flex flex-end flex-align-center">
-
-						<ion-select
-							v-model="spaceStore.settings.general.currency"
-							placeholder="Currency"
-						>
-							<ion-select-option
-								v-for="item in spaceStore.currencies"
-								:key="item.user_code"
-								:value="item.user_code"
-							>
-								{{ item.short_name }}
-							</ion-select-option>
-						</ion-select>
-
-						<ion-modal :keep-contents-mounted="true">
-							<ion-datetime id="datetime_date_from" displayFormat="YYYY-MM-DD"
-														v-model="spaceStore.settings.general.date_from"
-														:prefer-wheel="true"
-														presentation="date"
-														show-default-buttons
-							></ion-datetime>
-						</ion-modal>
-
-						<ion-modal :keep-contents-mounted="true">
-							<ion-datetime id="datetime_date_to" displayFormat="YYYY-MM-DD"
-														v-model="spaceStore.settings.general.date_to"
-														:prefer-wheel="true"
-														presentation="date"
-														show-default-buttons
-							></ion-datetime>
-						</ion-modal>
-
-						<ion-datetime-button class="header-date-button" datetime="datetime_date_from" />
-
-						<span style="margin: 0 4px;">-</span>
-
-						<ion-datetime-button class="header-date-button" datetime="datetime_date_to" />
-
-					</div>
-
-
-				</div>
-
-
-			</ion-toolbar>
-
-		</ion-header>
-
-		<ion-content v-if="$route.query.tab">
+		<ion-content >
 			<ion-refresher slot="fixed" @ionRefresh="refresh($event)">
 				<ion-refresher-content />
 			</ion-refresher>
 
-			<div class="header flex sb aic">
-				<div>Portfolios</div>
-				<!--				<IonSkeletonText-->
-				<!--					v-else-->
-				<!--					:animated="true"-->
-				<!--					style="height: 24px; width: 80px"-->
-				<!--				/>-->
-
-			</div>
-
-			<HistoryChartComp
-				type="pl"
-				:date_from="spaceStore.settings.general.date_from"
-				:date_to="spaceStore.settings.general.date_to"
-				:currency="spaceStore.settings.general.currency"
-				@portfolioChange="portfolioChangeHandler"
-				@refresher="portfoliosRefresher = $event"
-			/>
-
-
 			<div class="portfolio-content"></div>
-
-			<div>
-
-				<div class="header header-with-period-type-picker" style="margin: 0;">
-					<div>Metrics</div>
-					<period-type-picker></period-type-picker>
-				</div>
-
-				<metrics-block :portfolio="activePortfolio" @refresher="metricsBlockRefresher = $event"></metrics-block>
-
-			</div>
 
 			<div class="header flex aic sb">
 				Profit & Loss
@@ -251,7 +164,7 @@
 
 					>
 
-						<position-item :item="item" :item-type="'pl'" :portfolios="[activePortfolio]"></position-item>
+						<position-item :item="item" :item-type="'pl'" :portfolios="spaceStore.settings.general.portfolios"></position-item>
 
 					</div>
 				</div>
@@ -430,13 +343,11 @@
 				Pagination: Pagination,
 				store: null,
 				spaceStore: null,
-				activePortfolio: null,
 				transactionsOpts: null,
 				isOpenTransactions: false,
 				chartProcessing: true,
 				positionsProcessing: false,
 				colorsCat: {},
-				portfoliosRefresher: null,
 				categories: [],
 				positions: [],
 				activeCategory: null,
@@ -504,26 +415,13 @@
 				this.chartSettingsModalIsOpen = false
 				this.createChart()
 			},
-			async portfolioChangeHandler(data) {
 
-				console.log('PL.portfolioChangeHandler', data)
-
-				this.$router.push({
-					query: {
-						tab: data.activePortfolio
-					}
-				})
-
-				// this.init()
-
-			},
 			async init() {
 
 				console.log('route.query.tab', this.$route.query.tab)
 
-				this.activePortfolio = this.$route.query.tab
-
 				await this.createChart()
+
 				this.positions = [];
 
 			},
@@ -872,7 +770,7 @@
 						},
 						pl_include_zero: false,
 						portfolio_mode: 1,
-						portfolios: [this.$route.query.tab],
+						portfolios: this.spaceStore.settings.general.portfolios,
 						pricing_policy: this.spaceStore.settings.general.pricing_policy,
 						report_currency: this.spaceStore.settings.general.currency,
 						report_date: this.spaceStore.settings.general.date_to,
@@ -933,7 +831,7 @@
 							},
 							pl_include_zero: false,
 							portfolio_mode: 1,
-							portfolios: [this.$route.query.tab],
+							portfolios: this.spaceStore.settings.general.portfolios,
 							pricing_policy: this.spaceStore.settings.general.pricing_policy,
 							report_currency: this.spaceStore.settings.general.currency,
 							report_date: this.spaceStore.settings.general.date_to,
@@ -966,10 +864,6 @@
 			async refresh(event) {
 
 				this.init()
-				this.portfoliosRefresher(true)
-				if (this.metricsBlockRefresher) {
-					this.metricsBlockRefresher()
-				}
 
 				if (event) event.target.complete()
 			}
@@ -985,32 +879,9 @@
 
 			await this.fetchPLReportAttributes()
 
-
-			console.log('this.$route.query.tab', this.$route.query.tab)
-			if (this.$route.query.tab) {
-				this.init()
-			} else {
-				this.$router.push({ query: { tab: this.spaceStore.settings.general.portfolios[0] } })
-			}
-
-			watch(
-				() => this.$route.query.tab,
-				async (newVal, oldVal) => {
-					if (!this.$route.path.includes('/main/pnl') || newVal == oldVal)
-						return false
-
-					await this.init()
-
-				}
-			)
 			watch(this.spaceStore.settings.general, async () => {
 
 				await this.init()
-
-				if (this.portfoliosRefresher) {
-					await this.portfoliosRefresher()
-				}
-
 
 			})
 
