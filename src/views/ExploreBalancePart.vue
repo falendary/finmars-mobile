@@ -6,6 +6,9 @@
 				<ion-refresher-content />
 			</ion-refresher>
 
+			<position-search-bar :portfolios="spaceStore.settings.general.portfolios" :report-type="'balance'"
+													 @queryChange="submitSearchResult"></position-search-bar>
+
 			<div class="header flex aic sb">
 				Balance
 
@@ -239,13 +242,6 @@
 				</ion-content>
 			</ion-modal>
 
-			<search-dialog
-				:portfolios="spaceStore.settings.general.portfolios"
-				@resultSelectCallback="submitSearchResult"
-				:isOpen="isSearchDialogOpen"
-				@close="isSearchDialogOpen = false"
-			></search-dialog>
-
 		</ion-content>
 
 	</ion-page>
@@ -287,9 +283,11 @@
 	import PositionDialog from '@/views/dialogs/PositionDialog.vue'
 	import SearchDialog from '@/views/dialogs/SearchDialog.vue'
 	import PositionItem from '@/components/PositionItem.vue'
+	import PositionSearchBar from '@/components/PositionSearchBar.vue'
 
 	export default {
 		components: {
+			PositionSearchBar,
 			PositionItem,
 			SearchDialog,
 			PositionDialog,
@@ -335,7 +333,6 @@
 				activeCategory: null,
 				detailSubcat: {},
 				chartSettingsModalIsOpen: false,
-				isSearchDialogOpen: false,
 				numericBalanceReportAttributes: [],
 				groupByAttributes: [],
 				chartData: null,
@@ -364,43 +361,51 @@
 			}
 		},
 		methods: {
-
-			openSearchDialog() {
-				this.isSearchDialogOpen = true
-
-			},
 			async submitSearchResult(item) {
 
-				console.log('submitSearchResult.item', item)
+				console.log('Balance.submitSearchResult.item', item)
 
-				this.categories.forEach((category) => {
+				this.positions = [];
 
-					// because we use user_code instead of names and other non unique fields for relations
-					// also because of user_code not equal to name of instrument type
-					// probably will cause error if Account Name and Account User Code are different
-					// TODO consider refactor in future
-					// 2023-11-18 szhitenev
-					if (this.spaceStore.settings.balance.groupByKey === 'instrument.instrument_type.name') {
+				if (item) {
 
-						if (category.___group_identifier === item['instrument.instrument_type.user_code']) {
-							this.activeCategory = category
+					this.categories.forEach((category) => {
+
+						// because we use user_code instead of names and other non unique fields for relations
+						// also because of user_code not equal to name of instrument type
+						// probably will cause error if Account Name and Account User Code are different
+						// TODO consider refactor in future
+						// 2023-11-18 szhitenev
+						if (this.spaceStore.settings.balance.groupByKey === 'instrument.instrument_type.name') {
+
+							if (category.___group_identifier === item['instrument.instrument_type.user_code']) {
+								this.activeCategory = category
+							}
+
+						} else {
+
+							if (category.___group_identifier === item[this.spaceStore.settings.balance.groupByKey]) {
+								this.activeCategory = category
+							}
+
 						}
 
-					} else {
 
-						if (category.___group_identifier === item[this.spaceStore.settings.balance.groupByKey]) {
-							this.activeCategory = category
-						}
+					})
 
-					}
+					await this.fetchPositions()
 
-				})
+					console.log('submitSearchResult.activeCategory', this.activeCategory)
 
-				await this.fetchPositions()
+					this.positions = this.positions.filter((position) => {
+						return position.id === item.id
+					})
 
-				console.log('submitSearchResult.activeCategory', this.activeCategory)
-
-				this.activatePosition(new Event('click'), item)
+				} else {
+					this.refresh()
+				}
+				// Todo refactor
+				// this.activatePosition(new Event('click'), item)
 
 			},
 			roundToTwo(num) {
@@ -414,7 +419,6 @@
 			async init() {
 
 				this.activeCategory = null
-				this.isSearchDialogOpen = false
 
 				this.positions = [];
 				await this.createChart()

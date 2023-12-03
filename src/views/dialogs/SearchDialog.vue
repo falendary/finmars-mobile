@@ -4,7 +4,7 @@
 			<ion-toolbar>
 				<ion-title>Explore</ion-title>
 				<ion-buttons slot="end">
-					<ion-button @click="closeSearchDialog()">Close</ion-button>
+					<ion-button @click="closeSearchDialog()">Clear</ion-button>
 				</ion-buttons>
 			</ion-toolbar>
 		</ion-header>
@@ -12,7 +12,7 @@
 
 			<div>
 
-				<ion-searchbar id="searchBar" :debounce="1000" @ionInput="handleSearch($event)"></ion-searchbar>
+				<ion-searchbar id="searchBar" :value="query" :debounce="1000" @ionInput="handleSearch($event)"></ion-searchbar>
 
 				<div style="margin-top: 0.5rem; min-height: 50vh;" class="position-relative">
 
@@ -120,6 +120,11 @@
 			IonModal
 		},
 		props: {
+			reportType: {
+				type: String,
+				required: true
+			},
+			query: String,
 			portfolios: Array, // Data to display in the modal
 			position: Object, // Data to display in the modal
 			isOpen: Boolean // Controls whether the modal is open or closed
@@ -153,18 +158,23 @@
 			closeSearchDialog() {
 				this.$emit('close')
 			},
-
-			async handleSearch(event) {
+			async doSearch(query) {
 
 				this.searchProcessing = true
 
-
 				try {
 					console.log('handleSearch', event)
+					console.log('reportType', this.reportType)
 
-					this.searchQuery = event.target.value.toLowerCase()
+					let url = 'backendBalanceReportItems.post'
 
-					let res = await useApi('backendBalanceReportItems.post', {
+					if (this.reportType === 'pl') {
+						url = 'backendPLReportItems.post'
+					}
+
+					console.log('url', url);
+
+					let res = await useApi(url, {
 						body: {
 							account_mode: this.spaceStore.settings.general.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
 							accounts: [],
@@ -182,7 +192,7 @@
 							frontend_request_options: {
 								columns: [],
 								filter_settings: [],
-								globalTableSearch: this.searchQuery,
+								globalTableSearch: query,
 								page: 1,
 								groups_values: [],
 								groups_types: []
@@ -217,6 +227,14 @@
 					this.searchProcessing = false
 
 				}
+			},
+			async handleSearch(event) {
+
+				this.searchQuery = event.target.value.toLowerCase()
+
+				if (this.searchQuery.length) {
+					await this.doSearch(this.searchQuery)
+				}
 
 			},
 
@@ -230,7 +248,6 @@
 
 				this.searchProcessing = false
 
-				this.closeSearchDialog()
 			}
 
 		},
@@ -241,6 +258,10 @@
 
 		},
 		async mounted() {
+
+			if (this.query) {
+				await this.doSearch(this.query)
+			}
 
 
 		},

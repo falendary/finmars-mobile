@@ -10,9 +10,6 @@
 
 					<div class="display-flex flex-end flex-align-center">
 
-						<ion-icon :icon="icons.searchOutline" size="small" @click="openSearchDialog($event)"
-											style="margin-right: 8px"></ion-icon>
-
 						<ion-select
 							v-model="spaceStore.settings.general.currency"
 							placeholder="Currency"
@@ -49,6 +46,9 @@
 			<ion-refresher slot="fixed" @ionRefresh="refresh($event)">
 				<ion-refresher-content />
 			</ion-refresher>
+
+			<position-search-bar :portfolios="[activePortfolio]" :report-type="'balance'"
+													 @queryChange="submitSearchResult"></position-search-bar>
 
 			<div class="header flex sb aic">
 				<!--				<div v-if="portfolio">{{ portfolio.name }}</div>-->
@@ -131,7 +131,7 @@
 									v-bind:key="index"
 									:class="{ active: activeCategory && activeCategory.___group_name == item.___group_name }"
 									@click="
-										;(activeCategory = item), (isOpenTransactions = false), (fetchPositions())
+										;(activeCategory = item), (fetchPositions())
 									"
 								>
 									<div class="flex aic">
@@ -325,14 +325,6 @@
 			</ion-modal>
 
 
-
-			<search-dialog
-				:portfolios="[activePortfolio]"
-				@resultSelectCallback="submitSearchResult"
-				:isOpen="isSearchDialogOpen"
-				@close="isSearchDialogOpen = false"
-			></search-dialog>
-
 		</ion-content>
 	</ion-page>
 </template>
@@ -370,13 +362,13 @@
 	import { cogOutline, searchOutline } from 'ionicons/icons'
 
 	import { Doughnut } from 'vue-chartjs'
-	import metaService from '@/services/metaService.js'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
 	import PositionDialog from '@/views/dialogs/PositionDialog.vue'
 	import SearchDialog from '@/views/dialogs/SearchDialog.vue'
 	import MetricsBlock from '@/components/MetricsBlock.vue'
 	import PeriodTypePicker from '@/components/PeriodTypePicker.vue'
 	import PositionItem from '@/components/PositionItem.vue'
+	import PositionSearchBar from '@/components/PositionSearchBar.vue'
 
 	export default {
 		components: {
@@ -408,7 +400,8 @@
 			SearchDialog,
 
 			MetricsBlock,
-			PositionItem
+			PositionItem,
+			PositionSearchBar
 
 
 		},
@@ -425,7 +418,6 @@
 				categoriesTotalSum: null,
 				portfolioHistory: null,
 				transactionsOpts: null,
-				isOpenTransactions: false,
 				chartProcessing: true,
 				positionsProcessing: false,
 				colorsCat: {},
@@ -436,7 +428,6 @@
 				activeCategory: null,
 				detailSubcat: {},
 				chartSettingsModalIsOpen: false,
-				isSearchDialogOpen: false,
 
 
 				numericBalanceReportAttributes: [],
@@ -449,6 +440,7 @@
 
 				activePosition: {},
 				metricsBlockRefresher: null
+
 			}
 		},
 		computed: {
@@ -480,43 +472,52 @@
 
 			async submitSearchResult(item) {
 
-				console.log('submitSearchResult.item', item)
+				console.log('Balance.submitSearchResult.item', item)
 
-				this.categories.forEach((category) => {
+				this.positions = [];
 
-					// because we use user_code instead of names and other non unique fields for relations
-					// also because of user_code not equal to name of instrument type
-					// probably will cause error if Account Name and Account User Code are different
-					// TODO consider refactor in future
-					// 2023-11-18 szhitenev
-					if (this.spaceStore.settings.balance.groupByKey === 'instrument.instrument_type.name') {
+				if (item) {
 
-						if (category.___group_identifier === item['instrument.instrument_type.user_code']) {
-							this.activeCategory = category
+					this.categories.forEach((category) => {
+
+						// because we use user_code instead of names and other non unique fields for relations
+						// also because of user_code not equal to name of instrument type
+						// probably will cause error if Account Name and Account User Code are different
+						// TODO consider refactor in future
+						// 2023-11-18 szhitenev
+						if (this.spaceStore.settings.balance.groupByKey === 'instrument.instrument_type.name') {
+
+							if (category.___group_identifier === item['instrument.instrument_type.user_code']) {
+								this.activeCategory = category
+							}
+
+						} else {
+
+							if (category.___group_identifier === item[this.spaceStore.settings.balance.groupByKey]) {
+								this.activeCategory = category
+							}
+
 						}
 
-					} else {
 
-						if (category.___group_identifier === item[this.spaceStore.settings.balance.groupByKey]) {
-							this.activeCategory = category
-						}
+					})
 
-					}
+					await this.fetchPositions()
 
+					console.log('submitSearchResult.activeCategory', this.activeCategory)
 
-				})
+					this.positions = this.positions.filter((position) => {
+						return position.id === item.id
+					})
 
-				await this.fetchPositions()
-
-				console.log('submitSearchResult.activeCategory', this.activeCategory)
-
+				} else {
+					this.refresh()
+				}
 				// Todo refactor
-				this.activatePosition(new Event('click'), item)
+				// this.activatePosition(new Event('click'), item)
 
 			},
-			openSearchDialog() {
-				this.isSearchDialogOpen = true
-			},
+
 			roundToTwo(num) {
 				return +(Math.round(num + 'e+2') + 'e-2')
 			},
@@ -543,10 +544,8 @@
 
 				this.activePortfolio = this.$route.query.tab
 				this.activeCategory = null
-				this.isSearchDialogOpen = false
-				this.isOpenTransactions = false
 
-				this.positions = [];
+				this.positions = []
 				await this.createChart()
 
 
@@ -1073,7 +1072,6 @@
 
 	.instr_block_change {
 	}
-
 
 
 	.nodata_wrap {

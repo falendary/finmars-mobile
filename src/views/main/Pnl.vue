@@ -62,6 +62,9 @@
 				<ion-refresher-content />
 			</ion-refresher>
 
+			<position-search-bar :portfolios="[activePortfolio]" :report-type="'pl'"
+													 @queryChange="submitSearchResult"></position-search-bar>
+
 			<div class="header flex sb aic">
 				<div>Portfolios</div>
 				<!--				<IonSkeletonText-->
@@ -135,7 +138,7 @@
 								v-bind:key="index"
 								:class="{ active: activeCategory && activeCategory.___group_name == item.___group_name }"
 								@click="
-										;(activeCategory = item), (isOpenTransactions = false), (fetchPositions())
+										;(activeCategory = item), (fetchPositions())
 									"
 							>
 								<div class="flex aic">
@@ -392,9 +395,11 @@
 	import PeriodTypePicker from '@/components/PeriodTypePicker.vue'
 	import MetricsBlock from '@/components/MetricsBlock.vue'
 	import PositionItem from '@/components/PositionItem.vue'
+	import PositionSearchBar from '@/components/PositionSearchBar.vue'
 
 	export default {
 		components: {
+			PositionSearchBar,
 			PositionItem,
 			MetricsBlock, PeriodTypePicker,
 			Doughnut,
@@ -432,7 +437,6 @@
 				spaceStore: null,
 				activePortfolio: null,
 				transactionsOpts: null,
-				isOpenTransactions: false,
 				chartProcessing: true,
 				positionsProcessing: false,
 				colorsCat: {},
@@ -479,23 +483,49 @@
 			}
 		},
 		methods: {
-			activatePosition($event, item) {
+			async submitSearchResult(item) {
 
-				this.activePosition = item
+				console.log('Balance.submitSearchResult.item', item)
 
-				item.is_active = !item.is_active;
+				this.positions = [];
 
-				item.transactionsOpts = {
-					end_date: this.spaceStore.settings.general.date_to,
-					begin_date: '0001-01-01',
-					portfolios: [this.$route.query.tab],
-					filter_entry_user_code: item.user_code,
-					dept_level: 'base_transaction'
-					// dept_level: 'entry'
+				if (item) {
+
+					this.categories.forEach((category) => {
+
+						// because we use user_code instead of names and other non unique fields for relations
+						// also because of user_code not equal to name of instrument type
+						// probably will cause error if Account Name and Account User Code are different
+						// TODO consider refactor in future
+						// 2023-11-18 szhitenev
+						if (this.spaceStore.settings.balance.groupByKey === 'instrument.instrument_type.name') {
+
+							if (category.___group_identifier === item['instrument.instrument_type.user_code']) {
+								this.activeCategory = category
+							}
+
+						} else {
+
+							if (category.___group_identifier === item[this.spaceStore.settings.balance.groupByKey]) {
+								this.activeCategory = category
+							}
+
+						}
+
+
+					})
+
+					await this.fetchPositions()
+
+					console.log('submitSearchResult.activeCategory', this.activeCategory)
+
+					this.positions = this.positions.filter((position) => {
+						return position.id === item.id
+					})
+
+				} else {
+					this.refresh()
 				}
-
-				this.isOpenTransactions = true
-
 			},
 			roundToTwo(num) {
 				return +(Math.round(num + 'e+2') + 'e-2')
@@ -805,7 +835,6 @@
 								})
 
 								vueThis.activeCategory = activeCategory
-								vueThis.isOpenTransactions = false
 								vueThis.fetchPositions()
 
 

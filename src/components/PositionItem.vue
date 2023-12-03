@@ -59,7 +59,7 @@
 					{{ $format(item.position_size) }}
 				</ion-chip>
 
-				<ion-chip :id="item.id + 'position_size'" v-if="item.position_size && itemType == 'pl'">Unrealized</ion-chip>
+				<ion-chip :id="item.id + 'position_size'" v-if="item.position_size && itemType == 'pl'">Unrealized {{ $format(item.position_size) }}</ion-chip>
 				<ion-chip :id="item.id + 'position_size'" v-if="!item.position_size && itemType == 'pl'">Realized</ion-chip>
 
 				<ion-popover :trigger="item.id + 'position_size'">
