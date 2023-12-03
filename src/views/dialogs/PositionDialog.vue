@@ -80,7 +80,7 @@
 
 				<ion-item v-if="position.total">
 					<ion-label>
-						Total
+						P&L
 					</ion-label>
 					<ion-badge color="primary" class="selectable">{{ $format(position.total) }}
 					</ion-badge>

@@ -189,7 +189,7 @@
 				const res = await useApi('portfolioHistory.get', {
 					filters: {
 						status: 'ok',
-						period_type: 'ytd',
+						period_type: this.spaceStore.settings.general.period_type,
 						portfolio__user_code: this.activePortfolio,
 						pricing_policy__user_code: this.spaceStore.settings.general.pricing_policy,
 						currency__user_code: this.spaceStore.settings.general.currency,
@@ -395,7 +395,7 @@
 					const data = await useApi('portfolioHistory.get', {
 						filters: {
 							status: 'ok',
-							period_type: 'ytd',
+							period_type: this.spaceStore.settings.general.period_type,
 							portfolio__user_code: this.activePortfolio,
 							pricing_policy__user_code: this.spaceStore.settings.general.pricing_policy,
 							currency__user_code: this.spaceStore.settings.general.currency,

@@ -15,11 +15,11 @@ export default defineStore('store', {
 			error: null
 		}
 	},
-	getters: {
-
-	},
+	getters: {},
 	actions: {
-
+		setPeriodType(periodType) {
+			this.activeSpaceStore.settings.general.periodType = periodType
+		},
 		setGlobalError(error) {
 			this.error = error
 		},
@@ -112,7 +112,8 @@ export default defineStore('store', {
 						currency,
 						pricing_policy: null, // should be picked first from pricingPolicies list if not selected
 						portfolios: [],
-						consolidateAccounts: false
+						consolidateAccounts: false,
+						period_type: 'ytd'
 					},
 					balance: {
 						isChartView: true,
@@ -172,12 +173,12 @@ export default defineStore('store', {
 
 		},
 		async clear() {
-			this.activeSpaceStore = null;
-			this.activeSpace = null;
-			this.activeSpaceCode = null;
-			this.activeSpaceName = null;
-			this.member = null;
-			this.globalProcessing = false;
+			this.activeSpaceStore = null
+			this.activeSpace = null
+			this.activeSpaceCode = null
+			this.activeSpaceName = null
+			this.member = null
+			this.globalProcessing = false
 		}
 	}
 })

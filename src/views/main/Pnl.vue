@@ -95,6 +95,17 @@
 
 			<div class="portfolio-content"></div>
 
+			<div>
+
+				<div class="header header-with-period-type-picker" style="margin: 0;">
+					<div>Metrics</div>
+					<period-type-picker></period-type-picker>
+				</div>
+
+				<metrics-block :portfolio="activePortfolio" @refresher="metricsBlockRefresher = $event"></metrics-block>
+
+			</div>
+
 			<div class="header flex aic sb">
 				Profit & Loss
 
@@ -433,9 +444,12 @@
 	import { Bar, Doughnut } from 'vue-chartjs'
 
 	import errorService from '@/services/errorService'
+	import PeriodTypePicker from '@/components/PeriodTypePicker.vue'
+	import MetricsBlock from '@/components/MetricsBlock.vue'
 
 	export default {
 		components: {
+			MetricsBlock, PeriodTypePicker,
 			Doughnut,
 			IonItem,
 			IonContent,
@@ -469,6 +483,7 @@
 				Pagination: Pagination,
 				store: null,
 				spaceStore: null,
+				activePortfolio: null,
 				transactionsOpts: null,
 				isOpenTransactions: false,
 				chartProcessing: true,
@@ -548,6 +563,8 @@
 			async init() {
 
 				console.log('route.query.tab', this.$route.query.tab)
+
+				this.activePortfolio = this.$route.query.tab
 
 				this.transactionsOpts = {
 					end_date: this.spaceStore.settings.general.date_to,

@@ -94,6 +94,21 @@
 						<ion-datetime-button datetime="datetime_date_to" />
 					</ion-item>
 
+					<ion-item>
+						<ion-select
+							v-model="spaceStore.settings.general.period_type"
+							label="Period Type"
+							placeholder="Period Type"
+						>
+							<ion-select-option
+								v-for="item in periodTypes"
+								:value="item.user_code"
+							>
+								{{ item.name }}
+							</ion-select-option>
+						</ion-select>
+					</ion-item>
+
 					<ion-item v-if="spaceStore.pricingPolicies?.length">
 						<ion-select
 							v-model="spaceStore.settings.general.pricing_policy"
@@ -265,7 +280,29 @@
 					layersOutline,
 					readerOutline,
 					settingsOutline
-				}
+				},
+				periodTypes: [
+					{
+						user_code: 'daily',
+						name: 'Daily'
+					},
+					{
+						user_code: 'mtd',
+						name: 'MTD'
+					},
+					{
+						user_code: 'qtd',
+						name: 'QTD'
+					},
+					{
+						user_code: 'ytd',
+						name: 'YTD'
+					},
+					{
+						user_code: 'inception',
+						name: 'All Time'
+					}
+				]
 			}
 		},
 		methods: {

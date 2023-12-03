@@ -414,5 +414,12 @@
 		justify-content: space-between;
 	}
 
+	.header-with-period-type-picker {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+
+	}
+
 
 </style>

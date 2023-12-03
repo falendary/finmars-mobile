@@ -59,13 +59,6 @@
 
 					<grand-nav @refresher="grandNavRefresher = $event"></grand-nav>
 
-					<!--				<div class="header flex sb aic">-->
-					<!--					<div>All Portfolios</div>-->
-					<!--					<div class="header_info">-->
-					<!--						{{ dayjs(spaceStore.settings.general.date_to).format('DD MMM YYYY') }}-->
-					<!--					</div>-->
-					<!--				</div>-->
-
 					<div
 						class="main_chart"
 						v-if="store.layout?.dashboard?.isShowHistoryChart"
@@ -90,27 +83,23 @@
 						</div>
 					</div>
 
-					<!--				<Indicators-->
-					<!--					:portfolioId="spaceStore.settings.general.portfolios"-->
-					<!--					:currency="spaceStore.settings.general.currency"-->
-					<!--					:pricing_policy="spaceStore.settings.general.pricing_policy"-->
-					<!--					:date="spaceStore.settings.general.date_to"-->
-					<!--					@refresher="indicatorsRefresher = $event"-->
-					<!--				/>-->
 
-					<div class="header">Portfolios</div>
+					<div class="header header-with-period-type-picker">
+						<div>Portfolios</div>
+						<period-type-picker></period-type-picker>
+					</div>
 
 					<div class="portfolios" v-if="portfolios.length">
 						<div
-							class="portfolios_item"
+							class="portfolios-item"
 							v-for="item in portfolios"
 							v-bind:key="item.id"
 							@click="$router.push('/main/balance?tab=' + item.user_code)"
 						>
-							<div class="pi_first_line flex aic sb">
+							<div class="portfolios-item-line">
 								<div class="pi_header">{{ item.name }}</div>
 							</div>
-							<div class="flex aic sb">
+							<div class="portfolios-item-line">
 								<div class="pi_price">
 									<IonSkeletonText
 										v-if="item.nav == '-'"
@@ -124,19 +113,23 @@
 									>
 								</div>
 
+							</div>
+							<div class="portfolios-item-line">
+
+
 								<IonSkeletonText
 									v-if="item.cumulative_return == '-'"
 									:animated="true"
 									style="width: 80px; height: 25px"
 								/>
-								<ChangePrice v-else :percent="item.cumulative_return" />
+								<ChangePrice v-else :total="item.total" :percent="item.cumulative_return" />
 							</div>
 						</div>
 					</div>
 
 					<div class="portfolios" v-if="portfolios === null">
-						<div class="portfolios_item" v-for="item in [1, 1, 1]">
-							<div class="pi_first_line flex aic sb">
+						<div class="portfolios-item" v-for="item in [1, 1, 1]">
+							<div class="portfolios-item-line">
 								<div class="pi_header">
 									<IonSkeletonText
 										:animated="true"
@@ -150,13 +143,16 @@
 									/>
 								</div>
 							</div>
-							<div class="flex aic sb">
+							<div class="portfolios-item-line">
 								<div class="pi_price">
 									<IonSkeletonText
 										:animated="true"
 										style="width: 100px; height: 24px"
 									/>
 								</div>
+
+							</div>
+							<div class="portfolios-item-line">
 								<IonSkeletonText
 									:animated="true"
 									style="width: 80px; height: 25px"
@@ -217,6 +213,7 @@
 	import useApi from '@/composables/useApi.js'
 	import useStore from '@/composables/useStore'
 	import ComplexTransactionList from '@/components/ComplexTransactionList.vue'
+	import PeriodTypePicker from '@/components/PeriodTypePicker.vue'
 	// Stores the controller so that the chart initialization routine can look it up
 	Chart.register(
 		LineElement,
@@ -242,8 +239,8 @@
 			Indicators,
 			ChangePrice,
 			ComplexTransactionList,
-			GrandNav
-
+			GrandNav,
+			PeriodTypePicker
 		},
 
 		data() {
@@ -306,7 +303,7 @@
 					useApi('portfolioHistory.get', {
 						filters: {
 							status: 'ok',
-							period_type: 'ytd',
+							period_type: this.spaceStore.settings.general.period_type,
 							portfolio__user_code: o,
 							pricing_policy__user_code: this.spaceStore.settings.general.pricing_policy,
 							currency__user_code: this.spaceStore.settings.general.currency,
@@ -318,12 +315,14 @@
 
 						if (!data.results.length) {
 							this.portfolios[k].nav = '--'
+							this.portfolios[k].total = '--'
 							this.portfolios[k].cumulative_return = '--'
 						} else {
 
 							let item = data.results[0]
 
 							this.portfolios[k].nav = item.nav
+							this.portfolios[k].total = item.total
 							this.portfolios[k].cumulative_return = Math.round(item.cumulative_return * 100)
 
 						}
@@ -333,8 +332,9 @@
 						id: o,
 						name: o,
 						user_code: o,
-						nav: '-',
-						cumulative_return: '-'
+						nav: '--',
+						total: '--',
+						cumulative_return: '--'
 					}
 				})
 
@@ -456,7 +456,7 @@
 		margin: 0 15px 15px;
 	}
 
-	.portfolios_item {
+	.portfolios-item {
 		border-radius: 5px;
 		background: var(--ion-card-background);
 		//padding: 7px 10px;
@@ -471,8 +471,8 @@
 		}
 	}
 
-	.pi_first_line {
-		margin-bottom: 4px;
+	.portfolios-item-line {
+		margin-bottom: 0.25rem;
 	}
 
 	.pi_header {
@@ -480,6 +480,7 @@
 		font-size: 14px;
 		line-height: 24px;
 		color: var(--ion-text-color);
+		opacity: .7;
 	}
 
 	.pi_price {

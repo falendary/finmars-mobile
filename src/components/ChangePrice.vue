@@ -6,17 +6,22 @@
 			minus: percent < 0,
 		}"
 	>
+
+
+
 		<img v-if="percent < 0" src="/img/change_down.svg" alt="">
 		<img v-if="percent > 0" src="/img/change_up.svg" alt="">
 
-		<div class="li_text">{{ percent }}%</div>
+		<div class="li_text">{{ $format(total) }}</div>
+		<div class="li_text">({{ percent }}%)</div>
 	</div>
 </template>
 
 <script setup>
 
   const props = defineProps({
-    percent: Number
+    percent: Number,
+		total: Number
   })
 
 </script>
