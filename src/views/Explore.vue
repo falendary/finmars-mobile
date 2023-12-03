@@ -99,7 +99,7 @@
 								v-bind:key="index"
 								:class="{ active: activeCategory && activeCategory.___group_name == item.___group_name }"
 								@click="
-										;(activeCategory = item), (isOpenTransactions = false), (fetchPositions())
+										;(activeCategory = item), (fetchPositions())
 									"
 							>
 								<div class="flex aic">
@@ -198,73 +198,12 @@
 					</div>
 
 					<div
-						class="instruments"
 						v-for="(item, index) in positions"
 						v-bind:key="index"
-						:class="{
-							active: activePosition.id == item.id,
-						}"
 					>
-						<div class="flex sb jcfe">
 
-							<div class="flex sb jcfe">
-								<div class="item-icon" @click="openPositionModal($event, item)" v-if="item.item_type == 1">
+						<position-item :item="item" :item-type="'balance'" :portfolios="spaceStore.settings.general.portfolios"></position-item>
 
-									<div :style="{'background': getIconColor(item['instrument.instrument_type.name'][0])}"
-											 class="item-icon-icon">
-										{{ item['instrument.instrument_type.name'][0] }}
-									</div>
-
-								</div>
-
-								<div class="item-icon" v-if="item.item_type == 2">
-
-									<div :style="{'background': getIconColor('C')}"
-											 class="item-icon-icon">
-										C
-									</div>
-
-								</div>
-
-								<div class="item-icon" v-if="item.item_type != 1 && item.item_type != 2">
-
-									<div :style="{'background': getIconColor('O')}"
-											 class="item-icon-icon">
-										O
-									</div>
-
-								</div>
-
-								<div class="instr_name" @click="activatePosition($event, item)">
-									{{
-										item.name.length > 80
-											? item.name.slice(0, 80) + '...'
-											: item.name
-									}}
-								</div>
-
-							</div>
-							<div class="instr_market_value instr_first" @click="activatePosition($event, item)">
-								{{ $format(item.market_value) }}
-							</div>
-						</div>
-						<div class="flex sb">
-							<div class="instr_pos">{{ $format(item.position_size) }}</div>
-							<div class="instr_pos" v-if="item['account.name'] && item['account.name'] != '-'">{{ item['account.name'] }}</div>
-							<div class="instr_pos" v-if="item['portfolio.user_code'] && item['portfolio.user_code'] != '-'">{{ item['portfolio.user_code'] }}</div>
-
-							<!--							<div class="flex" v-if="item.item_type != 2">-->
-							<!--								<div class="instr_change_percent instr_first">-->
-							<!--									{{ $format(item.change.value) }}-->
-							<!--								</div>-->
-							<!--								<div-->
-							<!--									class="instr_change_percent instr_second"-->
-							<!--									:class="[item.change.percent > 0 ? 'plus' : 'minus']"-->
-							<!--								>-->
-							<!--									{{ item.change.percent }}%-->
-							<!--								</div>-->
-							<!--							</div>-->
-						</div>
 					</div>
 				</div>
 
@@ -288,18 +227,6 @@
 				/>
 
 			</div>
-
-			<!-- Transactions below-->
-
-			<template v-if="isOpenTransactions">
-				<div class="header flex aic sb">Transactions</div>
-
-				<TransactionListComp
-					v-if="transactionsOpts.filter_entry_user_code"
-					:options="transactionsOpts"
-					:reportType="'balance'"
-				/>
-			</template>
 
 			<ion-modal ref="modal" :is-open="chartSettingsModalIsOpen">
 				<ion-header>
@@ -365,12 +292,6 @@
 				</ion-content>
 			</ion-modal>
 
-			<position-dialog
-				:position="selectedPositionForDialog"
-				:isOpen="isPositionDialogOpen"
-				@close="isPositionDialogOpen = false"
-			></position-dialog>
-
 			<search-dialog
 				:portfolios="spaceStore.settings.general.portfolios"
 				@resultSelectCallback="submitSearchResult"
@@ -407,7 +328,6 @@
 	} from '@ionic/vue'
 
 	import HistoryChartComp from '@/components/HistoryChart.vue'
-	import TransactionListComp from '@/components/TransactionList.vue'
 
 	import useApi from '@/composables/useApi'
 	import useStore from '@/composables/useStore'
@@ -419,9 +339,11 @@
 	import ProgressCircular from '@/components/ProgressCircular.vue'
 	import PositionDialog from '@/views/dialogs/PositionDialog.vue'
 	import SearchDialog from '@/views/dialogs/SearchDialog.vue'
+	import PositionItem from '@/components/PositionItem.vue'
 
 	export default {
 		components: {
+			PositionItem,
 			SearchDialog,
 			PositionDialog,
 			ProgressCircular,
@@ -432,7 +354,6 @@
 			IonButtons,
 			IonIcon,
 			HistoryChartComp,
-			TransactionListComp,
 			IonSkeletonText,
 			IonCheckbox,
 			IonSelectOption,
@@ -461,13 +382,9 @@
 				Pagination: Pagination,
 				store: null,
 				spaceStore: null,
-				activePortfolio: null,
 				categoriesTotalSum: null,
-				transactionsOpts: null,
-				isOpenTransactions: false,
 				chartProcessing: true,
 				positionsProcessing: false,
-				colorsCat: {},
 				portfoliosRefresher: null,
 				indicatorsRefresher: null,
 				categories: [],
@@ -476,14 +393,9 @@
 				detailSubcat: {},
 				chartSettingsModalIsOpen: false,
 				isSearchDialogOpen: false,
-
 				numericBalanceReportAttributes: [],
 				groupByAttributes: [],
 				chartData: null,
-				isPositionDialogOpen: false,
-				selectedPositionForDialog: null, // clicked instrument (data from report)
-				activePosition: {  } // clicked for transaction filter
-
 			}
 		},
 		computed: {
@@ -547,25 +459,6 @@
 				this.activatePosition(new Event('click'), item)
 
 			},
-			getIconColor(letter) {
-				return metaService.getIconColor(letter)
-			},
-			async openPositionModal($event, item) {
-
-				this.selectedPositionForDialog = item
-				this.isPositionDialogOpen = true
-
-			},
-			activatePosition($event, item) {
-
-				console.log('activatePosition', item);
-
-				this.activePosition = item;
-
-				this.transactionsOpts.filter_entry_user_code = item.user_code
-				this.isOpenTransactions = true
-
-			},
 			roundToTwo(num) {
 				return +(Math.round(num + 'e+2') + 'e-2')
 			},
@@ -578,14 +471,6 @@
 
 				this.activeCategory = null
 				this.isSearchDialogOpen = false
-				this.isOpenTransactions = false
-				this.transactionsOpts = {
-					end_date: this.spaceStore.settings.general.date_to,
-					begin_date: '0001-01-01',
-					portfolios: this.spaceStore.settings.general.portfolios,
-					filter_entry_user_code: null,
-					dept_level: 'entry'
-				}
 
 				await this.createChart()
 
