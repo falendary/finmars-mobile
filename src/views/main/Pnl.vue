@@ -84,7 +84,7 @@
 
 			<div class="portfolio-content"></div>
 
-			<div>
+			<div v-if="activePortfolio">
 
 				<div class="header header-with-period-type-picker" style="margin: 0;">
 					<div>Metrics</div>
