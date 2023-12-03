@@ -1,9 +1,11 @@
 <template>
-	<ion-app >
+	<ion-app>
+
+		<global-error-toast></global-error-toast>
 
 		<Passcode v-if="showPasscode" @verified="showPasscode = false;"></Passcode>
 
-		<ion-header >
+		<ion-header>
 			<ion-toolbar v-if="isOffline && showOfflineBar" color="danger">
 				<ion-title>Connection Offline</ion-title>
 				<ion-buttons slot="end">
@@ -12,19 +14,13 @@
 			</ion-toolbar>
 		</ion-header>
 
-
 		<div v-show="!store.globalProcessing && !showPasscode">
-
 			<ion-router-outlet id="main-content" :class="{ 'app-blurred': isBlurred }" />
-
 		</div>
-
 
 		<div v-show="store.globalProcessing" class="display-flex align-center justify-center height-100">
 			<progress-circular bg="black" diameter="90"></progress-circular>
 		</div>
-
-
 
 	</ion-app>
 </template>
@@ -37,8 +33,9 @@
 	import { Suspense } from 'vue'
 	import { Network } from '@capacitor/network'
 	import useStore from '@/composables/useStore.js'
-	import { App } from '@capacitor/app';
+	import { App } from '@capacitor/app'
 	import Passcode from '@/components/Passcode.vue'
+	import GlobalErrorToast from '@/components/GlobalErrorToast.vue'
 
 	export default {
 		components: {
@@ -48,7 +45,8 @@
 			IonRouterOutlet,
 			Suspense,
 			IonApp,
-			Passcode
+			Passcode,
+			GlobalErrorToast
 			// settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline
 		},
 
@@ -65,6 +63,9 @@
 		},
 		methods: {
 
+			throwError() {
+				throw Error('Unhandled error occured')
+			},
 			async initializeDarkTheme() {
 
 				let { value: darkTheme } = await Preferences.get({ key: 'darkTheme' })
@@ -94,8 +95,8 @@
 
 			},
 			async updateNetworkStatus() {
-				const status = await Network.getStatus();
-				this.isOffline = !status.connected;
+				const status = await Network.getStatus()
+				this.isOffline = !status.connected
 			},
 			async verifyPasscode() {
 
@@ -103,35 +104,35 @@
 				let { value: savedPasscode } = await Preferences.get({ key: 'passcode' })
 
 				if (savedPasscode && tokens) { // only if we logged in and passcode is setted up
-					this.showPasscode = true;
+					this.showPasscode = true
 				}
 			},
 			async handleAppStateChange(state) {
 
-				const currentTimestamp = new Date().getTime();
+				const currentTimestamp = new Date().getTime()
 
 				// state.isActive will be true if the app is in the foreground
 				if (state.isActive) {
 
 					if (this.backgroundTimestamp) {
-						const timeDifference = currentTimestamp - this.backgroundTimestamp;
+						const timeDifference = currentTimestamp - this.backgroundTimestamp
 						if (timeDifference >= 60000) { // 1 minute in milliseconds
-							await this.verifyPasscode();
+							await this.verifyPasscode()
 						}
 					} else {
-						await this.verifyPasscode();
+						await this.verifyPasscode()
 					}
 
-					this.isBlurred = false;
+					this.isBlurred = false
 
 					// Trigger your Passcode modal here
 				} else {
 
-					this.backgroundTimestamp = currentTimestamp;
-					this.isBlurred = true;
+					this.backgroundTimestamp = currentTimestamp
+					this.isBlurred = true
 
 				}
-			},
+			}
 		},
 		async created() {
 
@@ -140,7 +141,7 @@
 			let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
 			let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
 
-			await this.initializeDarkTheme();
+			await this.initializeDarkTheme()
 
 
 			this.store.globalProcessing = true
@@ -157,10 +158,9 @@
 					if (activeSpaceCode) {
 
 
+						console.log('APP_INIT: has activeSpaceCode. redirect to dashboard')
 
-						console.log("APP_INIT: has activeSpaceCode. redirect to dashboard")
-
-						this.$router.replace('/main/dashboard');
+						this.$router.replace('/main/dashboard')
 						// if (this.$router.currentRoute.path === '/login') {
 						// 	console.log("APP_INIT: On login page. Redirecting to dashboard");
 						// 	this.$router.push('/main/dashboard');
@@ -170,12 +170,12 @@
 
 					} else {
 
-						console.log("APP_INIT: has activeSpaceCode. redirect to workspaces")
+						console.log('APP_INIT: has activeSpaceCode. redirect to workspaces')
 
 						this.$router.replace('/workspaces')
 					}
 
-					console.log('this.store.globalProcessing', this.store.globalProcessing);
+					console.log('this.store.globalProcessing', this.store.globalProcessing)
 
 				} catch (e) {
 
@@ -191,7 +191,7 @@
 			} else {
 
 				if (window.location.href.indexOf('state=') !== -1) {
-					this.isBlurred = false;
+					this.isBlurred = false
 
 					console.log('APP_INIT: Probably got redirect from keycloak, trying to parse query parameters')
 
@@ -216,29 +216,29 @@
 
 			this.store.globalProcessing = false
 
-			await this.verifyPasscode();
+			await this.verifyPasscode()
 
 		},
 		mounted() {
-			this.updateNetworkStatus();
+			this.updateNetworkStatus()
 
 
 			// this.showPasscode = true; // for debug purpose
 
 			Network.addListener('networkStatusChange', (status) => {
-				this.isOffline = !status.connected;
+				this.isOffline = !status.connected
 
 				if (this.isOffline) {
-					this.showOfflineBar = true;
+					this.showOfflineBar = true
 				}
-			});
+			})
 
-			App.addListener('appStateChange', this.handleAppStateChange);
+			App.addListener('appStateChange', this.handleAppStateChange)
 		},
 		beforeUnmount() {
 			// Clean up listeners when component is destroyed
-			App.removeAllListeners();
-		},
+			App.removeAllListeners()
+		}
 	}
 
 </script>
@@ -402,6 +402,16 @@
 		background: #000;
 		position: relative;
 		color: #fff;
+	}
+
+	.global-error-toast {
+		position: fixed;
+		top: 0;
+		width: 100%;
+		display: flex;
+		padding: 1rem;
+		font-size: .8rem;
+		justify-content: space-between;
 	}
 
 

@@ -4,14 +4,9 @@
 
 		<div v-if="!processing">
 
-			<div v-if="!errorMessage" class="grand-nav-value-holder">
+			<div v-if="!errorMessage" class="grand-nav-value-holder" @click="goToExplore()">
 				<div class="grand-nav-value">{{ grandTotalVerbose }}</div>
 				<div class="grand-nav-currency">{{ spaceStore.settings.general.currency }}</div>
-
-
-				<div class="explore-button" @click="goToExplore()">
-					Explore
-				</div>
 
 			</div>
 

@@ -286,7 +286,7 @@
 							'date': this.spaceStore.settings.general.date_to,
 							'segmentation_type': 'business_days_end_of_months',
 							'period_type': 'ytd',
-							'cost_method': 1, // avco
+							'cost_method': 'avco', // avco
 							'performance_method': 'modified_dietz',
 							'benchmark': 'sp_500'
 						}

@@ -55,7 +55,7 @@
 
 				<div class="dashboard-content">
 
-					<div class="header">Grand Total</div>
+					<div class="header">Total</div>
 
 					<grand-nav @refresher="grandNavRefresher = $event"></grand-nav>
 
@@ -165,11 +165,6 @@
 						</div>
 					</div>
 
-					<div class="header" v-if="currentMonth">Transactions in {{ currentMonth }}</div>
-
-					<ComplexTransactionList
-						:options="transactionsOpts"
-					/>
 
 				</div>
 

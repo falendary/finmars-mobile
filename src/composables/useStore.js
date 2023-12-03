@@ -11,13 +11,18 @@ export default defineStore('store', {
 			activeSpaceCode: null,
 			globalProcessing: false,
 			activeSpace: null,
-			activeSpaceStore: null
+			activeSpaceStore: null,
+			error: null
 		}
 	},
 	getters: {
 
 	},
 	actions: {
+
+		setGlobalError(error) {
+			this.error = error
+		},
 		getActiveSpaceStore() {
 			return this.activeSpaceStore
 		},

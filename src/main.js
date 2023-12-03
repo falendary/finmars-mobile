@@ -1,10 +1,8 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
-import { IonicVue, IonPage, IonContent } from '@ionic/vue'
+import { IonContent, IonicVue, IonPage } from '@ionic/vue'
 import log from '@/utils/log'
-
-window.log = log
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css'
 
@@ -28,19 +26,30 @@ import '@/assets/main.scss'
 
 import NumberFormat from '@/plugins/NumberFormat.js'
 import { createPinia } from 'pinia'
-import Particles from "vue3-particles";
-import * as Sentry from "@sentry/vue";
+import Particles from 'vue3-particles'
+import * as Sentry from '@sentry/vue'
 import {
-	ArcElement, BarElement, CategoryScale,
+	ArcElement,
+	BarElement,
+	CategoryScale,
 	Chart as ChartJS,
-	DoughnutController, Filler, Legend, LinearScale,
+	DoughnutController,
+	Filler,
+	Legend,
+	LinearScale,
 	LineController,
-	LineElement, LogarithmicScale,
+	LineElement,
+	LogarithmicScale,
 	PieController,
-	PointElement, Title, Tooltip
+	PointElement,
+	Title,
+	Tooltip
 } from 'chart.js'
 import RoundToTwo from '@/plugins/RoundToTwo.js'
 import CopyToClipboard from '@/plugins/CopyToClipboard.js'
+import useStore from '@/composables/useStore.js'
+
+window.log = log
 
 let pinia, app
 
@@ -58,18 +67,23 @@ function createAppVue() {
 
 	Sentry.init({
 		app,
-		dsn: "https://9ac2652235044ecb84403bb1511a6e2b@sentry.finmars.com/7",
-	});
+		dsn: 'https://9ac2652235044ecb84403bb1511a6e2b@sentry.finmars.com/7'
+	})
 
-	app.use(router).use(IonicVue).use(NumberFormat).use(RoundToTwo).use(CopyToClipboard).use(pinia).use(Particles);
+	app.use(router).use(IonicVue).use(NumberFormat).use(RoundToTwo).use(CopyToClipboard).use(pinia).use(Particles)
 
 	app.component('IonPage', IonPage).component('IonContent', IonContent)
 
-	app.config.errorHandler = (err, ) => {
-		console.error('Caught a global error', err);
+	app.config.errorHandler = (err) => {
+		console.error('Caught a global error', err)
+
+		const store = useStore()
+
+		store.setGlobalError(err)
+
 		// You can navigate the user to a recovery page or log them out here
-		router.replace('/recovery');
-	};
+		// router.replace('/recovery');
+	}
 
 	app.mount('#app')
 }
