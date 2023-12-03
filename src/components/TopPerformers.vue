@@ -180,7 +180,13 @@
 						}
 					})
 
-					this.positions = res.items.sort((a, b) => b[this.spaceStore.settings.pl.sumByKey] - a[this.spaceStore.settings.pl.sumByKey])
+
+					this.positions = res.items;
+
+					this.positions = this.positions.filter((item) => {
+						return item.item_type === 1;
+					})
+
 
 					let limit = 5
 					this.positions.sort((a, b) => b.total - a.total).forEach((item, index) => {
