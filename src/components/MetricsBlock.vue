@@ -13,11 +13,11 @@
 			<div v-for="(metric, index) in [1,1,1,1,1,1]" :key="index" class="portfolio-metric-card">
 				<IonSkeletonText
 					:animated="true"
-					style="width: 50px; height: 16px; margin-bottom: 8px;"
+					style="width: 50%; height: 16px; margin-bottom: 8px;"
 				/>
 				<IonSkeletonText
 					:animated="true"
-					style="width: 150px; height: 24px"
+					style="width: 100%; height: 24px"
 				/>
 			</div>
 		</div>

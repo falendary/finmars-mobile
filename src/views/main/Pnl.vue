@@ -246,46 +246,13 @@
 					</div>
 
 					<div
-						class="instruments"
 						v-for="(item, index) in positions"
 						v-bind:key="index"
-						:class="{
-							active: activePosition.id == item.id,
-						}"
-						@click="activatePosition($event, item)"
 
 					>
-						<div class="flex sb jcfe">
-							<div class="instr_name">
-								{{
-									item.name.length > 80
-										? item.name.slice(0, 80) + '...'
-										: item.name
-								}}
-							</div>
-							<div class="instr_market_value instr_first" :class="{ 'negative-number': item.total < 0}">
-								{{ $format(item.total) }}
-							</div>
-						</div>
-						<div class="flex sb">
-							<div class="instr_pos">{{ $format(item.position_size) }}</div>
-							<div class="instr_pos" v-if="item['account.name'] && item['account.name'] != '-'">{{ item['account.name']
-								}}
-							</div>
 
+						<position-item :item="item" :item-type="'pl'" :portfolios="[activePortfolio]"></position-item>
 
-							<!--							<div class="flex" v-if="item.item_type != 2">-->
-							<!--								<div class="instr_change_percent instr_first">-->
-							<!--									{{ $format(item.change.value) }}-->
-							<!--								</div>-->
-							<!--								<div-->
-							<!--									class="instr_change_percent instr_second"-->
-							<!--									:class="[item.change.percent > 0 ? 'plus' : 'minus']"-->
-							<!--								>-->
-							<!--									{{ item.change.percent }}%-->
-							<!--								</div>-->
-							<!--							</div>-->
-						</div>
 					</div>
 				</div>
 
@@ -319,17 +286,6 @@
 
 			</div>
 
-			<!-- Transactions below-->
-
-			<template v-if="isOpenTransactions">
-				<div class="header flex aic sb">Transactions</div>
-
-				<TransactionListComp
-					v-if="transactionsOpts.filter_entry_user_code"
-					:options="transactionsOpts"
-					:reportType="'pl'"
-				/>
-			</template>
 
 			<ion-modal ref="modal" :is-open="chartSettingsModalIsOpen">
 				<ion-header>
@@ -435,9 +391,11 @@
 	import errorService from '@/services/errorService'
 	import PeriodTypePicker from '@/components/PeriodTypePicker.vue'
 	import MetricsBlock from '@/components/MetricsBlock.vue'
+	import PositionItem from '@/components/PositionItem.vue'
 
 	export default {
 		components: {
+			PositionItem,
 			MetricsBlock, PeriodTypePicker,
 			Doughnut,
 			IonItem,
@@ -525,7 +483,17 @@
 
 				this.activePosition = item
 
-				this.transactionsOpts.filter_entry_user_code = item.user_code
+				item.is_active = !item.is_active;
+
+				item.transactionsOpts = {
+					end_date: this.spaceStore.settings.general.date_to,
+					begin_date: '0001-01-01',
+					portfolios: [this.$route.query.tab],
+					filter_entry_user_code: item.user_code,
+					dept_level: 'base_transaction'
+					// dept_level: 'entry'
+				}
+
 				this.isOpenTransactions = true
 
 			},
@@ -554,15 +522,6 @@
 				console.log('route.query.tab', this.$route.query.tab)
 
 				this.activePortfolio = this.$route.query.tab
-
-				this.transactionsOpts = {
-					end_date: this.spaceStore.settings.general.date_to,
-					begin_date: '0001-01-01',
-					portfolios: [this.$route.query.tab],
-					filter_entry_user_code: null,
-					dept_level: 'base_transaction'
-					// dept_level: 'entry'
-				}
 
 				await this.createChart()
 

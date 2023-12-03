@@ -230,63 +230,10 @@
 						</div>
 
 						<div
-							class="instruments"
 							v-for="(item, index) in positions"
 							v-bind:key="index"
-							:class="{
-							active: activePosition.id == item.id,
-						}"
 						>
-							<div class="flex sb jcfe">
-
-								<div class="flex sb jcfe">
-									<div class="item-icon" @click="openPositionModal($event, item)" v-if="item.item_type == 1">
-
-										<div :style="{'background': getIconColor(item['instrument.instrument_type.name'][0])}"
-												 class="item-icon-icon">
-											{{ item['instrument.instrument_type.name'][0] }}
-										</div>
-
-									</div>
-
-									<div class="item-icon" v-if="item.item_type == 2">
-
-										<div :style="{'background': getIconColor('C')}"
-												 class="item-icon-icon">
-											C
-										</div>
-
-									</div>
-
-									<div class="item-icon" v-if="item.item_type != 1 && item.item_type != 2">
-
-										<div :style="{'background': getIconColor('O')}"
-												 class="item-icon-icon">
-											O
-										</div>
-
-									</div>
-
-									<div class="instr_name" @click="activatePosition($event, item)">
-										{{
-											item.name.length > 80
-												? item.name.slice(0, 80) + '...'
-												: item.name
-										}}
-									</div>
-
-								</div>
-								<div class="instr_market_value instr_first" @click="activatePosition($event, item)">
-									{{ $format(item.market_value) }}
-								</div>
-							</div>
-							<div class="flex sb">
-								<div class="instr_pos">{{ $format(item.position_size) }}</div>
-								<div class="instr_pos" v-if="item['account.name'] && item['account.name'] != '-'">
-									{{ item['account.name'] }}
-								</div>
-
-							</div>
+							<position-item :item="item" :item-type="'balance'" :portfolios="[activePortfolio]"></position-item>
 						</div>
 					</div>
 
@@ -310,18 +257,6 @@
 					/>
 
 				</div>
-
-				<!-- Transactions below-->
-
-				<template v-if="isOpenTransactions">
-					<div class="header flex aic sb">Transactions</div>
-
-					<TransactionListComp
-						v-if="transactionsOpts.filter_entry_user_code"
-						:options="transactionsOpts"
-						:reportType="'balance'"
-					/>
-				</template>
 
 			</div>
 
@@ -389,11 +324,7 @@
 				</ion-content>
 			</ion-modal>
 
-			<position-dialog
-				:position="selectedPositionForDialog"
-				:isOpen="isPositionDialogOpen"
-				@close="isPositionDialogOpen = false"
-			></position-dialog>
+
 
 			<search-dialog
 				:portfolios="[activePortfolio]"
@@ -445,6 +376,7 @@
 	import SearchDialog from '@/views/dialogs/SearchDialog.vue'
 	import MetricsBlock from '@/components/MetricsBlock.vue'
 	import PeriodTypePicker from '@/components/PeriodTypePicker.vue'
+	import PositionItem from '@/components/PositionItem.vue'
 
 	export default {
 		components: {
@@ -475,7 +407,8 @@
 			PositionDialog,
 			SearchDialog,
 
-			MetricsBlock
+			MetricsBlock,
+			PositionItem
 
 
 		},
@@ -577,33 +510,12 @@
 
 				console.log('submitSearchResult.activeCategory', this.activeCategory)
 
+				// Todo refactor
 				this.activatePosition(new Event('click'), item)
 
 			},
-
-
 			openSearchDialog() {
 				this.isSearchDialogOpen = true
-			},
-
-
-			getIconColor(letter) {
-				return metaService.getIconColor(letter)
-			},
-			async openPositionModal($event, item) {
-
-				this.selectedPositionForDialog = item
-				this.isPositionDialogOpen = true
-
-			},
-
-			activatePosition($event, item) {
-
-				this.activePosition = item
-
-				this.transactionsOpts.filter_entry_user_code = item.user_code
-				this.isOpenTransactions = true
-
 			},
 			roundToTwo(num) {
 				return +(Math.round(num + 'e+2') + 'e-2')
@@ -634,17 +546,7 @@
 				this.isSearchDialogOpen = false
 				this.isOpenTransactions = false
 
-
-				this.transactionsOpts = {
-					end_date: this.spaceStore.settings.general.date_to,
-					begin_date: '0001-01-01',
-					portfolios: [this.$route.query.tab],
-					filter_entry_user_code: null,
-					dept_level: 'entry'
-				}
-
 				await this.createChart()
-				await this.getPortfolioHistory()
 
 			},
 			async fetchBalanceReportAttributes() {
@@ -1170,60 +1072,7 @@
 	.instr_block_change {
 	}
 
-	.instruments {
-		padding: 5px 13px;
-		transition: 0.3s;
 
-		&.active {
-			background: rgba(255, 138, 0, 0.2);
-		}
-	}
-
-	.instr_name {
-		line-height: 20px;
-		font-size: 0.6rem;
-	}
-
-	.instr_first {
-		text-align: right;
-		width: 85px;
-	}
-
-	.instr_second {
-		text-align: right;
-		width: 47px;
-	}
-
-	.instr_pos {
-		color: #747474;
-		font-size: 0.65rem;
-		margin-top: 0.5rem;
-	}
-
-	.instr_market_value {
-		font-weight: 500;
-		font-size: 16px;
-		line-height: 20px;
-	}
-
-	.instr_change_percent {
-		font-weight: 600;
-		font-size: 12px;
-		line-height: 20px;
-		color: #747474;
-
-		&.plus {
-			color: rgba(52, 199, 89, 1);
-		}
-
-		&.minus {
-			color: #ff2d55;
-		}
-
-		&.neutral {
-			color: #747474;
-		}
-	}
 
 	.nodata_wrap {
 		text-align: center;

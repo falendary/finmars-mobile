@@ -1,29 +1,29 @@
 <template>
-	<div class='transactions'>
-		<div class='transactions_wrap' v-for='item in transactions' :key='item.id'>
+	<div class="transactions">
+		<div class="transactions_wrap" v-for="item in transactions" :key="item.id">
 			<div
-				class='transactions_item'
-				:class='{ active: openDescId == item.id }'
-				@click='openDescId = item.id == openDescId ? null : item.id'
+				class="transactions_item"
+				:class="{ active: openDescId == item.id }"
+				@click="openDescId = item.id == openDescId ? null : item.id"
 			>
-				<div class='pi_first_line flex aic sb'>
-					<div class='ti_date'>
+				<div class="pi_first_line flex aic sb">
+					<div class="ti_date">
 						{{ dayjs(item.accounting_date).format('DD MMM YYYY') }}
 					</div>
-					<div class='ti_header'>
+					<div class="ti_header">
 						{{
 							item['transaction_class.name']
 						}}
 					</div>
 				</div>
 
-				<div class='flex aic sb'>
-					<div class='name'>
+				<div class="flex aic sb">
+					<div class="name">
 						{{
 							item.notes
 						}}
 					</div>
-					<div class='pos' v-if="displayMode != 'compact'">
+					<div class="pos" v-if="displayMode != 'compact'">
 						<span
 							:class="[
 								item[
@@ -47,8 +47,8 @@
 						UNITS
 					</div>
 				</div>
-				<div class='flex sb'>
-					<div class='desc'>
+				<div class="flex sb">
+					<div class="desc">
 						{{
 							item['complex_transaction.text']?.slice(
 								0,
@@ -56,7 +56,7 @@
 							)
 						}}
 					</div>
-					<div class='pos' v-if="displayMode != 'compact'">
+					<div class="pos" v-if="displayMode != 'compact'">
 						<span :class="[item.cash_consideration > 0 ? 'plus' : 'minus']">{{
 								$format(item.cash_consideration)
 							}}</span>
@@ -67,51 +67,51 @@
 				</div>
 			</div>
 
-			<div class='transactions_desc_block' v-if='openDescId == item.id'>
-				<template v-for='field in userFieldsMap'>
+			<div class="transactions_desc_block" v-if="openDescId == item.id">
+				<template v-for="field in userFieldsMap">
 					<div
-						class='tdb_row flex sb'
+						class="tdb_row flex sb"
 						v-if="item['complex_transaction.' + field.key]"
 					>
-						<div class='tdb_prop'>{{ field.name }}:</div>
-						<div class='tdb_value'>
+						<div class="tdb_prop">{{ field.name }}:</div>
+						<div class="tdb_value">
 							{{ item['complex_transaction.' + field.key] }}
 						</div>
 					</div>
 				</template>
-				<div class='tac' v-if='!userFieldsMap.length'>No description</div>
+				<div class="tac" v-if="!userFieldsMap.length">No description</div>
 			</div>
 		</div>
 
-		<template v-if='transactions === null'>
-			<div class='transactions_wrap' v-for='item in [1, 1]'>
-				<div class='transactions_item'>
-					<div class='pi_first_line flex aic sb'>
-						<div class='ti_date'>
+		<template v-if="transactions === null">
+			<div class="transactions_wrap" v-for="item in [1, 1]">
+				<div class="transactions_item">
+					<div class="pi_first_line flex aic sb">
+						<div class="ti_date">
 							<IonSkeletonText
-								:animated='true'
-								style='width: 80px; height: 24px'
+								:animated="true"
+								style="width: 80px; height: 24px"
 							/>
 						</div>
-						<div class='ti_header' style='width: 25%'>
-							<IonSkeletonText :animated='true' style='height: 24px' />
+						<div class="ti_header" style="width: 25%">
+							<IonSkeletonText :animated="true" style="height: 24px" />
 						</div>
 					</div>
 
-					<div class='flex aic sb'>
-						<div class='name' style='width: 35%'>
-							<IonSkeletonText :animated='true' style='height: 24px' />
+					<div class="flex aic sb">
+						<div class="name" style="width: 35%">
+							<IonSkeletonText :animated="true" style="height: 24px" />
 						</div>
-						<div class='pos' style='width: 15%' v-if="displayMode != 'compact'">
-							<IonSkeletonText :animated='true' style='height: 24px' />
+						<div class="pos" style="width: 15%" v-if="displayMode != 'compact'">
+							<IonSkeletonText :animated="true" style="height: 24px" />
 						</div>
 					</div>
-					<div class='flex sb'>
-						<div class='desc' style='width: 50%'>
-							<IonSkeletonText :animated='true' style='height: 24px' />
+					<div class="flex sb">
+						<div class="desc" style="width: 50%">
+							<IonSkeletonText :animated="true" style="height: 24px" />
 						</div>
-						<div class='pos' style='width: 25%' v-if="displayMode != 'compact'">
-							<IonSkeletonText :animated='true' style='height: 24px' />
+						<div class="pos" style="width: 25%" v-if="displayMode != 'compact'">
+							<IonSkeletonText :animated="true" style="height: 24px" />
 						</div>
 					</div>
 				</div>
@@ -119,8 +119,8 @@
 		</template>
 
 		<div
-			class='transactions_wrap transactions_item'
-			v-if='transactions?.length === 0'
+			class="transactions_wrap transactions_item"
+			v-if="transactions?.length === 0"
 		>
 			No transactions
 		</div>
@@ -1393,11 +1393,11 @@
 		if (props.reportType == 'pl') {
 			filter_settings = [
 				{
-					"key": "transaction_item_user_code",
-					"filter_type": "contains",
-					"exclude_empty_cells": false,
-					"value_type": 10,
-					"value": [
+					'key': 'transaction_item_user_code',
+					'filter_type': 'contains',
+					'exclude_empty_cells': false,
+					'value_type': 10,
+					'value': [
 						props.options.filter_entry_user_code
 					]
 				}
@@ -1421,7 +1421,7 @@
 					columns: [],
 					groups_types: [],
 					page: 1,
-					filter_settings: filter_settings,
+					filter_settings: filter_settings
 
 				},
 				filters: filters,
@@ -1429,7 +1429,7 @@
 				strategies1: [],
 				strategies2: [],
 				strategies3: [],
-				table_font_size: 'small',
+				table_font_size: 'small'
 			}
 		})
 		let x = {
@@ -1453,7 +1453,7 @@
 	}
 </script>
 
-<style lang='scss' scoped>
+<style lang="scss" scoped>
 	.transactions {
 		padding: 0 15px;
 		box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.05);
