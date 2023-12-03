@@ -121,7 +121,7 @@
 	import { Pagination } from 'swiper'
 
 	import ExploreBalancePart from '@/views/ExploreBalancePart.vue'
-	import ExplorePlPart from '@/views/ExplorePLPart.vue'
+	import ExplorePlPart from '@/views/ExplorePlPart.vue'
 
 	export default {
 		components: {
