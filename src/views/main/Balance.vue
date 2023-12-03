@@ -71,14 +71,6 @@
 
 			<div class="portfolio-content">
 
-				<!--				<IndicatorsComp-->
-				<!--					:portfolioId="[$route.query.tab]"-->
-				<!--					:currency="spaceStore.settings.general.currency"-->
-				<!--					:pricing_policy="spaceStore.settings.general.pricing_policy"-->
-				<!--					:date="spaceStore.settings.general.date_to"-->
-				<!--					@refresher="indicatorsRefresher = $event"-->
-				<!--				/>-->
-
 				<div v-if="activePortfolio">
 
 					<div class="header header-with-period-type-picker" style="margin: 0;">
@@ -422,7 +414,6 @@
 				positionsProcessing: false,
 				colorsCat: {},
 				portfoliosRefresher: null,
-				indicatorsRefresher: null,
 				categories: [],
 				positions: [],
 				activeCategory: null,
@@ -864,10 +855,6 @@
 					this.portfoliosRefresher(true)
 				}
 
-				if (this.indicatorsRefresher) {
-					this.indicatorsRefresher()
-				}
-
 				if (this.metricsBlockRefresher) {
 					this.metricsBlockRefresher()
 				}
@@ -903,8 +890,8 @@
 
 					await this.init()
 
-					if (this.indicatorsRefresher) {
-						await this.indicatorsRefresher()
+					if (this.metricsBlockRefresher) {
+						this.metricsBlockRefresher()
 					}
 
 				}
@@ -917,8 +904,8 @@
 				if (this.portfoliosRefresher) {
 					await this.portfoliosRefresher()
 				}
-				if (this.indicatorsRefresher) {
-					await this.indicatorsRefresher()
+				if (this.metricsBlockRefresher) {
+					this.metricsBlockRefresher()
 				}
 
 			})

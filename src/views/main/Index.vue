@@ -322,7 +322,7 @@
 							'pricing_policy': this.spaceStore.settings.general.pricing_policy,
 							'date': this.spaceStore.settings.general.date_to,
 							'segmentation_type': 'business_days_end_of_months',
-							'period_type': 'ytd',
+							'period_type': this.spaceStore.settings.general.period_type,
 							'cost_method': 'avco', // avco
 							'performance_method': 'modified_dietz',
 							'benchmark': 'sp_500'

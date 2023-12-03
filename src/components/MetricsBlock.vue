@@ -1,12 +1,20 @@
 <template>
 	<div class="">
 
-		<div class="portfolio-metric-grid-container" v-if="!processing">
+		<div class="portfolio-metric-grid-container" v-if="!processing && portfolioHistoryItems.length">
+
 			<div v-for="metric in portfolioHistoryItems" :key="metric.key" class="portfolio-metric-card">
 				<h3>{{ metric.name }}</h3>
 				<p v-if="metric.value !== null">{{ metric.value }}</p>
 				<p v-else>-</p>
 			</div>
+
+		</div>
+
+		<div v-if="!processing && !portfolioHistoryItems.length">
+
+			<no-portfolio-history></no-portfolio-history>
+
 		</div>
 
 		<div class="portfolio-metric-grid-container" v-if="processing">
@@ -27,6 +35,7 @@
 
 <script>
 	import {
+		alertController,
 		IonApp,
 		IonButton,
 		IonButtons,
@@ -42,6 +51,7 @@
 	import useStore from '@/composables/useStore.js'
 	import Passcode from '@/components/Passcode.vue'
 	import useApi from '@/composables/useApi.js'
+	import NoPortfolioHistory from '@/components/NoPortfolioHistory.vue'
 
 	export default {
 		components: {
@@ -56,7 +66,8 @@
 			IonApp,
 			Passcode,
 			IonSelect,
-			IonSelectOption
+			IonSelectOption,
+			NoPortfolioHistory
 			// settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline
 		},
 		props: {
@@ -237,6 +248,11 @@
 		grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
 		gap: 10px;
 		padding: 10px;
+	}
+
+	.portfolio-metric-card-no-data {
+		text-align: center;
+		font-size: .7rem;
 	}
 
 	.portfolio-metric-card {

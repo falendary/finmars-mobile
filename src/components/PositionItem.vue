@@ -231,6 +231,7 @@
 	.position-item {
 		padding: 0.25rem;
 		margin-bottom: 0.5rem;
+		width: 100%;
 
 		.transactions {
 			padding-right: 0;

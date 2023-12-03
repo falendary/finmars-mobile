@@ -89,6 +89,10 @@
 						<period-type-picker></period-type-picker>
 					</div>
 
+					<div v-if="!portfolioHistoryExists">
+						<no-portfolio-history></no-portfolio-history>
+					</div>
+
 					<div class="portfolios" v-if="portfolios.length">
 						<div
 							class="portfolios-item"
@@ -161,6 +165,10 @@
 						</div>
 					</div>
 
+					<div class="header header-with-period-type-picker">
+
+						<top-performers @refresher="topPerformersRefresher = $event"></top-performers>
+					</div>
 
 				</div>
 
@@ -214,6 +222,8 @@
 	import useStore from '@/composables/useStore'
 	import ComplexTransactionList from '@/components/ComplexTransactionList.vue'
 	import PeriodTypePicker from '@/components/PeriodTypePicker.vue'
+	import NoPortfolioHistory from '@/components/NoPortfolioHistory.vue'
+	import TopPerformers from '@/components/TopPerformers.vue'
 	// Stores the controller so that the chart initialization routine can look it up
 	Chart.register(
 		LineElement,
@@ -240,7 +250,9 @@
 			ChangePrice,
 			ComplexTransactionList,
 			GrandNav,
-			PeriodTypePicker
+			PeriodTypePicker,
+			NoPortfolioHistory,
+			TopPerformers
 		},
 
 		data() {
@@ -253,7 +265,8 @@
 				transactionsOpts: null,
 				username: null,
 				indicatorsRefresher: null,
-				grandNavRefresher: null
+				grandNavRefresher: null,
+				portfolioHistoryExists: true
 			}
 		},
 		computed: {
@@ -278,6 +291,9 @@
 				if (this.grandNavRefresher) {
 					this.grandNavRefresher()
 				}
+				if (this.topPerformersRefresher) {
+					this.topPerformersRefresher();
+				}
 
 
 				this.processing = false
@@ -292,6 +308,7 @@
 			async fetchPortfolios() {
 
 				this.portfolios = []
+				this.portfolioHistoryExists = true;
 
 				// TODO Consider refactor here
 				// Some weird logic that I do not like
@@ -317,6 +334,9 @@
 							this.portfolios[k].nav = '--'
 							this.portfolios[k].total = '--'
 							this.portfolios[k].cumulative_return = '--'
+
+							this.portfolioHistoryExists = false;
+
 						} else {
 
 							let item = data.results[0]
