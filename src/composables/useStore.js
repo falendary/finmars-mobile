@@ -149,6 +149,9 @@ export default defineStore('store', {
 				}
 
 			}
+			if (!this.activeSpaceStore.settings.general.period_type) {
+				this.activeSpaceStore.settings.general.period_type = 'ytd';
+			}
 
 			if (!this.activeSpaceStore.settings.general.portfolios.length) {
 				this.activeSpaceStore.portfolios.forEach((item) => {
