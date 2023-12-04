@@ -111,7 +111,7 @@
 		IonHeader,
 		IonIcon,
 		IonModal,
-		IonPage,
+		IonPage, IonSegment, IonSegmentButton,
 		IonSelect,
 		IonSelectOption,
 		IonToolbar
@@ -134,7 +134,9 @@
 			IonToolbar,
 			IonModal, IonDatetimeButton, IonDatetime,
 			ExploreBalancePart,
-			ExplorePlPart
+			ExplorePlPart,
+			IonSegment,
+			IonSegmentButton
 		},
 		data() {
 			return {

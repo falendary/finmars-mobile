@@ -119,7 +119,9 @@
 		IonRouterOutlet,
 		IonSelect,
 		IonSelectOption,
-		IonSkeletonText
+		IonSkeletonText,
+		IonChip,
+		IonPopover
 	} from '@ionic/vue'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
 	import { computed, Suspense } from 'vue'
@@ -144,7 +146,9 @@
 			IonApp,
 			Passcode,
 			IonSelect,
-			IonSelectOption
+			IonSelectOption,
+			IonChip,
+			IonPopover
 			// settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline
 		},
 		props: {

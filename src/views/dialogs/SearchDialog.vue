@@ -117,7 +117,7 @@
 			IonButtons,
 			IonHeader,
 			IonToolbar,
-			IonModal
+			IonModal,
 		},
 		props: {
 			reportType: {
@@ -147,10 +147,12 @@
 					this.searchQuery = ''
 					this.searchResults = []
 					this.searchProcessing = false
-					setTimeout(async () => {
-						document.querySelector('#searchBar input').focus()
-					}, 100)
+
 				}
+
+				setTimeout(async () => {
+					document.querySelector('#searchBar input').focus()
+				}, 200)
 			}
 		},
 		emits: ['close', 'resultSelectCallback'],
