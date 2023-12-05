@@ -18,6 +18,9 @@ export default defineStore('store', {
 	getters: {},
 	actions: {
 		setPeriodType(periodType) {
+
+			console.log("store.setPeriodType", periodType);
+
 			this.activeSpaceStore.settings.general.periodType = periodType
 		},
 		setGlobalError(error) {

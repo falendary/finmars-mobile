@@ -59,7 +59,9 @@
 					{{ $format(item.position_size) }}
 				</ion-chip>
 
-				<ion-chip :id="item.id + 'position_size'" v-if="item.position_size && itemType == 'pl'">Unrealized {{ $format(item.position_size) }}</ion-chip>
+				<ion-chip :id="item.id + 'position_size'" v-if="item.position_size && itemType == 'pl'">Unrealized
+					{{ $format(item.position_size) }}
+				</ion-chip>
 				<ion-chip :id="item.id + 'position_size'" v-if="!item.position_size && itemType == 'pl'">Realized</ion-chip>
 
 				<ion-popover :trigger="item.id + 'position_size'">
@@ -114,14 +116,14 @@
 		IonApp,
 		IonButton,
 		IonButtons,
+		IonChip,
 		IonIcon,
 		IonModal,
+		IonPopover,
 		IonRouterOutlet,
 		IonSelect,
 		IonSelectOption,
-		IonSkeletonText,
-		IonChip,
-		IonPopover
+		IonSkeletonText
 	} from '@ionic/vue'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
 	import { computed, Suspense } from 'vue'
@@ -233,11 +235,19 @@
 <style lang="scss" scoped>
 
 	.position-item {
-		padding: 0.25rem;
+
 		margin-bottom: 0.5rem;
 		width: 100%;
 
+		.position-item-content {
+			padding: 0.5rem;
+			&.active {
+				background: rgba(255, 138, 0, 0.2);
+			}
+		}
+
 		.transactions {
+			margin-top: 0.5rem;
 			padding-right: 0;
 		}
 	}

@@ -171,6 +171,29 @@
 
 			</div>
 
+			<div v-if="count > page * page_size">
+
+				<div class="display-flex" style="margin-top: 1rem; justify-content: space-between; align-items: center">
+					<div style="font-size: .8rem; opacity: .7;">
+						Transactions {{ transactions.length }} / {{ count }}
+					</div>
+
+					<div class="display-flex align-center justify-center" v-if="loadMoreProcessing">
+						<progress-circular diameter="20"></progress-circular>
+					</div>
+
+				</div>
+
+				<ion-button
+					class="ion-margin-horizontal"
+					fill="outline"
+					expand="block"
+					@click="loadMore()"
+				>
+					Load More
+				</ion-button>
+			</div>
+
 		</div>
 
 		<div v-if="!transactions.length">
@@ -309,9 +332,11 @@ import { formatNumber } from 'chart.js/helpers'
 import { computed } from 'vue'
 import useStore from '@/composables/useStore.js'
 import metaService from '@/services/metaService.js'
+import ProgressCircular from '@/components/ProgressCircular.vue'
 
 export default {
 	components: {
+		ProgressCircular,
 		IonDatetime,
 		IonDatetimeButton,
 		IonSkeletonText,
@@ -344,19 +369,39 @@ export default {
 			},
 			detailedTransactions: {},
 			transactions: [],
-			page: 1,
-			pageSize: 40,
 			isComplexTransactionModelOpen: false,
 			activeComplexTransaction: {},
 			userFieldsMap: null,
 			errorMessage: null,
 			isTransactionModelOpen: false,
 			activeTransaction: {},
-			spaceStore: null
+			spaceStore: null,
+
+			count: 0,
+			page_size: 40,
+			page: 1,
+			loadMoreProcessing: false
 
 		}
 	},
 	methods: {
+
+		async loadMore() {
+
+			this.loadMoreProcessing = true
+
+			this.page = this.page + 1
+
+			let res = await this.getTransactions()
+
+			res.results.forEach((item) => {
+				this.transactions.push(item)
+			})
+
+
+			this.loadMoreProcessing = false
+
+		},
 
 		openComplexTransactionModal($event, item) {
 
@@ -447,7 +492,7 @@ export default {
 
 		},
 		getIconColor(letter) {
-			return metaService.getIconColor(letter);
+			return metaService.getIconColor(letter)
 		},
 		async getComplexTransactionUserFields() {
 
@@ -460,17 +505,13 @@ export default {
 
 			console.log('this.spaceStore.settings.general.portfolios', this.spaceStore.settings.general.portfolios)
 
-			let filters = {
-				transactions__accounting_date_after: this.options.begin_date,
-				transactions__accounting_date_before: this.options.end_date,
-				ordering: '-transactions__accounting_date'
-			}
 
 			const params = new URLSearchParams()
 
 			params.append('transactions__accounting_date_after', this.options.begin_date)
 			params.append('transactions__accounting_date_before', this.options.end_date)
 			params.append('ordering', '-transactions__accounting_date')
+			params.append('page', this.page)
 
 			this.spaceStore.settings.general.portfolios.forEach(function(item) {
 				params.append('transactions__portfolio__user_code', item)
@@ -480,8 +521,10 @@ export default {
 				urlSearchParams: params
 			})
 
+			this.count = res.count
 
-			this.transactions = res.results
+
+			return res
 
 			console.log('ComplexTransactionList.transactions', this.transactions)
 			console.log('ComplexTransactionList.transactions len', this.transactions.length)
@@ -491,7 +534,7 @@ export default {
 	},
 	async created() {
 		this.store = useStore()
-		this.spaceStore = computed(() => this.store.getActiveSpaceStore());
+		this.spaceStore = computed(() => this.store.getActiveSpaceStore())
 	},
 	async mounted() {
 
@@ -501,7 +544,8 @@ export default {
 
 		try {
 			await this.getComplexTransactionUserFields()
-			await this.getTransactions()
+			const res = await this.getTransactions()
+			this.transactions = res.results
 		} catch (error) {
 			console.error('An error occurred:', error)
 			// Optionally, set an error message to your component's data or show it to the user

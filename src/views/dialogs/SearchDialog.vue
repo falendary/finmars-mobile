@@ -76,6 +76,11 @@
 
 					</div>
 
+
+					<div v-if="searchError" class="text-center">
+						{{searchErrorMessage}}
+					</div>
+
 				</div>
 
 
@@ -104,6 +109,7 @@
 	import useStore from '@/composables/useStore'
 	import { telescopeOutline } from 'ionicons/icons'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
+	import errorService from '@/services/errorService.js'
 
 	export default {
 		components: {
@@ -137,7 +143,9 @@
 				},
 				searchProcessing: false,
 				searchResults: [],
-				searchQuery: null
+				searchQuery: null,
+				searchError: false,
+				searchErrorMessage: ''
 
 			}
 		},
@@ -161,6 +169,8 @@
 				this.$emit('close')
 			},
 			async doSearch(query) {
+
+				this.searchError = false;
 
 				this.searchProcessing = true
 
@@ -227,6 +237,9 @@
 
 					this.searchResults = []
 					this.searchProcessing = false
+
+					this.searchError = true;
+					this.searchErrorMessage = errorService.getRandomErrorMessage()
 
 				}
 			},

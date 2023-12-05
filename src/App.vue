@@ -405,11 +405,19 @@
 	}
 
 	.global-error-toast {
+
+		padding: 1rem;
+
+		–padding-top: var(–ion-safe-area-top, 0);
+		padding-top: env(safe-area-inset-top);
+		--ion-safe-area-top: 20px;
+		--ion-safe-area-bottom: 20px;
+
 		position: fixed;
 		top: 0;
 		width: 100%;
 		display: flex;
-		padding: 1rem;
+
 		font-size: .8rem;
 		justify-content: space-between;
 	}

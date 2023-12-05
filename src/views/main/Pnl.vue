@@ -424,7 +424,7 @@
 			IonToolbar,
 			IonModal, IonDatetimeButton, IonDatetime,
 
-			Bar
+			Bar,
 
 		},
 		data() {
@@ -498,7 +498,7 @@
 						// probably will cause error if Account Name and Account User Code are different
 						// TODO consider refactor in future
 						// 2023-11-18 szhitenev
-						if (this.spaceStore.settings.balance.groupByKey === 'instrument.instrument_type.name') {
+						if (this.spaceStore.settings.pl.groupByKey === 'instrument.instrument_type.name') {
 
 							if (category.___group_identifier === item['instrument.instrument_type.user_code']) {
 								this.activeCategory = category
@@ -506,7 +506,7 @@
 
 						} else {
 
-							if (category.___group_identifier === item[this.spaceStore.settings.balance.groupByKey]) {
+							if (category.___group_identifier === item[this.spaceStore.settings.pl.groupByKey]) {
 								this.activeCategory = category
 							}
 

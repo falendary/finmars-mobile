@@ -47,7 +47,7 @@
 		IonSkeletonText
 	} from '@ionic/vue'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
-	import { computed, Suspense } from 'vue'
+	import { computed, Suspense, watch } from 'vue'
 	import useStore from '@/composables/useStore.js'
 	import Passcode from '@/components/Passcode.vue'
 	import useApi from '@/composables/useApi.js'
@@ -91,6 +91,8 @@
 				await this.getPortfolioHistory()
 			},
 			async getPortfolioHistory() {
+
+				console.log('Metricsblock.getPortfolioHistory')
 
 				this.processing = true
 
@@ -228,13 +230,27 @@
 
 			this.$emit('refresher', this.refresh)
 
+
+
 		},
 		mounted() {
 
 			this.getPortfolioHistory()
 
+			this.settingsWatch = watch(this.spaceStore.settings.general, async () => {
+
+				console.log('MetricsBlock.period_type.change')
+
+				await this.getPortfolioHistory()
+
+			})
+
 		},
 		beforeUnmount() {
+
+			if (this.settingsWatch) {
+				this.settingsWatch()
+			}
 
 		}
 	}

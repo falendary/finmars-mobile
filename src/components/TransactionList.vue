@@ -276,8 +276,9 @@
 							// columns: columns,
 							columns: [],
 							groups_types: [],
-							filter_settings: filter_settings
-
+							filter_settings: filter_settings,
+							items_order: 'desc',
+							ordering: "accounting_date"
 						},
 						page: this.page,
 						filters: filters,

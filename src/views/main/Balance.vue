@@ -904,9 +904,6 @@
 				if (this.portfoliosRefresher) {
 					await this.portfoliosRefresher()
 				}
-				if (this.metricsBlockRefresher) {
-					this.metricsBlockRefresher()
-				}
 
 			})
 
