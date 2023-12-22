@@ -42,6 +42,7 @@
     "tsparticles-slim": "^2.12.0",
     "vue": "^3.2.45",
     "vue-chartjs": "^5.2.0",
+    "vue-matomo": "^4.2.0",
     "vue-router": "^4.1.6",
     "vue3-particles": "^2.12.0"
   },

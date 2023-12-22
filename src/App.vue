@@ -5,11 +5,22 @@
 
 		<Passcode v-if="showPasscode" @verified="showPasscode = false;"></Passcode>
 
-		<ion-header>
-			<ion-toolbar v-if="isOffline && showOfflineBar" color="danger">
-				<ion-title>Connection Offline</ion-title>
+<!--		<ion-header v-if="isOffline && showOfflineBar && ">-->
+<!--			<ion-toolbar  color="danger">-->
+<!--				<ion-title>Connection Offline</ion-title>-->
+<!--				<ion-buttons slot="end">-->
+<!--					<ion-button @click="showOfflineBar = false;">Close</ion-button>-->
+<!--				</ion-buttons>-->
+<!--			</ion-toolbar>-->
+<!--		</ion-header>-->
+
+		<ion-header v-if="connectionError">
+			<ion-toolbar  color="danger">
+				<p style="margin: 0; font-size: .7rem; padding-left: 1rem;">
+					Network Error, Please Try Again Later
+				</p>
 				<ion-buttons slot="end">
-					<ion-button @click="showOfflineBar = false;">Close</ion-button>
+					<ion-button @click="connectionError = false;">Close</ion-button>
 				</ion-buttons>
 			</ion-toolbar>
 		</ion-header>
@@ -19,6 +30,8 @@
 		</div>
 
 		<div v-show="store.globalProcessing" class="display-flex align-center justify-center height-100">
+			<ion-button class="global-process-close-button" @click="goToRecovery()" v-show="showRecoveryButton">Recovery
+			</ion-button>
 			<progress-circular bg="black" diameter="90"></progress-circular>
 		</div>
 
@@ -26,7 +39,7 @@
 </template>
 
 <script>
-	import { IonApp, IonButton, IonButtons, IonRouterOutlet } from '@ionic/vue'
+	import { IonApp, IonButton, IonButtons, IonRouterOutlet, toastController } from '@ionic/vue'
 	import { Preferences } from '@capacitor/preferences'
 	import { initKeycloak } from '@/services/keycloakService.js'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
@@ -36,6 +49,7 @@
 	import { App } from '@capacitor/app'
 	import Passcode from '@/components/Passcode.vue'
 	import GlobalErrorToast from '@/components/GlobalErrorToast.vue'
+	import useApi from '@/composables/useApi.js'
 
 	export default {
 		components: {
@@ -58,14 +72,13 @@
 				store: null,
 				isBlurred: false,
 				showPasscode: false,
-				backgroundTimestamp: null
+				backgroundTimestamp: null,
+				showRecoveryButton: false,
+				recoveryTimeout: null,
+				connectionError: false
 			}
 		},
 		methods: {
-
-			throwError() {
-				throw Error('Unhandled error occured')
-			},
 			async initializeDarkTheme() {
 
 				let { value: darkTheme } = await Preferences.get({ key: 'darkTheme' })
@@ -132,112 +145,185 @@
 					this.isBlurred = true
 
 				}
+			},
+			async goToRecovery() {
+				this.store.globalProcessing = false
+				this.$router.replace('/recovery')
+			},
+			async doHealthcheck() {
+				const controller = new AbortController();
+				const timeoutId = setTimeout(() => controller.abort(), 1000); // Set timeout for 1 second
+
+				try {
+					// Pass the signal to your fetch call
+					let data = await useApi('authorizerPing.get', { signal: controller.signal });
+					console.log('doHealthcheck.results', data);
+
+					clearTimeout(timeoutId); // Clear the timeout if the request finishes in time
+
+					let hasError = this.connectionError;
+
+					if (data.error) {
+						this.connectionError = true;
+					} else {
+						this.connectionError = false;
+
+						if (hasError) {
+							const toast = await toastController.create({
+								message: 'The connection is restored',
+								duration: 1500,
+								position: 'top',
+							});
+
+							await toast.present();
+						}
+					}
+				} catch (error) {
+					clearTimeout(timeoutId); // Clear the timeout in case of an error
+
+					if (error.name === 'AbortError') {
+						console.log('Request was aborted after 1 second');
+						this.connectionError = true;
+					} else {
+						// Handle other errors
+						console.error('Failed to perform health check:', error);
+						this.connectionError = true;
+					}
+				}
+			},
+			resetRecoveryButtonTimer() {
+				// Clear any existing timeout
+				if (this.recoveryTimeout) {
+					clearTimeout(this.recoveryTimeout)
+				}
+
+				console.log('resetRecoveryButtonTimer', this.store.globalProcessing)
+
+				// Set a new timeout if globalProcessing is true
+				if (this.store.globalProcessing) {
+					this.recoveryTimeout = setTimeout(() => {
+						this.showRecoveryButton = true
+					}, 5 * 1000) // 5 seconds delay
+				} else {
+					// If globalProcessing is not true, hide the button immediately
+					this.showRecoveryButton = false
+				}
+			},
+			async checkAuth() {
+
+				let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
+				let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
+
+				if (tokens) {
+
+					console.log('APP_INIT: Has tokens in Storage, trying to reinit Keycloak')
+
+					try {
+						await initKeycloak()
+
+						this.store.globalProcessing = false
+
+						if (activeSpaceCode) {
+							console.log('APP_INIT: has activeSpaceCode. redirect to dashboard')
+							this.$router.replace('/main/dashboard')
+						} else {
+							console.log('APP_INIT: has activeSpaceCode. redirect to workspaces')
+							this.$router.replace('/workspaces')
+						}
+
+					} catch (e) {
+
+						console.log('APP_INIT: keycloak.error', e)
+						await Preferences.remove({ key: 'kcTokens' })
+						this.$router.replace('/welcome')
+
+					}
+
+
+				} else {
+
+					console.log('APP_INIT: no tokens in Storage, trying to parse query parameters')
+
+					if (window.location.href.indexOf('state=') !== -1) {
+
+						this.isBlurred = false
+
+						console.log('APP_INIT: Probably got redirect from keycloak, trying to parse query parameters')
+
+						this.store.globalProcessing = true
+						await initKeycloak()
+						this.store.globalProcessing = false
+						if (activeSpaceCode) {
+							this.$router.replace('/main/dashboard')
+						} else {
+							this.$router.replace('/workspaces')
+						}
+
+					} else {
+
+						console.log('APP_INIT: Nothing, its first open, wait until user select region. Keycloak IS NOT INITED')
+
+						if (this.$route.path !== '/welcome') {
+							this.$router.replace('/welcome')
+						}
+
+					}
+				}
+
 			}
 		},
 		async created() {
 
 			this.store = useStore()
 
-			let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
-			let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
-
 			await this.initializeDarkTheme()
 
 
 			this.store.globalProcessing = true
 
-			if (tokens) {
+			this.resetRecoveryButtonTimer()
 
-				console.log('APP_INIT: Has tokens in Storage, trying to reinit Keycloak')
-
-				try {
-					await initKeycloak()
-
-					this.store.globalProcessing = false
-
-					if (activeSpaceCode) {
-
-
-						console.log('APP_INIT: has activeSpaceCode. redirect to dashboard')
-
-						this.$router.replace('/main/dashboard')
-						// if (this.$router.currentRoute.path === '/login') {
-						// 	console.log("APP_INIT: On login page. Redirecting to dashboard");
-						// 	this.$router.push('/main/dashboard');
-						// } else {
-						// 	console.log("APP_INIT: Not on login page. No redirection needed.");
-						// }
-
-					} else {
-
-						console.log('APP_INIT: has activeSpaceCode. redirect to workspaces')
-
-						this.$router.replace('/workspaces')
-					}
-
-					console.log('this.store.globalProcessing', this.store.globalProcessing)
-
-				} catch (e) {
-
-					console.log('APP_INIT: keycloak.error', e)
-
-					await Preferences.remove({ key: 'kcTokens' })
-
-					this.$router.replace('/welcome')
-
-				}
-
-
-			} else {
-
-				if (window.location.href.indexOf('state=') !== -1) {
-					this.isBlurred = false
-
-					console.log('APP_INIT: Probably got redirect from keycloak, trying to parse query parameters')
-
-					this.store.globalProcessing = true
-					await initKeycloak()
-					this.store.globalProcessing = false
-					if (activeSpaceCode) {
-						this.$router.replace('/main/dashboard')
-					} else {
-						this.$router.replace('/workspaces')
-					}
-				} else {
-
-					console.log('APP_INIT: Nothing, its first open, wait until user select region. Keycloak IS NOT INITED')
-
-					this.$router.replace('/welcome')
-
-				}
-
-				// 	user should pick region and after that login
-			}
+			await this.checkAuth()
 
 			this.store.globalProcessing = false
 
 			await this.verifyPasscode()
 
+			this.doHealthcheck()
+
+			this.globalInternval = setInterval(() => {
+				this.resetRecoveryButtonTimer()
+				this.doHealthcheck()
+			}, 15 * 1000) // do healthcheck every 10 seconds
+
 		},
 		mounted() {
-			this.updateNetworkStatus()
-
+			// this.updateNetworkStatus()
 
 			// this.showPasscode = true; // for debug purpose
 
-			Network.addListener('networkStatusChange', (status) => {
-				this.isOffline = !status.connected
-
-				if (this.isOffline) {
-					this.showOfflineBar = true
-				}
-			})
+			// Network.addListener('networkStatusChange', (status) => {
+			// 	this.isOffline = !status.connected
+			//
+			// 	if (this.isOffline) {
+			// 		this.showOfflineBar = true
+			// 	}
+			// })
 
 			App.addListener('appStateChange', this.handleAppStateChange)
+
+
 		},
 		beforeUnmount() {
 			// Clean up listeners when component is destroyed
 			App.removeAllListeners()
+			if (this.recoveryTimeout) {
+				clearTimeout(this.recoveryTimeout)
+			}
+
+			if (this.globalInternval) {
+				clearInterval(this.globalInternval)
+			}
 		}
 	}
 
@@ -427,6 +513,12 @@
 		justify-content: space-between;
 		align-items: center;
 
+	}
+
+	.global-process-close-button {
+		position: fixed;
+		bottom: 1rem;
+		margin: 0 auto;
 	}
 
 

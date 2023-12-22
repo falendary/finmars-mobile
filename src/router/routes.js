@@ -3,7 +3,7 @@ import auth from './middleware/auth.js'
 export default [
 	{
 		path: '/',
-		component: () => import('@/views/main/Index.vue'),
+		component: () => import('@/views/Welcome.vue'),
 		beforeEnter: [auth],
 	},
 	{

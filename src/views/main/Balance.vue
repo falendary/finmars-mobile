@@ -729,7 +729,7 @@
 				let res = await useApi('backendBalanceReportGroups.post', {
 					body: {
 						account_mode: this.spaceStore.settings.general.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
-						accounts: [],
+						accounts: this.spaceStore.settings.general.accounts,
 						accounts_cash: [],
 						accounts_position: [],
 						allocation_detailing: true,

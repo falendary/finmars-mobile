@@ -1,6 +1,9 @@
 let prefix = '{host}/{client}/api/v1'
 
 export default {
+	accountLight: {
+		get: prefix + '/accounts/account/light/'
+	},
 	portfolioLight: {
 		get: prefix + '/portfolios/portfolio/light/'
 	},

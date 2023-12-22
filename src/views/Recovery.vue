@@ -108,10 +108,10 @@
 			},
 			async logout() {
 
-				this.$router.push('/logout')
+				this.$router.replace('/logout')
 			},
 			async toSpaces() {
-				this.$router.push('/workspaces')
+				this.$router.replace('/workspaces')
 			},
 			async particlesInit(engine) {
 				//await loadFull(engine);

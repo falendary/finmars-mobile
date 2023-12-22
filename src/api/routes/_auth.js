@@ -4,5 +4,8 @@ export default {
 	},
 	user: {
 		get: '{host}/authorizer/user/0/',
-	}
+	},
+	authorizerPing: {
+		get: '{host}/authorizer/ping/',
+	},
 }

@@ -201,7 +201,7 @@
 
 					await Preferences.set({ key: 'region', value: JSON.stringify(regionObj) })
 
-					await this.router.push('/login')
+					await this.router.replace('/login')
 
 				} else {
 
@@ -217,6 +217,15 @@
 
 		},
 		async created() {
+
+			if (window.location.href.indexOf('error_message=') !== -1) {
+
+				this.errorMessage = window.location.href.split('error_message=')[1]
+
+			}
+
+			console.log('Welcome.errorMessage', this.errorMessage)
+
 
 			let custom_regions = await Preferences.get({ key: 'custom_regions' })
 

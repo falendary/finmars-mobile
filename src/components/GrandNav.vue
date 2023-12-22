@@ -80,7 +80,6 @@ export default {
 			let res = await useApi('backendBalanceReportGroups.post', {
 				body: {
 					account_mode: 0, // Ignore Accounts, important
-					accounts: [],
 					accounts_cash: [],
 					accounts_position: [],
 					allocation_detailing: true,
@@ -118,6 +117,7 @@ export default {
 						page: 1,
 						filter_settings: []
 					},
+					accounts: this.spaceStore.settings.general.accounts,
 					portfolios: this.spaceStore.settings.general.portfolios,
 					pricing_policy: this.spaceStore.settings.general.pricing_policy,
 					report_currency: this.spaceStore.settings.general.currency,

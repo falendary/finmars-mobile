@@ -3,46 +3,55 @@ import providers from '@/api/providers/main.js'
 import { Preferences } from '@capacitor/preferences'
 
 
-import axios from 'axios';
-import { refreshToken, clearTokens } from '@/services/keycloakService.js'
+import axios from 'axios'
+import { clearTokens, refreshToken } from '@/services/keycloakService.js'
+import useStore from '@/composables/useStore.js'
+
+import router from '../router/index.js'
+
 axios.interceptors.response.use(
 	response => {
-		return response;
+		return response
 	},
 	async error => {
 		if (error.response.status === 401) {
-			let config = error.response.config;
+			let config = error.response.config
 
 			// If retry count is not set, set it to 0
 			if (!config.retryCount) {
-				config.retryCount = 0;
+				config.retryCount = 0
 			}
 			// Increment the retry count
-			config.retryCount += 1;
+			config.retryCount += 1
 
 			// Check if we've retried more than 5 times
 			if (config.retryCount > 5) {
 				// Clear tokens or any other cleanup here
-				await clearTokens();
+				await clearTokens()
 
 				// Redirect to login
-				window.location.href = '/login';
-				return Promise.reject(error);
+				router.push('/login')
+
+				const store = useStore()
+
+				store.setGlobalError(error)
+
+				return Promise.reject(error)
 			}
 
 			// Handle token refresh logic here
 			// After refreshing, you might want to retry the original request:
 
 			// Update the token in the header
-			const newToken = await refreshToken();
-			config.headers['Authorization'] = 'Token ' + newToken;
+			const newToken = await refreshToken()
+			config.headers['Authorization'] = 'Token ' + newToken
 
-			return axios.request(config);
+			return axios.request(config)
 		}
 
-		return Promise.reject(error);
+		return Promise.reject(error)
 	}
-);
+)
 
 export default async function useApi(
 	route_opt,
@@ -52,7 +61,9 @@ export default async function useApi(
 		filters, // Query object
 		urlSearchParams,
 		headers = {},
-		provider = true, // Query object
+		provider = true, // Query object,
+		signal: externalSignal, // NEW: Accepting a signal for aborting the request
+		timeout = 30 * 1000 // NEW: Default timeout of 30 second
 	} = {}
 ) {
 	let loggerName = 'API - ' + Date.now()
@@ -77,7 +88,7 @@ export default async function useApi(
 		return false
 	}
 
-	if  (window.location.href.indexOf('0.0.0.0') !== -1) {
+	if (window.location.href.indexOf('0.0.0.0') !== -1) {
 
 		if (url.indexOf('authorizer') !== -1) {
 			url = url.replace('{host}', 'http://0.0.0.0:8083')
@@ -91,14 +102,20 @@ export default async function useApi(
 		url = url.replace('{host}', region.domain)
 	}
 
+	const controller = new AbortController();
+	const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+
+	const signal = externalSignal || controller.signal;
 
 	let opts = {
 		method: method.toUpperCase() || 'GET',
 		headers: {
 			'Content-Type': 'application/json',
 			Authorization: 'Token ' + token,
-			...headers,
+			...headers
 		},
+		signal: signal
 	}
 
 	if (body) opts.data = JSON.stringify(body)
@@ -122,12 +139,13 @@ export default async function useApi(
 	}
 
 	try {
-		let response = await axios(url, opts);
-		response = await response.data;
+		let response = await axios(url, opts)
+		clearTimeout(timeoutId);
+		response = await response.data
 		log.timeEnd({
 			key: loggerName,
 			text: route_opt,
-			place: 'api',
+			place: 'api'
 		})
 
 		let result =
@@ -136,12 +154,18 @@ export default async function useApi(
 				: response
 		return result
 	} catch (e) {
+		clearTimeout(timeoutId);
+		if (axios.isCancel(e)) {
+			console.log('Request was cancelled due to timeout');
+			return { error: true, code: 'TIMEOUT' }; // Handle timeout specifically
+		}
+
 		console.log('e:', e)
 		let [code, url] = e.message.split('  ')
 
 		let errors = {
 			400: 'Wrong data',
-			401: 'Not authorized',
+			401: 'Not authorized'
 		}
 
 		let error_object = e.data?.error
@@ -151,7 +175,7 @@ export default async function useApi(
 
 		log.timeEnd({
 			key: loggerName,
-			module: 'api',
+			module: 'api'
 		})
 		// useNotify({ group: 'server_error', title, text, duration: 20000 })
 

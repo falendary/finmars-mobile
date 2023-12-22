@@ -156,6 +156,22 @@
 					</ion-item>
 
 					<ion-item>
+						<ion-select
+							v-model="spaceStore.settings.general.accounts"
+							label="Accounts"
+							placeholder="Accounts"
+							:multiple="true"
+						>
+							<ion-select-option
+								v-for="item in spaceStore.accounts"
+								:value="item.user_code"
+							>
+								{{ item.name }}
+							</ion-select-option>
+						</ion-select>
+					</ion-item>
+
+					<ion-item>
 						<ion-checkbox
 							v-model="spaceStore.settings.general.consolidateAccounts"
 							labelPlacement="start"
@@ -170,14 +186,6 @@
 
 				<br />
 
-				<ion-button
-					class="ion-margin-horizontal"
-					fill="outline"
-					expand="block"
-					@click="calculate()"
-				>
-					Calculate
-				</ion-button>
 
 				<ion-button
 					class="ion-margin-horizontal"
@@ -311,35 +319,7 @@
 				this.isOpen = false
 				this.$router.push('/main/more')
 			},
-			async calculate() {
 
-				this.spaceStore.settings.general.portfolios.forEach((portfolio) => {
-
-					useApi('portfolioHistoryCalculate.post', {
-						body: {
-							'portfolio': portfolio,
-							'currency': this.spaceStore.settings.general.currency,
-							'pricing_policy': this.spaceStore.settings.general.pricing_policy,
-							'date': this.spaceStore.settings.general.date_to,
-							'segmentation_type': 'business_days_end_of_months',
-							'period_type': this.spaceStore.settings.general.period_type,
-							'cost_method': 'avco', // avco
-							'performance_method': 'modified_dietz',
-							'benchmark': 'sp_500'
-						}
-					})
-
-				})
-
-				const alert = await alertController.create({
-					header: 'Calculation is in progress',
-					message: 'Please, wait for a few minutes and refresh the page',
-					buttons: ['Ok']
-				})
-
-				await alert.present()
-
-			},
 			adjustDates(date_to, date_from) {
 				// Convert the dates from strings (if they are) to Date objects
 				const toDate = (typeof date_to === 'string') ? new Date(date_to) : date_to

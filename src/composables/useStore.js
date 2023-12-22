@@ -19,7 +19,7 @@ export default defineStore('store', {
 	actions: {
 		setPeriodType(periodType) {
 
-			console.log("store.setPeriodType", periodType);
+			console.log('store.setPeriodType', periodType)
 
 			this.activeSpaceStore.settings.general.periodType = periodType
 		},
@@ -37,6 +37,16 @@ export default defineStore('store', {
 			})
 
 			this.activeSpaceStore.portfolios = res.results
+
+		},
+		async fetchAccounts() {
+			let res = await useApi('accountLight.get', {
+				filters: {
+					page_size: '1000'
+				}
+			})
+
+			this.activeSpaceStore.accounts = res.results
 
 		},
 		async fetchCurrencies() {
@@ -97,85 +107,91 @@ export default defineStore('store', {
 			// 	return
 			// }
 
-			console.log('STORE: Creating new space store', activeSpaceCode)
+			if (activeSpaceCode) {
 
-			let date_from = dayjs().add(-3, 'month').format('YYYY-MM-DD')
-			let date_to = dayjs().add(-1, 'day').format('YYYY-MM-DD')
-			let currency = 'USD' // TODO consider to take default from backend
+				console.log('STORE: Creating new space store', activeSpaceCode)
 
-
-			this.activeSpaceStore = {
-				portfolios: [],
-				currencies: [],
-				pricingPolicies: [],
-				settings: {
-					general: {
-						date_to,
-						date_from,
-						currency,
-						pricing_policy: null, // should be picked first from pricingPolicies list if not selected
-						portfolios: [],
-						consolidateAccounts: false,
-						period_type: 'ytd'
-					},
-					balance: {
-						isChartView: true,
-						groupByKey: 'instrument.instrument_type.name',
-						sumByKey: 'market_value',
-						consolidateAccounts: true
-					},
-					pl: {
-						isChartView: false,
-						groupByKey: 'instrument.instrument_type.name',
-						sumByKey: 'total',
-						consolidateAccounts: true
-					}
-				}
-			}
-
-			await this.fetchCurrencies()
-			await this.fetchPortfolios()
-			await this.fetchPolicies()
-			await this.fetchUser()
+				let date_from = dayjs().add(-3, 'month').format('YYYY-MM-DD')
+				let date_to = dayjs().add(-1, 'day').format('YYYY-MM-DD')
+				let currency = 'USD' // TODO consider to take default from backend
 
 
-			let { value } = await Preferences.get({ key: this.activeSpaceCode + '_settings' })
-
-			if (value) {
-
-				console.log('STORE: found settings in device storage. Applying...')
-
-				let settingsFromDevice = JSON.parse(value)
-
-				for (let prop in settingsFromDevice) {
-					this.activeSpaceStore.settings[prop] = settingsFromDevice[prop]
-				}
-
-			}
-			if (!this.activeSpaceStore.settings.general.period_type) {
-				this.activeSpaceStore.settings.general.period_type = 'ytd';
-			}
-
-			if (!this.activeSpaceStore.settings.general.portfolios.length) {
-				this.activeSpaceStore.portfolios.forEach((item) => {
-
-					if (this.activeSpaceStore.settings.general.portfolios.length < 5) {
-						if (item.first_transaction.date) {
-							this.activeSpaceStore.settings.general.portfolios.push(item.user_code)
+				this.activeSpaceStore = {
+					portfolios: [],
+					currencies: [],
+					pricingPolicies: [],
+					settings: {
+						general: {
+							date_to,
+							date_from,
+							currency,
+							pricing_policy: null, // should be picked first from pricingPolicies list if not selected
+							portfolios: [],
+							accounts: [],
+							consolidateAccounts: false,
+							period_type: 'ytd'
+						},
+						balance: {
+							isChartView: true,
+							groupByKey: 'instrument.instrument_type.name',
+							sumByKey: 'market_value',
+							consolidateAccounts: true
+						},
+						pl: {
+							isChartView: false,
+							groupByKey: 'instrument.instrument_type.name',
+							sumByKey: 'total',
+							consolidateAccounts: true
 						}
 					}
+				}
 
-				})
+				await this.fetchCurrencies()
+				await this.fetchPortfolios()
+				await this.fetchAccounts()
+				await this.fetchPolicies()
+				await this.fetchUser()
+
+
+				let { value } = await Preferences.get({ key: this.activeSpaceCode + '_settings' })
+
+				if (value) {
+
+					console.log('STORE: found settings in device storage. Applying...')
+
+					let settingsFromDevice = JSON.parse(value)
+
+					for (let prop in settingsFromDevice) {
+						this.activeSpaceStore.settings[prop] = settingsFromDevice[prop]
+					}
+
+				}
+				if (!this.activeSpaceStore.settings.general.period_type) {
+					this.activeSpaceStore.settings.general.period_type = 'ytd'
+				}
+
+				if (!this.activeSpaceStore.settings.general.portfolios.length) {
+					this.activeSpaceStore.portfolios.forEach((item) => {
+
+						if (this.activeSpaceStore.settings.general.portfolios.length < 5) {
+							if (item.first_transaction.date) {
+								this.activeSpaceStore.settings.general.portfolios.push(item.user_code)
+							}
+						}
+
+					})
+				}
+
+				watch(this.activeSpaceStore.settings, (newVal) => {
+
+					console.log('STORE: settings changed')
+
+					Preferences.set({ key: this.activeSpaceCode + '_settings', value: JSON.stringify(newVal) })
+				}, { deep: true })
+
+				console.log('STORE: initSpaceStore.done')
+
 			}
-
-			watch(this.activeSpaceStore.settings, (newVal) => {
-
-				console.log('STORE: settings changed')
-
-				Preferences.set({ key: this.activeSpaceCode + '_settings', value: JSON.stringify(newVal) })
-			}, { deep: true })
-
-			console.log('STORE: initSpaceStore.done')
 
 		},
 		async clear() {

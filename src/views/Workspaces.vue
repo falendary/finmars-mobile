@@ -1,129 +1,168 @@
 <template>
 	<ion-page>
-		<ion-content class='ion-padding'>
-			<div class='center aic' style='height: 100%' v-if='!processing'>
-				<div style='width: 90%'>
-					<h1 class='tac'>Choose your space</h1>
+		<ion-content class="ion-padding">
+			<div class="center aic" style="height: 100%" v-if="!processing">
 
-					<ion-select
-						v-model='workspace'
-						label='Select space'
-						placeholder='space'
-					>
-						<ion-select-option v-for='item in workspaces' :value='item.id'>
-							{{ item.name }}
-						</ion-select-option>
-					</ion-select>
+				<div v-if="workspaces.length">
 
-					<div v-if='error' class='text-center text-error text-fs-small'>{{ error }}
-						<ion-button size='small' class='finmars-button-text' @click='init()'>Retry</ion-button>
+
+					<div>
+						<h1 class="tac">Choose your space</h1>
+
+						<ion-select
+							v-model="workspace"
+							label="Select space"
+							placeholder="Space"
+						>
+							<ion-select-option v-for="(item, index) in workspaces" :value="item.id"  :key="index">
+								{{ item.name }}
+							</ion-select-option>
+						</ion-select>
+
+						<div v-if="error" class="text-center text-error text-fs-small">{{ error }}
+							<ion-button size="small" class="finmars-button-text" @click="init()">Retry</ion-button>
+						</div>
+
+						<IonButton expand="full" @click="setWorkspace()">SELECT</IonButton>
 					</div>
 
-					<IonButton expand='full' @click='setWorkspace()'>SELECT</IonButton>
+				</div>
+
+				<div v-if="!workspaces.length">
+					<h1 class="tac">No Spaces Available</h1>
+					<p>Please, accept invite via Desktop app</p>
+					<p>or contact us <a href="mailto:support@finmars.com">support@finmars.com</a></p>
 				</div>
 			</div>
 
-			<div v-if='processing' class='display-flex align-center justify-center height-100'>
-				<progress-circular diameter='90'></progress-circular>
+			<div v-if="processing" class="display-flex align-center justify-center height-100">
+				<progress-circular diameter="90"></progress-circular>
 			</div>
 		</ion-content>
 	</ion-page>
 </template>
 
-<script setup>
-	import { IonButton, IonContent, IonPage, IonSelect, IonSelectOption } from '@ionic/vue'
-	import { ref } from 'vue'
+<script>
+	import { IonButton, IonSelect } from '@ionic/vue'
 	import { Preferences } from '@capacitor/preferences'
-	import useApi from '@/composables/useApi'
-	import { useRouter } from 'vue-router'
-	import ProgressCircular from '@/components/ProgressCircular.vue'
+	import useApi from '@/composables/useApi.js'
 	import useStore from '@/composables/useStore.js'
-	import formbricks from "@/services/formbricks";
-	import initFormbricks from '@/services/formbricks'
+	import initFormbricks from '@/services/formbricks.js'
 
-	const router = useRouter()
-	const workspaces = ref([])
-	const workspace = ref(null)
-	const error = ref(null)
-	const processing = ref(false)
+	export default {
+		components: { IonButton, IonSelect},
 
-	init()
+		data() {
+			return {
+				error: null,
+				processing: false,
+				workspace: null,
+				workspaces: []
 
-	async function fetchUser() {
-		let result = await useApi('user.get')
-		return result
-	}
+			}
+		},
+		methods: {
+			async fetchUser() {
+				let result = await useApi('user.get')
 
 
+				if (window._paq) {
+					// Consider more unique id across spaces
 
-	async function init() {
+					let prefix = 'eu-central'
 
-		error.value = null
+					if (window.location.href.indexOf('0.0.0.0') !== -1) {
+						prefix = 'local'
+					}
 
-		processing.value = true
+					let pieces = window.location.host.split('.')
 
-		let { results } = await useApi('masterUser.get')
+					if (pieces.length === 3) {
+						prefix = pieces[0]
+					}
 
-		processing.value = false
+					window._paq.push(['setUserId', prefix + '_' + result.id])
+				}
 
-		if (!results) {
-			error.value = `Can't get Spaces`
-			return false
-		} else {
-			workspace.value = results[0].id
+				return result
+			},
+			async init() {
+				this.error = null
+
+				this.processing = true
+
+				let data  = await useApi('masterUser.get')
+
+
+				if (!data.results) {
+					this.error = `Can't get Spaces`
+					return false
+				} else {
+					this.workspaces = data.results
+					this.workspace = this.workspaces[0].id
+				}
+
+				console.log('Workspaces init', this.workspace)
+
+				const user = await this.fetchUser()
+
+				await initFormbricks(user)
+
+
+				await Preferences.remove({
+					key: 'activeSpaceCode'
+				})
+
+				await Preferences.remove({
+					key: 'activeSpaceName'
+				})
+
+				let store = useStore()
+				store.activeSpace = null
+				store.activeSpaceName = null
+				store.activeSpaceCode = null
+
+				this.processing = false
+
+
+			},
+			async setWorkspace() {
+				if (!this.workspace) return false
+
+				let workspaceObj = this.workspaces.find((o) => o.id === this.workspace)
+
+				await Preferences.set({
+					key: 'activeSpaceCode',
+					value: workspaceObj.base_api_url
+				})
+
+				await Preferences.set({
+					key: 'activeSpaceName',
+					value: workspaceObj.name
+				})
+
+				let store = useStore()
+				store.activeSpace = workspaceObj
+				store.activeSpaceName = workspaceObj.name
+				store.activeSpaceCode = workspaceObj.base_api_url
+
+				await this.$router.push('/main/dashboard')
+
+				// window.location.href =
+				// 	window.location.origin + router.options.history.base + '/main'
+			}
+		},
+		mounted() {
+
+		},
+		async created() {
+			await this.init()
 		}
 
-		workspaces.value = results
-
-		const user = await fetchUser()
-
-		await initFormbricks(user);
-
-
-		await Preferences.remove({
-			key: 'activeSpaceCode',
-		})
-
-		await Preferences.remove({
-			key: 'activeSpaceName',
-		})
-
-		let store = useStore()
-		store.activeSpace = null
-		store.activeSpaceName = null
-		store.activeSpaceCode = null
-
-
-	}
-
-	async function setWorkspace() {
-		if (!workspace.value) return false
-
-		let workspaceObj = workspaces.value.find((o) => o.id == workspace.value)
-
-		await Preferences.set({
-			key: 'activeSpaceCode',
-			value: workspaceObj.base_api_url
-		})
-
-		await Preferences.set({
-			key: 'activeSpaceName',
-			value: workspaceObj.name
-		})
-
-		let store = useStore()
-		store.activeSpace = workspaceObj
-		store.activeSpaceName = workspaceObj.name
-		store.activeSpaceCode = workspaceObj.base_api_url
-
-		await router.push('/main/dashboard')
-
-		// window.location.href =
-		// 	window.location.origin + router.options.history.base + '/main'
 	}
 </script>
 
-<style lang='scss' scoped>
+<style lang="scss" scoped>
 	ion-button {
 		margin-top: 20px;
 	}

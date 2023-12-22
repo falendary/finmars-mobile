@@ -109,6 +109,8 @@ export async function logoutKeycloak() {
 
 function setTokens() {
 
+	// console.log('initKeycloak.setTokens', window.keycloak.token)
+
 	// alert('setTokens: ' + keycloak.token)
 
 	Preferences.set({

@@ -48,9 +48,19 @@
 				class="ion-margin-horizontal"
 				fill="outline"
 				expand="block"
+				@click="calculate()"
+			>
+				Calculate
+			</ion-button>
+
+
+			<ion-button
+				class="ion-margin-horizontal"
+				fill="outline"
+				expand="block"
 				@click="changeSpace()"
 			>
-				CHANGE SPACE
+				Change Space
 			</ion-button>
 
 			<ion-button
@@ -59,7 +69,7 @@
 				expand="block"
 				@click="clearRegions()"
 			>
-				CLEAR REGIONS
+				Clear Regions
 			</ion-button>
 
 			<ion-button style="margin-top: 8rem; margin-bottom: 4rem;"
@@ -68,7 +78,7 @@
 				expand="block"
 				@click="logout()"
 			>
-				LOGOUT
+				Logout
 			</ion-button>
 
 		</ion-content>
@@ -93,6 +103,7 @@
 	import ComplexTransactionList from '@/components/ComplexTransactionList.vue'
 	import useStore from '@/composables/useStore'
 	import { Preferences } from '@capacitor/preferences'
+	import useApi from '@/composables/useApi.js'
 
 	export default {
 		components: {
@@ -117,7 +128,35 @@
 			}
 		},
 		methods: {
+			async calculate() {
 
+				this.spaceStore.settings.general.portfolios.forEach((portfolio) => {
+
+					useApi('portfolioHistoryCalculate.post', {
+						body: {
+							'portfolio': portfolio,
+							'currency': this.spaceStore.settings.general.currency,
+							'pricing_policy': this.spaceStore.settings.general.pricing_policy,
+							'date': this.spaceStore.settings.general.date_to,
+							'segmentation_type': 'business_days_end_of_months',
+							'period_type': this.spaceStore.settings.general.period_type,
+							'cost_method': 'avco', // avco
+							'performance_method': 'modified_dietz',
+							'benchmark': 'sp_500'
+						}
+					})
+
+				})
+
+				const alert = await alertController.create({
+					header: 'Calculation is in progress',
+					message: 'Please, wait for a few minutes and refresh the page',
+					buttons: ['Ok']
+				})
+
+				await alert.present()
+
+			},
 			toggleDarkTheme(shouldAdd) {
 
 				console.log('shouldAdd', shouldAdd)
@@ -137,14 +176,14 @@
 			},
 
 			async logout() {
-				this.$router.push('/logout')
+				this.$router.replace('/logout')
 			},
 			async setupPasscode() {
 				this.$router.push('/setup-passcode')
 			},
 			async recovery() {
 
-				this.$router.push('/recovery')
+				this.$router.replace('/recovery')
 			},
 
 			async clearRegions() {

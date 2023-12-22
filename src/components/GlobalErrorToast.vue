@@ -75,7 +75,7 @@
 			goToRecovery() {
 				this.closeGlobalError()
 				this.closeDialog()
-				this.$router.push('/recovery');
+				this.$router.replace('/recovery');
 				this.$refs.modal.$el.dismiss();
 			},
 			closeDialog() {
@@ -106,12 +106,16 @@
 		top: 0;
 		width: 100%;
 		display: flex;
-		padding: 1rem;
+		//padding: 1rem;
 		font-size: .8rem;
 		justify-content: space-between;
 		z-index: 100;
 		background: var(--ion-background-color);
 		color: var(--ion-text-color);
+		–padding-top: var(–ion-safe-area-top, 1rem);
+		padding-top: env(safe-area-inset-top);
+		--ion-safe-area-top: 20px;
+		--ion-safe-area-bottom: 20px;
 	}
 
 

@@ -30,7 +30,7 @@
 
 
 
-	router.push('/welcome')
+	window.location.href = '/welcome'
 
 </script>
 

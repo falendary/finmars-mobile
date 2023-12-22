@@ -15,10 +15,10 @@ async function initFormbricks(user) {
 			await formbricks.init({
 				environmentId: 'clnr8525g0009ld01nrnhv5bx',
 				apiHost: 'https://survey.finmars.com',
-				debug: true // remove when in production
+				debug: true, // remove when in production
+				userId: user.id,
 			})
 
-			await formbricks.setUserId(user.id)
 			await formbricks.setEmail(user.email)
 
 		} catch (error) {
