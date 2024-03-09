@@ -65,11 +65,7 @@ export default [
 			{
 				path: 'more',
 				component: () => import('@/views/main/More.vue'),
-			},
-			{
-				path: '/explore',
-				component: () => import('@/views/Explore.vue'),
-			},
+			}
 		],
 	},
 ]

@@ -7,13 +7,13 @@
 			<ion-router-outlet></ion-router-outlet>
 
 			<ion-tab-bar class="tab_bar" color="medium" slot="bottom">
-				<ion-tab-button class="tab" tab="balance" href="/main/balance">
+				<ion-tab-button class="tab" tab="balance" @click="navigate('/main/balance')">
 					<!--					<ion-icon :icon="balanceIcon" />-->
 					<ion-icon :icon="icons.readerOutline" size="8"></ion-icon>
 					<ion-label>Balance</ion-label>
 				</ion-tab-button>
 
-				<ion-tab-button class="tab" tab="pnl" href="/main/pnl">
+				<ion-tab-button class="tab" tab="pnl" @click="navigate('/main/pnl')">
 					<!--					<ion-icon :icon="iconTest" />-->
 					<ion-icon :icon="icons.barChartOutline" size="8"></ion-icon>
 					<ion-label>P&L</ion-label>
@@ -315,6 +315,10 @@
 		},
 		methods: {
 
+			navigate(path) {
+
+				this.$router.push({ path, query: { tab: this.spaceStore.activeTab }});
+			},
 			goToMore() {
 				this.isOpen = false
 				this.$router.push('/main/more')

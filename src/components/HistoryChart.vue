@@ -1,8 +1,9 @@
 <template>
 
-	<div class="history-chart-holder" v-if="activePortfolio">
+	<div class="history-chart-holder" >
 
 		<swiper
+			v-if="showSwiper"
 			:slides-per-view="1.1"
 			v-bind="$attrs"
 			:pagination="true"
@@ -12,14 +13,14 @@
 			@swiper="onSwiper"
 			@slideChange="onSlideChange"
 		>
-			<swiper-slide v-for="(item, k) in spaceStore.settings.general.portfolios" v-bind:key="k">
+			<swiper-slide v-for="(item, k) in portfolios" v-bind:key="k">
 				<div class="main_chart" v-if="!processing">
 					<div class="main_chart_h">
 						<h4 style="margin: 0">{{ item }}</h4>
 						{{ type == 'balance' ? 'Net Asset Value' : 'Profit & Loss' }}
 					</div>
 
-					<div v-if="item === activePortfolio">
+					<div>
 
 						<div class="main_chart_price">
 							{{ $format(targetValue) }}
@@ -28,7 +29,7 @@
 
 						<div
 							style="height: 80px; width: calc(100% + 10px); margin: 0 0 -5px -5px"
-							v-show="!error" v-if="!chartProcessing && item === activePortfolio "
+							v-show="!error" v-if="!chartProcessing && activeTab !== 'All'"
 						>
 
 							<Line v-if="chartData" :data="chartData.data" :options="chartData.options"></Line>
@@ -36,7 +37,7 @@
 						</div>
 						<div
 							style="height: 80px; width: calc(100% + 10px); margin: 0 0 -5px -5px"
-							v-show="!error" v-if="!chartProcessing && item !== activePortfolio"
+							v-show="!error" v-if="!chartProcessing"
 						>
 
 
@@ -54,9 +55,9 @@
 						</div>
 
 					</div>
-					<div v-if="item !== activePortfolio" style="height: 129px; width: 100%;">
+					<!--					<div v-if="item !== activePortfolio" style="height: 129px; width: 100%;">-->
 
-					</div>
+					<!--					</div>-->
 				</div>
 
 
@@ -83,7 +84,7 @@
 </template>
 
 <script>
-	import { computed } from 'vue'
+	import { computed, watch } from 'vue'
 	import { IonSkeletonText } from '@ionic/vue'
 	import { Swiper, SwiperSlide } from 'swiper/vue'
 	import { Pagination } from 'swiper'
@@ -105,12 +106,13 @@
 			date_to: String,
 			date_from: String,
 			currency: String,
+			activeTab: String,
 			type: {
 				type: String,
 				default: 'balance'
 			}
 		},
-		emits: ['portfolioChange', 'refresher'],
+		emits: ['tabChange', 'refresher'],
 		data() {
 			return {
 				error: '',
@@ -126,17 +128,26 @@
 				processing: false,
 				chartProcessing: false,
 				chartData: null,
-				activePortfolio: null,
-				targetValue: '--'
+				targetValue: '--',
+				swiperInstance: null,
+				ignoreSlideChange: false,
+				showSwiper: true
 			}
 		},
 		methods: {
 
 			onSwiper(swiper) {
+				this.swiperInstance = swiper;
 
-				let slideIndex = this.spaceStore.settings.general.portfolios.findIndex(
-					(o) => o == this.activePortfolio
+				this.setActivePortfolios();
+				console.log('HistoryChart.onSwiper.this.portfolios', this.portfolios);
+
+				let slideIndex = this.portfolios.findIndex(
+					(o) => o === this.activeTab
 				)
+
+				console.log("HistoryChart.this.activeTab", this.activeTab);
+				console.log("HistoryChart.onSwiper", slideIndex);
 
 				if (slideIndex != -1) {
 					swiper.slideTo(slideIndex)
@@ -148,7 +159,7 @@
 				try {
 					this.chartProcessing = true
 
-					this.chartData = null;
+					this.chartData = null
 
 					await this.createChart()
 
@@ -166,20 +177,47 @@
 
 				this.processing = true
 
+				if (this.swiperInstance) {
+					this.swiperInstance.destroy(true, true);
+					this.swiperInstance = null;
+					this.showSwiper = false; // Hide the swiper
+					this.$nextTick(() => {
+						this.showSwiper = true; // Re-show the swiper, causing it to reinitialize
+					});
+
+				}
+
+
 				await this.fetchNavOrTotal()
-				await this.reloadChart()
+
+				if (this.activeTab !== 'All') {
+					await this.reloadChart()
+				}
 
 				this.processing = false
+				this.$forceUpdate();
+
+			},
+			getPortfoliosForReportSettings() {
+
+				console.log('HistoryChart.this.activeTab', this.activeTab)
+
+				if (this.activeTab === 'All') {
+					return this.spaceStore.settings.general.portfolios
+				} else {
+					return [this.activeTab]
+				}
 
 			},
 			async init() {
 
-
-
 				this.processing = true
 
 				await this.fetchNavOrTotal()
-				await this.reloadChart()
+
+				if (this.activeTab !== 'All') {
+					await this.reloadChart()
+				}
 
 				this.processing = false
 
@@ -190,7 +228,7 @@
 					filters: {
 						status: 'ok',
 						period_type: this.spaceStore.settings.general.period_type,
-						portfolio__user_code: this.activePortfolio,
+						portfolio__user_code: this.activeTab,
 						pricing_policy__user_code: this.spaceStore.settings.general.pricing_policy,
 						currency__user_code: this.spaceStore.settings.general.currency,
 						date_before: this.spaceStore.settings.general.date_to
@@ -209,7 +247,6 @@
 					let width, height, gradient
 
 					console.log('createChart.type', this.type)
-					console.log('createChart.activePortfolio', this.activePortfolio)
 					console.log('createChart.res.results', res.results)
 
 					let labels = []
@@ -319,6 +356,76 @@
 				}
 
 			},
+			async fetchBalanceReport() {
+				let filters = []
+
+				let res = await useApi('backendBalanceReportGroups.post', {
+					body: {
+						account_mode: this.spaceStore.settings.general.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
+						accounts: [],
+						accounts_cash: [],
+						accounts_position: [],
+						allocation_detailing: true,
+						allocation_mode: 0,
+						approach_multiplier: 0.5,
+						calculate_pl: true,
+						calculationGroup: 'portfolio',
+						cost_method: 1,
+						custom_fields_to_calculate: '',
+						expression_iterations_count: 1,
+						filters,
+						frontend_request_options: {
+							columns: [
+								{
+									'key': 'portfolio.user_code',
+									'value_type': 10
+								},
+								{
+									'key': 'market_value',
+									'report_settings': {
+										'subtotal_formula_id': 1 // sum
+									},
+									'value_type': 20
+								}
+							],
+							groups_types: [
+								{
+									'key': 'portfolio.user_code',
+									'value_type': 10
+								}
+							],
+							page: 1,
+							filter_settings: []
+						},
+						pl_include_zero: false,
+						portfolio_mode: 1,
+						portfolios: this.getPortfoliosForReportSettings(),
+						pricing_policy: this.spaceStore.settings.general.pricing_policy,
+						report_currency: this.spaceStore.settings.general.currency,
+						report_date: this.spaceStore.settings.general.date_to,
+						report_type: 1,
+						show_balance_exposure_details: false,
+						show_transaction_details: true,
+						strategies1: [],
+						strategies2: [],
+						strategies3: [],
+						strategy1_mode: 0,
+						strategy2_mode: 0,
+						strategy3_mode: 0,
+						table_font_size: 'small',
+						task_id: null
+					}
+				})
+
+				this.targetValue = 0
+
+				res.items.forEach((item) => {
+					this.targetValue = this.targetValue + item.subtotal.market_value
+				})
+
+				return res
+			},
+
 			async fetchPLReport() {
 				let filters = []
 
@@ -362,7 +469,7 @@
 						},
 						pl_include_zero: false,
 						portfolio_mode: 1,
-						portfolios: [this.activePortfolio],
+						portfolios: this.getPortfoliosForReportSettings(),
 						pricing_policy: this.spaceStore.settings.general.pricing_policy,
 						report_currency: this.spaceStore.settings.general.currency,
 						report_date: this.spaceStore.settings.general.date_to,
@@ -385,18 +492,18 @@
 				return res
 			},
 
-
 			async fetchNavOrTotal() {
 
 				this.targetValue = '--'
 
-				if (this.type === 'balance') {
+				// Portfolio History is not support multiportfolio calculations
+				if (this.type === 'balance' && this.activeTab !== 'All') {
 
 					const data = await useApi('portfolioHistory.get', {
 						filters: {
 							status: 'ok',
 							period_type: this.spaceStore.settings.general.period_type,
-							portfolio__user_code: this.activePortfolio,
+							portfolio__user_code: this.activeTab,
 							pricing_policy__user_code: this.spaceStore.settings.general.pricing_policy,
 							currency__user_code: this.spaceStore.settings.general.currency,
 							date_before: this.spaceStore.settings.general.date_to,
@@ -414,34 +521,61 @@
 						this.targetValue = '--'
 					}
 
-				} else {
+				} else if (this.type === 'balance' && this.activeTab === 'All') {
 
-					await this.fetchPLReport();
+					await this.fetchBalanceReport()
+
+				} else if (this.type === 'pl') {
+
+					await this.fetchPLReport()
 
 
 				}
 
 			},
+			async setActivePortfolios() {
 
-			async onSlideChange(swiper) {
+				this.portfolios = []
 
-				let userCode = this.spaceStore.settings.general.portfolios[swiper.realIndex]
-
-				console.log('onPortfolioChange.userCode', userCode)
-
-				this.activePortfolio = userCode
-
-				this.$emit('portfolioChange', {
-					activePortfolio: this.activePortfolio
+				this.spaceStore.settings.general.portfolios.forEach((item) => {
+					this.portfolios.push(item)
 				})
 
-				await this.refresh()
+				this.portfolios.unshift('All')
 
+			},
+			async onSlideChange(swiper) {
+
+				if (this.ignoreSlideChange) {
+					return
+				}
+
+				let userCode = this.portfolios[swiper.realIndex]
+
+				if (userCode != this.spaceStore.activeTab) {
+
+					console.log('onTabChange.userCode', userCode)
+
+					this.$emit('tabChange', {
+						activeTab: userCode
+					})
+				}
+
+			}
+		},
+		watch: {
+			// Watch for changes in activeTab prop
+			activeTab(newValue, oldValue) {
+				console.log(`tabWatch.Active tab changed from ${oldValue} to ${newValue}`);
+				// React to the change as needed
+				this.refresh();
 			}
 		},
 		mounted() {
 
-			this.activePortfolio = this.$route.query.tab
+			console.log('HistoryChart.this.spaceStore.settings.general.portfolios', this.spaceStore.settings.general.portfolios)
+
+			this.setActivePortfolios();
 
 			this.init()
 
@@ -452,6 +586,17 @@
 			this.spaceStore = computed(() => this.store.getActiveSpaceStore())
 
 			this.$emit('refresher', this.refresh)
+
+
+		},
+		beforeUnmount() {
+
+			console.log("historychart.beforeUnmount", this.type)
+
+			// https://vuejs.org/guide/essentials/watchers.html#stopping-a-watcher
+			if (this.tabWatch) {
+				this.tabWatch()
+			}
 
 
 		}

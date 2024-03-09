@@ -143,7 +143,8 @@ export default defineStore('store', {
 							sumByKey: 'total',
 							consolidateAccounts: true
 						}
-					}
+					},
+					activeTab: 'All'
 				}
 
 				await this.fetchCurrencies()

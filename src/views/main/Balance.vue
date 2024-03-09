@@ -42,43 +42,38 @@
 
 		</ion-header>
 
-		<ion-content v-if="$route.query.tab">
+		<ion-content v-if="activeTab">
 			<ion-refresher slot="fixed" @ionRefresh="refresh($event)">
 				<ion-refresher-content />
 			</ion-refresher>
 
-			<position-search-bar :portfolios="[activePortfolio]" :report-type="'balance'"
+			<position-search-bar :portfolios="activePortfolios" :report-type="'balance'"
 													 @queryChange="submitSearchResult"></position-search-bar>
 
 			<div class="header flex sb aic">
-				<!--				<div v-if="portfolio">{{ portfolio.name }}</div>-->
 				<div>Portfolios</div>
-				<!--				<IonSkeletonText-->
-				<!--					v-if="!portfolio"-->
-				<!--					:animated="true"-->
-				<!--					style="height: 24px; width: 80px"-->
-				<!--				/>-->
-
 			</div>
 
 			<HistoryChartComp
+				v-if="activeTab"
 				:date_to="spaceStore.settings.general.date_to"
 				:currency="spaceStore.settings.general.currency"
-				@portfolioChange="portfolioChangeHandler"
+				:activeTab="activeTab"
+				@tabChange="tabChangeHandler"
 				@refresher="portfoliosRefresher = $event"
 			/>
 
 
 			<div class="portfolio-content">
 
-				<div v-if="activePortfolio">
+				<div v-if="activeTab !== 'All'">
 
 					<div class="header header-with-period-type-picker" style="margin: 0;">
 						<div>Metrics</div>
 						<period-type-picker></period-type-picker>
 					</div>
 
-					<metrics-block :portfolio="activePortfolio" @refresher="metricsBlockRefresher = $event"></metrics-block>
+					<metrics-block :portfolio="[activeTab]" @refresher="metricsBlockRefresher = $event"></metrics-block>
 
 				</div>
 
@@ -225,7 +220,7 @@
 							v-for="(item, index) in positions"
 							v-bind:key="index"
 						>
-							<position-item :item="item" :item-type="'balance'" :portfolios="[activePortfolio]"></position-item>
+							<position-item :item="item" :item-type="'balance'" :portfolios="activePortfolios"></position-item>
 						</div>
 					</div>
 
@@ -318,6 +313,7 @@
 
 
 		</ion-content>
+
 	</ion-page>
 </template>
 
@@ -406,7 +402,7 @@
 				Pagination: Pagination,
 				store: null,
 				spaceStore: null,
-				activePortfolio: null,
+				activePortfolios: [],
 				categoriesTotalSum: null,
 				portfolioHistory: null,
 				transactionsOpts: null,
@@ -430,7 +426,10 @@
 				isPositionDialogOpen: false,
 
 				activePosition: {},
-				metricsBlockRefresher: null
+				metricsBlockRefresher: null,
+
+				activeTab: null,
+				pageReady: false
 
 			}
 		},
@@ -456,7 +455,7 @@
 			},
 
 			portfolio() {
-				return this.spaceStore.portfolios.find((o) => o.user_code == this.$route.query.tab)
+				return this.spaceStore.portfolios.find((o) => o.user_code == this.activeTab)
 			}
 		},
 		methods: {
@@ -465,7 +464,7 @@
 
 				console.log('Balance.submitSearchResult.item', item)
 
-				this.positions = [];
+				this.positions = []
 
 				if (item) {
 
@@ -518,22 +517,25 @@
 				this.createChart()
 			},
 
-			async portfolioChangeHandler(data) {
+			async tabChangeHandler(data) {
 
-				console.log('Balance.portfolioChangeHandler', data)
+				console.log('Balance.tabChangeHandler', data)
 
 				this.$router.push({
 					query: {
-						tab: data.activePortfolio
+						tab: data.activeTab
 					}
 				})
 
-				// this.init()
+				this.activeTab = data.activeTab
+				this.spaceStore.activeTab = data.activeTab
+
+				this.init()
 
 			},
 			async init() {
 
-				this.activePortfolio = this.$route.query.tab
+				this.activePortfolios = this.getPortfoliosForReportSettings()
 				this.activeCategory = null
 
 				this.positions = []
@@ -643,6 +645,17 @@
 
 				return colors[index]
 			},
+
+			getPortfoliosForReportSettings() {
+
+				if (this.activeTab === 'All') {
+					return this.spaceStore.settings.general.portfolios
+				} else {
+					return [this.activeTab]
+				}
+
+			},
+
 			async createChart() {
 
 				this.chartProcessing = true
@@ -766,7 +779,7 @@
 						},
 						pl_include_zero: false,
 						portfolio_mode: 1,
-						portfolios: [this.$route.query.tab],
+						portfolios: this.getPortfoliosForReportSettings(),
 						pricing_policy: this.spaceStore.settings.general.pricing_policy,
 						report_currency: this.spaceStore.settings.general.currency,
 						report_date: this.spaceStore.settings.general.date_to,
@@ -822,7 +835,7 @@
 						},
 						pl_include_zero: false,
 						portfolio_mode: 1,
-						portfolios: [this.$route.query.tab],
+						portfolios: this.getPortfoliosForReportSettings(),
 						pricing_policy: this.spaceStore.settings.general.pricing_policy,
 						report_currency: this.spaceStore.settings.general.currency,
 						report_date: this.spaceStore.settings.general.date_to,
@@ -871,28 +884,31 @@
 		async mounted() {
 
 			console.log('Balance.mounted')
+			this.pageReady = true
 
 			await this.fetchBalanceReportAttributes()
 
-			console.log('this.$route.query.tab', this.$route.query.tab)
-			if (this.$route.query.tab) {
-				this.init()
-			} else {
-				this.$router.push({ query: { tab: this.spaceStore.settings.general.portfolios[0] } })
+			this.activeTab = this.$route.query.tab || 'All'
+
+			if (this.$router.options.history.state.back.indexOf('?tab=') !== -1) {
+				let activeTabFromHistory = this.$router.options.history.state.back.split('?tab=')[1]
+				activeTabFromHistory = decodeURIComponent(activeTabFromHistory.replace(/\+/g, ' '))
+				this.activeTab = activeTabFromHistory
 			}
 
+			this.spaceStore.activeTab = this.activeTab
+
+			this.init()
+
 			this.tabWatch = watch(
-				() => this.$route.query.tab,
+				() => this.spaceStore.activeTab,
 				async (newVal, oldVal) => {
 
-					if (!this.$route.path.includes('/main/balance') || newVal == oldVal)
-						return false
+					console.log('Balance.tabWatch.this.spaceStore', newVal)
+
+					this.activeTab = newVal
 
 					await this.init()
-
-					if (this.metricsBlockRefresher) {
-						this.metricsBlockRefresher()
-					}
 
 				}
 			)
@@ -907,7 +923,9 @@
 
 			})
 
+
 		},
+
 		beforeUnmount() {
 
 			// https://vuejs.org/guide/essentials/watchers.html#stopping-a-watcher

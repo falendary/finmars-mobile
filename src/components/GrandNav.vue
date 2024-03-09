@@ -4,7 +4,7 @@
 
 		<div v-if="!processing">
 
-			<div v-if="!errorMessage" class="grand-nav-value-holder" @click="goToExplore()">
+			<div v-if="!errorMessage" class="grand-nav-value-holder" @click="goToBalance()">
 				<div class="grand-nav-value">{{ grandTotalVerbose }}</div>
 				<div class="grand-nav-currency">{{ spaceStore.settings.general.currency }}</div>
 
@@ -64,8 +64,8 @@ export default {
 	},
 
 	methods: {
-		goToExplore() {
-			this.$router.push('/explore')
+		goToBalance() {
+			this.$router.push('/main/balance?tab=All')
 		},
 		async refresh() {
 			this.grandTotal = 0
