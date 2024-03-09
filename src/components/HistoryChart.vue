@@ -1,6 +1,6 @@
 <template>
 
-	<div class="history-chart-holder" >
+	<div class="history-chart-holder">
 
 		<swiper
 			v-if="showSwiper"
@@ -84,7 +84,7 @@
 </template>
 
 <script>
-	import { computed, watch } from 'vue'
+	import { computed } from 'vue'
 	import { IonSkeletonText } from '@ionic/vue'
 	import { Swiper, SwiperSlide } from 'swiper/vue'
 	import { Pagination } from 'swiper'
@@ -137,17 +137,17 @@
 		methods: {
 
 			onSwiper(swiper) {
-				this.swiperInstance = swiper;
+				this.swiperInstance = swiper
 
-				this.setActivePortfolios();
-				console.log('HistoryChart.onSwiper.this.portfolios', this.portfolios);
+				this.setActivePortfolios()
+				console.log('HistoryChart.onSwiper.this.portfolios', this.portfolios)
 
 				let slideIndex = this.portfolios.findIndex(
 					(o) => o === this.activeTab
 				)
 
-				console.log("HistoryChart.this.activeTab", this.activeTab);
-				console.log("HistoryChart.onSwiper", slideIndex);
+				console.log('HistoryChart.this.activeTab', this.activeTab)
+				console.log('HistoryChart.onSwiper', slideIndex)
 
 				if (slideIndex != -1) {
 					swiper.slideTo(slideIndex)
@@ -178,12 +178,12 @@
 				this.processing = true
 
 				if (this.swiperInstance) {
-					this.swiperInstance.destroy(true, true);
-					this.swiperInstance = null;
-					this.showSwiper = false; // Hide the swiper
+					this.swiperInstance.destroy(true, true)
+					this.swiperInstance = null
+					this.showSwiper = false // Hide the swiper
 					this.$nextTick(() => {
-						this.showSwiper = true; // Re-show the swiper, causing it to reinitialize
-					});
+						this.showSwiper = true // Re-show the swiper, causing it to reinitialize
+					})
 
 				}
 
@@ -195,7 +195,7 @@
 				}
 
 				this.processing = false
-				this.$forceUpdate();
+				this.$forceUpdate()
 
 			},
 			getPortfoliosForReportSettings() {
@@ -313,7 +313,7 @@
 									borderDash: (ctx) => skipped(ctx, [6, 6]),
 									backgroundColor: (ctx) => skipped(ctx, 'rgb(0,0,0,0.1)')
 								},
-								spanGaps: true
+								spanGaps: false // Set to false to visually break the line at null points
 							}
 							// {
 							// 	label: 'Dataset',
@@ -525,7 +525,7 @@
 
 					await this.fetchBalanceReport()
 
-				} else if (this.type === 'pl') {
+				} else if (this.type === 'pnl') {
 
 					await this.fetchPLReport()
 
@@ -566,16 +566,21 @@
 		watch: {
 			// Watch for changes in activeTab prop
 			activeTab(newValue, oldValue) {
-				console.log(`tabWatch.Active tab changed from ${oldValue} to ${newValue}`);
+				console.log(`tabWatch.Active tab changed from ${oldValue} to ${newValue} ${this.type}`)
+				console.log(`tabWatch.Active this.$route.path ${this.$route.path}`)
 				// React to the change as needed
-				this.refresh();
+				// So, we need to reboot chart if its not current page
+				if (this.$route.path.indexOf(this.type) === -1) {
+					this.refresh()
+				}
+
 			}
 		},
 		mounted() {
 
 			console.log('HistoryChart.this.spaceStore.settings.general.portfolios', this.spaceStore.settings.general.portfolios)
 
-			this.setActivePortfolios();
+			this.setActivePortfolios()
 
 			this.init()
 
@@ -591,7 +596,7 @@
 		},
 		beforeUnmount() {
 
-			console.log("historychart.beforeUnmount", this.type)
+			console.log('historychart.beforeUnmount', this.type)
 
 			// https://vuejs.org/guide/essentials/watchers.html#stopping-a-watcher
 			if (this.tabWatch) {

@@ -77,7 +77,7 @@
 
 			<HistoryChartComp
 				v-if="activeTab"
-				type="pl"
+				type="pnl"
 				:date_from="spaceStore.settings.general.date_from"
 				:date_to="spaceStore.settings.general.date_to"
 				:currency="spaceStore.settings.general.currency"
