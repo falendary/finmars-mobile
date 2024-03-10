@@ -127,9 +127,15 @@
 					})
 
 					this.portfolioHistoryItems.push({
-						'name': 'Cash Flow',
-						'key': 'cash_flow',
-						'value': this.$format(this.portfolioHistory.cash_flow) + ' ' + this.spaceStore.settings.general.currency
+						'name': 'Deposit',
+						'key': 'cash_inflow',
+						'value': this.$format(this.portfolioHistory.cash_inflow) + ' ' + this.spaceStore.settings.general.currency
+					})
+
+					this.portfolioHistoryItems.push({
+						'name': 'Withdraw',
+						'key': 'cash_outflow',
+						'value': this.$format(this.portfolioHistory.cash_outflow) + ' ' + this.spaceStore.settings.general.currency
 					})
 
 					if (this.portfolioHistory.cumulative_return) {
