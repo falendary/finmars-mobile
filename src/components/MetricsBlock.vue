@@ -114,11 +114,18 @@
 				if (data.results.length) {
 					this.portfolioHistory = data.results[0]
 
+					// this.portfolioHistoryItems.push({
+					// 	'name': 'NAV',
+					// 	'key': 'nav',
+					// 	'value': this.$format(this.portfolioHistory.nav) + ' ' + this.spaceStore.settings.general.currency
+					// })
+
 					this.portfolioHistoryItems.push({
-						'name': 'NAV',
-						'key': 'nav',
-						'value': this.$format(this.portfolioHistory.nav) + ' ' + this.spaceStore.settings.general.currency
+						'name': 'GAV',
+						'key': 'gav',
+						'value': this.$format(this.portfolioHistory.gav || 0) + ' ' + this.spaceStore.settings.general.currency
 					})
+
 					this.portfolioHistoryItems.push({
 						'name': 'Total',
 						'key': 'total',
