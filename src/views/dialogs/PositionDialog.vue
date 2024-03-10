@@ -80,40 +80,31 @@
 
 				<ion-item v-if="position.total">
 					<ion-label>
-						P&L
+						P&L Total
 					</ion-label>
 					<ion-badge color="primary" class="selectable">{{ $format(position.total) }}
 					</ion-badge>
 				</ion-item>
 
-				<ion-item v-if="position.ytm">
+				<ion-item v-if="position.principal">
 					<ion-label>
-						YTM
+						Capital Gain
 					</ion-label>
-					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.ytm) }}</ion-badge>
+					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.principal) }}</ion-badge>
 				</ion-item>
 
-				<ion-item v-if="position.modified_duration">
+				<ion-item v-if="position.carry">
 					<ion-label>
-						Modified Duration
+						Carry
 					</ion-label>
-					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.modified_duration) }}
-					</ion-badge>
+					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.carry) }}</ion-badge>
 				</ion-item>
 
-				<ion-item v-if="position.position_return">
+				<ion-item v-if="position.overheads">
 					<ion-label>
-						Return (Inception)
+						Overheads
 					</ion-label>
-					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.position_return) }}</ion-badge>
-				</ion-item>
-
-				<ion-item v-if="position.return_annually">
-					<ion-label>
-						Return (Annually)
-					</ion-label>
-					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.return_annually) }}
-					</ion-badge>
+					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.overheads) }}</ion-badge>
 				</ion-item>
 
 				<ion-item v-if="position.net_cost_price">
@@ -246,26 +237,34 @@
 						<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.exposure) }}</ion-badge>
 					</ion-item>
 
-
-					<ion-item v-if="position.principal">
+					<ion-item v-if="position.ytm">
 						<ion-label>
-							Principal
+							YTM
 						</ion-label>
-						<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.principal) }}</ion-badge>
+						<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.ytm) }}</ion-badge>
 					</ion-item>
 
-					<ion-item v-if="position.carry">
+					<ion-item v-if="position.modified_duration">
 						<ion-label>
-							Carry
+							Modified Duration
 						</ion-label>
-						<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.carry) }}</ion-badge>
+						<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.modified_duration) }}
+						</ion-badge>
 					</ion-item>
 
-					<ion-item v-if="position.overheads">
+					<ion-item v-if="position.position_return">
 						<ion-label>
-							Overheads
+							Return (Inception)
 						</ion-label>
-						<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.overheads) }}</ion-badge>
+						<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.position_return) }}</ion-badge>
+					</ion-item>
+
+					<ion-item v-if="position.return_annually">
+						<ion-label>
+							Return (Annually)
+						</ion-label>
+						<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.return_annually) }}
+						</ion-badge>
 					</ion-item>
 
 
