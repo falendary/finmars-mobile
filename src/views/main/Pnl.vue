@@ -570,33 +570,48 @@
 
 				let res = await useApi('plReportAttributes.get')
 
-				this.numericBalanceReportAttributes = res.results.filter((item) => {
-					return item.value_type == 20
-				})
-
-				this.numericBalanceReportAttributes.push({
-					key: 'total',
-					name: 'Total',
-					value_type: 20
-				})
-
-				this.numericBalanceReportAttributes.push({
-					key: 'principal',
-					name: 'Principal',
-					value_type: 20
-				})
-
-				this.numericBalanceReportAttributes.push({
-					key: 'carry',
-					name: 'Carry',
-					value_type: 20
-				})
-
-				this.numericBalanceReportAttributes.push({
-					key: 'overheads',
-					name: 'Overheads',
-					value_type: 20
-				})
+				this.numericBalanceReportAttributes = [
+					{
+						key: 'total',
+						name: 'Total P&L',
+						value_type: 20
+					},
+					{
+						key: 'principal',
+						name: 'Capital Gain (Principal)',
+						value_type: 20
+					},
+					{
+						key: 'carry',
+						name: 'Carry P&L',
+						value_type: 20
+					},
+					{
+						key: 'overheads',
+						name: 'Overheads',
+						value_type: 20
+					},
+					{
+						key: 'market_value',
+						name: 'Market Value',
+						value_type: 20
+					},
+					{
+						key: 'market_value_percent',
+						name: 'Market Value, %',
+						value_type: 20
+					},
+					{
+						key: 'exposure',
+						name: 'Exposure',
+						value_type: 20
+					},
+					{
+						key: 'exposure_percent',
+						name: 'Exposure, %',
+						value_type: 20
+					},
+				]
 
 				res = await useApi('instrumentAttributes.get')
 
@@ -608,6 +623,12 @@
 				})
 
 				this.groupByAttributes = [...this.groupByAttributes, ...instrumentAttributes]
+
+				this.groupByAttributes.push({
+					key: 'portfolio.name',
+					name: 'Portfolio',
+					value_type: 10
+				})
 
 				this.groupByAttributes.push({
 					key: 'currency.name',

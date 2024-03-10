@@ -35,7 +35,6 @@
 
 <script>
 	import {
-		alertController,
 		IonApp,
 		IonButton,
 		IonButtons,
@@ -47,7 +46,7 @@
 		IonSkeletonText
 	} from '@ionic/vue'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
-	import { computed, Suspense, watch } from 'vue'
+	import { computed, Suspense } from 'vue'
 	import useStore from '@/composables/useStore.js'
 	import Passcode from '@/components/Passcode.vue'
 	import useApi from '@/composables/useApi.js'
@@ -237,26 +236,30 @@
 			this.$emit('refresher', this.refresh)
 
 
+		},
 
+		watch: {
+			// Watch for changes in activeTab prop
+			portfolio(newValue, oldValue) {
+
+				// console.log('metricsBlock.portfolio.newValue', newValue)
+				// console.log('metricsBlock.portfolio.oldValue', oldValue)
+
+				if (Array.isArray(newValue) && newValue.length && Array.isArray(oldValue) && oldValue.length) {
+					if (newValue[0] !== oldValue[0]) {
+						this.getPortfolioHistory()
+					}
+				}
+
+			}
 		},
 		mounted() {
 
 			this.getPortfolioHistory()
 
-			this.settingsWatch = watch(this.spaceStore.settings.general, async () => {
-
-				console.log('MetricsBlock.period_type.change')
-
-				await this.getPortfolioHistory()
-
-			})
-
 		},
 		beforeUnmount() {
 
-			if (this.settingsWatch) {
-				this.settingsWatch()
-			}
 
 		}
 	}

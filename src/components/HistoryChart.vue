@@ -153,6 +153,8 @@
 					swiper.slideTo(slideIndex)
 					this.init()
 				}
+
+
 			},
 			async reloadChart() {
 
@@ -213,7 +215,11 @@
 
 				this.processing = true
 
+				this.targetValue = '--';
+
 				await this.fetchNavOrTotal()
+
+				console.log('HistoryChart.init.activeTab', this.activeTab)
 
 				if (this.activeTab !== 'All') {
 					await this.reloadChart()
@@ -572,6 +578,8 @@
 				// So, we need to reboot chart if its not current page
 				if (this.$route.path.indexOf(this.type) === -1) {
 					this.refresh()
+				} else {
+					this.init();
 				}
 
 			}

@@ -549,9 +549,57 @@
 
 				let res = await useApi('balanceReportAttributes.get')
 
-				this.numericBalanceReportAttributes = res.results.filter((item) => {
-					return item.value_type == 20
-				})
+				// Market value
+				// Market value, %
+				// Exposure
+				// Exposure, %
+				// P&L
+				// Capital Gain (Principal)
+				// Carry P&L
+				// Overheads
+
+				this.numericBalanceReportAttributes = [
+					{
+						key: 'market_value',
+						name: 'Market Value',
+						value_type: 20
+					},
+					{
+						key: 'market_value_percent',
+						name: 'Market Value, %',
+						value_type: 20
+					},
+					{
+						key: 'exposure',
+						name: 'Exposure',
+						value_type: 20
+					},
+					{
+						key: 'exposure_percent',
+						name: 'Exposure, %',
+						value_type: 20
+					},
+					{
+						key: 'total',
+						name: 'P&L',
+						value_type: 20
+					},
+					{
+						key: 'principal',
+						name: 'Capital Gain (Principal)',
+						value_type: 20
+					},
+					{
+						key: 'carry',
+						name: 'Carry P&L',
+						value_type: 20
+					},
+					{
+						key: 'overheads',
+						name: 'Overheads',
+						value_type: 20
+					},
+				]
 
 				res = await useApi('instrumentAttributes.get')
 
@@ -563,6 +611,12 @@
 				})
 
 				this.groupByAttributes = [...this.groupByAttributes, ...instrumentAttributes]
+
+				this.groupByAttributes.push({
+					key: 'portfolio.name',
+					name: 'Portfolio',
+					value_type: 10
+				})
 
 				this.groupByAttributes.push({
 					key: 'pricing_currency.short_name',
