@@ -8,9 +8,9 @@
 
 			<div v-if="spaceStore.settings.general.portfolios.length">
 
-				<div class="welcome-block">
-					Welcome Back, {{ username }}
-				</div>
+<!--				<div class="welcome-block">-->
+<!--					Welcome Back, {{ username }}-->
+<!--				</div>-->
 
 				<div class="dashboard-content">
 

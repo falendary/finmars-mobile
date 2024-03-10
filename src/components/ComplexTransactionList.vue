@@ -95,6 +95,12 @@
 											<ion-icon :icon="icons.calendarOutline" size="8" style="margin-right: 4px"></ion-icon>
 											{{ transaction.accounting_date }}
 										</div>
+
+										<div class="transaction-content-footer-date">
+											<ion-icon :icon="icons.briefcaseOutline" size="8" style="margin-right: 4px"></ion-icon>
+											{{ transaction.portfolio_object.name }}
+										</div>
+
 									</div>
 
 								</div>
@@ -327,7 +333,14 @@ import {
 	IonTitle,
 	IonToolbar
 } from '@ionic/vue'
-import { bagAddOutline, barChartOutline, calendarOutline, cubeOutline, layersOutline } from 'ionicons/icons'
+import {
+	bagAddOutline,
+	barChartOutline,
+	briefcaseOutline,
+	calendarOutline,
+	cubeOutline,
+	layersOutline
+} from 'ionicons/icons'
 import { formatNumber } from 'chart.js/helpers'
 import { computed } from 'vue'
 import useStore from '@/composables/useStore.js'
@@ -365,7 +378,8 @@ export default {
 				cubeOutline,
 				bagAddOutline,
 				barChartOutline,
-				layersOutline
+				layersOutline,
+				briefcaseOutline
 			},
 			detailedTransactions: {},
 			transactions: [],
