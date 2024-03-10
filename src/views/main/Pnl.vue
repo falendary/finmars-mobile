@@ -6,8 +6,7 @@
 				<ion-refresher-content />
 			</ion-refresher>
 
-			<position-search-bar :portfolios="activePortfolios" :report-type="'pl'"
-													 @queryChange="submitSearchResult"></position-search-bar>
+			<position-search-bar></position-search-bar>
 
 			<div class="header flex sb aic">
 				<div>Portfolios</div>
@@ -433,13 +432,25 @@
 			}
 		},
 		methods: {
-			async submitSearchResult(item) {
+			async submitSearchResult() {
 
-				console.log('Balance.submitSearchResult.item', item)
+				if (!this.spaceStore.searchType) {
+					console.log("pnl.submitSearchResult.noType: do_refresh")
+					this.refresh();
+				}
+
+				if (this.spaceStore.searchType && this.spaceStore.searchType !== 'pnl') {
+					console.log("pnl.submitSearchResult.searchResult_exists: wrong_type")
+					return;
+				}
+
+				let item = this.spaceStore.searchResult
 
 				this.positions = []
 
 				if (item) {
+
+					await this.fetchCategories();
 
 					this.categories.forEach((category) => {
 
@@ -465,9 +476,9 @@
 
 					})
 
-					await this.fetchPositions()
+					console.log('pnl.submitSearchResult.activeCategory', this.activeCategory)
 
-					console.log('submitSearchResult.activeCategory', this.activeCategory)
+					await this.fetchPositions()
 
 					this.positions = this.positions.filter((position) => {
 						return position.id === item.id
@@ -659,28 +670,28 @@
 				}
 
 			},
+			async fetchCategories() {
+
+				const res = await this.fetchReport()
+
+				this.categories = res.items.sort((a, b) => b.subtotal[this.spaceStore.settings.pl.sumByKey] - a.subtotal[this.spaceStore.settings.pl.sumByKey])
+
+				this.categoriesTotalSum = 0
+
+				this.categories.forEach((item) => {
+					this.categoriesTotalSum = this.categoriesTotalSum + item.subtotal[this.spaceStore.settings.pl.sumByKey]
+				})
+
+			},
 			async createChart() {
 
 				try {
 
 					this.chartProcessing = true
 
-					const res = await this.fetchReport()
-
-					if (res.items) {
-						this.categories = res.items.sort((a, b) => b.subtotal[this.spaceStore.settings.pl.sumByKey] - a.subtotal[this.spaceStore.settings.pl.sumByKey])
-					}
-
-					this.categoriesTotalSum = 0
-
-					this.categories.forEach((item) => {
-						this.categoriesTotalSum = this.categoriesTotalSum + item.subtotal[this.spaceStore.settings.pl.sumByKey]
-					})
-
-					console.log('res', res)
+					await this.fetchCategories();
 
 					console.log('createChart.categories', this.categories)
-
 
 					this.chartData = {}
 
@@ -1013,7 +1024,11 @@
 
 			console.log('this.activeTab', this.activeTab)
 
-			this.init()
+			await this.init()
+
+			if (this.spaceStore.searchResult) {
+				await this.submitSearchResult();
+			}
 
 			this.tabWatch = watch(
 				() => this.spaceStore.activeTab,
@@ -1039,6 +1054,14 @@
 
 			})
 
+			this.searchWatch = watch(() => this.spaceStore.searchResult, async (newVal, oldVal) => {
+
+				console.log("pnl.watch.spaceStore.searchResult", newVal);
+
+				await this.submitSearchResult();
+
+			},{ deep: true})
+
 
 		},
 		beforeUnmount() {
@@ -1051,6 +1074,10 @@
 
 			if (this.settingsWatch) {
 				this.settingsWatch()
+			}
+
+			if (this.searchWatch) {
+				this.searchWatch();
 			}
 
 		},

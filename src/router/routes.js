@@ -59,7 +59,7 @@ export default [
 				component: () => import('@/views/main/Pnl.vue'),
 			},
 			{
-				path: 'transactions',
+				path: 'transaction',
 				component: () => import('@/views/main/Transactions.vue'),
 			},
 			{

@@ -42,165 +42,19 @@
 
 				<ion-tab-button
 					class="tab"
-					tab="transactions"
-					href="/main/transactions"
+					tab="transaction"
+					href="/main/transaction"
 				>
 					<!--					<ion-icon part="tab" :icon="iconTest" />-->
 					<ion-icon part="tab" :icon="icons.layersOutline" />
 					<ion-label part="tab">Transactions</ion-label>
 				</ion-tab-button>
 
-				<ion-tab-button class="tab" tab="settings" @click="isOpen = true">
-					<!--					<ion-icon :icon="settingsSharp" />-->
-					<ion-icon :icon="icons.settingsOutline" />
-					<ion-label>Settings</ion-label>
+				<ion-tab-button class="tab" tab="settings">
+					<search-button></search-button>
 				</ion-tab-button>
 			</ion-tab-bar>
 		</ion-tabs>
-
-		<ion-modal
-
-			:is-open="isOpen"
-			:initial-breakpoint="0.75"
-			:breakpoints="[0, 0.75, 0.95]"
-			@ionModalDidDismiss="isOpen = false"
-		>
-			<ion-toolbar>
-				<ion-title>Settings</ion-title>
-
-				<ion-buttons slot="end">
-					<ion-button @click="isOpen = false">
-						<ion-icon slot="icon-only" :ios="icons.close" :md="close"></ion-icon>
-					</ion-button>
-				</ion-buttons>
-			</ion-toolbar>
-
-			<ion-content>
-				<ion-list lines="full">
-
-					<ion-item v-if="spaceStore.settings.general.date_to">
-						<ion-label>Date</ion-label>
-
-						<ion-modal
-							:keep-contents-mounted="true"
-
-						>
-							<ion-datetime
-								id="datetime_date_to"
-								v-model="spaceStore.settings.general.date_to"
-								:prefer-wheel="true"
-								presentation="date"
-								show-default-buttons
-							/>
-						</ion-modal>
-						<ion-datetime-button datetime="datetime_date_to" />
-					</ion-item>
-
-					<ion-item>
-						<ion-select
-							v-model="spaceStore.settings.general.period_type"
-							label="Period Type"
-							placeholder="Period Type"
-						>
-							<ion-select-option
-								v-for="item in periodTypes"
-								:value="item.user_code"
-							>
-								{{ item.name }}
-							</ion-select-option>
-						</ion-select>
-					</ion-item>
-
-					<ion-item v-if="spaceStore.pricingPolicies?.length">
-						<ion-select
-							v-model="spaceStore.settings.general.pricing_policy"
-							label="Pricing policy"
-							placeholder="Policy"
-						>
-							<ion-select-option
-								v-for="item in spaceStore.pricingPolicies"
-								:value="item.user_code"
-							>
-								{{ item.short_name }}
-							</ion-select-option>
-						</ion-select>
-					</ion-item>
-
-					<ion-item v-if="spaceStore.currencies?.length">
-						<ion-select
-							v-model="spaceStore.settings.general.currency"
-							label="Reporting currency"
-							placeholder="Currency"
-						>
-							<ion-select-option
-								v-for="item in spaceStore.currencies"
-								:value="item.user_code"
-							>
-								{{ item.short_name }}
-							</ion-select-option>
-						</ion-select>
-					</ion-item>
-
-					<ion-item>
-						<ion-select
-							v-model="spaceStore.settings.general.portfolios"
-							label="Portfolios"
-							placeholder="Portfolios"
-							:multiple="true"
-						>
-							<ion-select-option
-								v-for="item in spaceStore.portfolios"
-								:value="item.user_code"
-							>
-								{{ item.name }}
-							</ion-select-option>
-						</ion-select>
-					</ion-item>
-
-					<ion-item>
-						<ion-select
-							v-model="spaceStore.settings.general.accounts"
-							label="Accounts"
-							placeholder="Accounts"
-							:multiple="true"
-						>
-							<ion-select-option
-								v-for="item in spaceStore.accounts"
-								:value="item.user_code"
-							>
-								{{ item.name }}
-							</ion-select-option>
-						</ion-select>
-					</ion-item>
-
-					<ion-item>
-						<ion-checkbox
-							v-model="spaceStore.settings.general.consolidateAccounts"
-							labelPlacement="start"
-							class="chart_view"
-						>
-							Consolidate Accounts
-						</ion-checkbox>
-					</ion-item>
-
-
-				</ion-list>
-
-				<br />
-
-
-				<ion-button
-					class="ion-margin-horizontal"
-					fill="outline"
-					expand="block"
-					@click="goToMore()"
-				>
-					More
-				</ion-button>
-
-
-			</ion-content>
-		</ion-modal>
 
 
 	</ion-page>
@@ -240,13 +94,13 @@
 	import quarterOfYear from 'dayjs/plugin/quarterOfYear'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
 	import HeaderBar from '@/components/HeaderBar.vue'
+	import SearchButton from '@/components/SearchButton.vue'
 
 	dayjs.extend(quarterOfYear)
 
 	export default {
 		components: {
 			IonCheckbox,
-			ProgressCircular,
 			IonTabs,
 			IonRouterOutlet,
 			IonTabBar,
@@ -264,9 +118,9 @@
 			IonToolbar,
 			IonButtons,
 			IonButton,
-			IonToggle,
 			IonTitle, IonPage,
-			HeaderBar
+			HeaderBar,
+			SearchButton
 
 			// settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline
 		},
@@ -509,7 +363,7 @@
 			ion-datetime-button.header-date-button {
 
 				display: inline-block;
-				font-size: .55rem;
+				font-size: .50rem;
 
 				//padding: 0.2rem;
 				border-bottom: 1px dotted var(--ion-date-button-border-color);

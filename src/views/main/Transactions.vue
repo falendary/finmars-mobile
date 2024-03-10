@@ -7,6 +7,8 @@
 				<ion-refresher-content />
 			</ion-refresher>
 
+			<position-search-bar></position-search-bar>
+
 			<div v-if="!processing">
 
 
@@ -40,9 +42,11 @@
 	import { computed, watch } from 'vue'
 	import ComplexTransactionList from '@/components/ComplexTransactionList.vue'
 	import useStore from '@/composables/useStore'
+	import PositionSearchBar from '@/components/PositionSearchBar.vue'
 
 	export default {
 		components: {
+			PositionSearchBar,
 			IonRefresherContent,
 			IonRefresher,
 			IonHeader,
@@ -67,7 +71,8 @@
 					end_date: this.spaceStore.settings.general.date_to,
 					begin_date: this.spaceStore.settings.general.date_from,
 					portfolios: this.spaceStore.settings.general.portfolios,
-					filter_entry_user_code: null
+					filter_entry_user_code: null,
+					global_table_search: this.spaceStore.searchQuery
 				}
 
 				if (event) event.target.complete()
@@ -76,7 +81,13 @@
 					this.processing = false
 				}, 0) // required to trigger ComplexTransactionList reinit
 
-			}
+			},
+			async submitSearchResult() {
+
+				this.refresh()
+
+			},
+
 		},
 		async created() {
 
@@ -90,7 +101,8 @@
 				end_date: this.spaceStore.settings.general.date_to,
 				begin_date: this.spaceStore.settings.general.date_from,
 				portfolios: this.spaceStore.settings.general.portfolios,
-				filter_entry_user_code: null
+				filter_entry_user_code: null,
+				global_table_search: this.spaceStore.searchQuery
 			}
 
 			watch([this.spaceStore.settings.transactions, this.spaceStore.settings.general], () => {
@@ -101,6 +113,24 @@
 				this.refresh()
 			})
 
+			this.searchWatch = watch(() => this.spaceStore.searchResult, async (newVal, oldVal) => {
+
+				console.log("transaction.watch.spaceStore.searchResult", newVal);
+
+				this.transactionsOpts.global_table_search = this.spaceStore.searchQuery
+
+				await this.submitSearchResult();
+
+			},{ deep: true})
+
+
+		},
+		beforeUnmount() {
+
+			// https://vuejs.org/guide/essentials/watchers.html#stopping-a-watcher
+			if (this.searchWatch) {
+				this.searchWatch();
+			}
 
 		}
 	}

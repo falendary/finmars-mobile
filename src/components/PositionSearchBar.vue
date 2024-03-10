@@ -1,13 +1,13 @@
 <template>
 	<div class="position-search-bar">
 
-		<ion-searchbar :value="query" @ionFocus="openSearchDialog($event)" show-cancel-button="never"
+		<ion-searchbar :value="spaceStore.searchQuery" @ionFocus="openSearchDialog($event)" show-cancel-button="never"
 									 show-clear-button="never"></ion-searchbar>
 
+		<ion-icon class="clear-search-result-icon-button" slot="icon-only" :ios="icons.closeOutline" :md="close"
+							@click="clearSearchResult($event)"></ion-icon>
+
 		<search-dialog
-			:report-type="reportType"
-			:query="query"
-			:portfolios="portfolios"
 			@resultSelectCallback="submitSearchResult"
 			:isOpen="isSearchDialogOpen"
 			@close="closeSearchDialog()"
@@ -24,15 +24,16 @@
 		IonIcon,
 		IonModal,
 		IonRouterOutlet,
+		IonSearchbar,
 		IonSelect,
-		IonSelectOption,
-		IonSearchbar
+		IonSelectOption
 	} from '@ionic/vue'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
 	import { computed, Suspense } from 'vue'
 	import useStore from '@/composables/useStore.js'
 	import Passcode from '@/components/Passcode.vue'
 	import SearchDialog from '@/views/dialogs/SearchDialog.vue'
+	import { closeOutline } from 'ionicons/icons'
 
 	export default {
 		components: {
@@ -51,41 +52,49 @@
 			IonSearchbar
 			// settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline
 		},
-		props: {
-			reportType: {
-				type: String,
-				required: true
-			},
-			portfolios: {
-				type: Array,
-				required: true
-			}
-		},
+		props: {},
 		data() {
 			return {
-				icons: {},
+				icons: {
+					closeOutline
+				},
 				store: null,
 				spaceStore: null,
-				isSearchDialogOpen: false,
-				query: ''
+				isSearchDialogOpen: false
 			}
 		},
 		emits: ['queryChange'],
 		methods: {
 			closeSearchDialog() {
 				this.isSearchDialogOpen = false
-				this.query = ''
 				this.$emit('queryChange', null)
 			},
 			openSearchDialog() {
 				this.isSearchDialogOpen = true
 			},
-			async submitSearchResult(item) {
+			async submitSearchResult(data) {
 
-				this.query = item.name
 				this.isSearchDialogOpen = false
 
-				this.$emit('queryChange', item)
+				this.spaceStore.searchQuery = data.query
+				this.spaceStore.searchType = data.type
+				this.spaceStore.searchResult = data.result
+
+				if (data.type === 'balance' || data.type === 'pnl') {
+					this.$router.push(`/main/${data.type}?tab=${data.result['portfolio.user_code']}`)
+				} else if (data.type === 'transaction') {
+					this.$router.push(`/main/${data.type}`)
+				}
+
+			},
+			async clearSearchResult() {
+
+				this.spaceStore.searchQuery = ''
+				this.spaceStore.searchType = ''
+				this.spaceStore.searchResult = null
+
+				console.log('clearSearchResult.searchResult', this.spaceStore.searchResult)
+
 			}
 
 		},
@@ -110,6 +119,16 @@
 
 	.period-type-picker {
 		font-size: 1rem;
+	}
+
+	.position-search-bar {
+		position: relative;
+
+		.clear-search-result-icon-button {
+			position: absolute;
+			right: 1rem;
+			top: 1rem;
+		}
 	}
 
 </style>

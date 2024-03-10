@@ -6,8 +6,7 @@
 				<ion-refresher-content />
 			</ion-refresher>
 
-			<position-search-bar :portfolios="activePortfolios" :report-type="'balance'"
-													 @queryChange="submitSearchResult"></position-search-bar>
+			<position-search-bar></position-search-bar>
 
 			<div class="header flex sb aic">
 				<div>Portfolios</div>
@@ -156,7 +155,8 @@
 				<!-- Positions below-->
 
 				<div v-if="!positionsProcessing && activeCategory">
-					<div class="header flex aic sb" style="justify-content: space-between"><span>Details</span> <span>{{ spaceStore.settings.general.currency }}</span></div>
+					<div class="header flex aic sb" style="justify-content: space-between"><span>Details</span>
+						<span>{{ spaceStore.settings.general.currency }}</span></div>
 
 					<div class="balance_block instr_block">
 						<div class="bb_header_line instr_block_header flex sb aifs">
@@ -315,7 +315,6 @@
 	import PeriodTypePicker from '@/components/PeriodTypePicker.vue'
 	import PositionItem from '@/components/PositionItem.vue'
 	import PositionSearchBar from '@/components/PositionSearchBar.vue'
-	import HeaderBar from '@/components/HeaderBar.vue'
 
 	export default {
 		components: {
@@ -348,8 +347,7 @@
 
 			MetricsBlock,
 			PositionItem,
-			PositionSearchBar,
-
+			PositionSearchBar
 
 
 		},
@@ -420,13 +418,28 @@
 		},
 		methods: {
 
-			async submitSearchResult(item) {
+			async submitSearchResult() {
+
+				if (!this.spaceStore.searchType) {
+					console.log("balance.submitSearchResult.noType: do_refresh")
+					this.refresh();
+				}
+
+				if (this.spaceStore.searchType && this.spaceStore.searchType !== 'balance') {
+					console.log("balance.submitSearchResult.searchResult_exists: wrong_type")
+					return;
+				}
+
+				let item = this.spaceStore.searchResult
 
 				console.log('Balance.submitSearchResult.item', item)
+				console.log('Balance.submitSearchResult.categories', this.categories)
 
 				this.positions = []
 
 				if (item) {
+
+					await this.fetchCategories();
 
 					this.categories.forEach((category) => {
 
@@ -452,9 +465,9 @@
 
 					})
 
-					await this.fetchPositions()
-
 					console.log('submitSearchResult.activeCategory', this.activeCategory)
+
+					await this.fetchPositions()
 
 					this.positions = this.positions.filter((position) => {
 						return position.id === item.id
@@ -490,7 +503,7 @@
 				this.activeTab = data.activeTab
 				this.spaceStore.activeTab = data.activeTab
 
-				this.init()
+				await this.init()
 
 			},
 			async init() {
@@ -558,7 +571,7 @@
 						key: 'overheads',
 						name: 'Overheads',
 						value_type: 20
-					},
+					}
 				]
 
 				res = await useApi('instrumentAttributes.get')
@@ -670,14 +683,9 @@
 
 			},
 
-			async createChart() {
-
-				this.chartProcessing = true
-
-				this.chartData = null
+			async fetchCategories() {
 
 				const res = await this.fetchReport()
-
 
 				this.categories = res.items.sort((a, b) => b.subtotal[this.spaceStore.settings.balance.sumByKey] - a.subtotal[this.spaceStore.settings.balance.sumByKey])
 
@@ -686,6 +694,16 @@
 				this.categories.forEach((item) => {
 					this.categoriesTotalSum = this.categoriesTotalSum + item.subtotal[this.spaceStore.settings.balance.sumByKey]
 				})
+
+			},
+
+			async createChart() {
+
+				this.chartProcessing = true
+
+				this.chartData = null
+
+				await this.fetchCategories();
 
 				if (this.balanceChartObj) {
 					this.balanceChartObj.destroy()
@@ -912,7 +930,11 @@
 
 			this.spaceStore.activeTab = this.activeTab
 
-			this.init()
+			await this.init()
+
+			if (this.spaceStore.searchResult) {
+				await this.submitSearchResult();
+			}
 
 			this.tabWatch = watch(
 				() => this.spaceStore.activeTab,
@@ -937,6 +959,14 @@
 
 			})
 
+			this.searchWatch = watch(() => this.spaceStore.searchResult, async (newVal, oldVal) => {
+
+				console.log("balance.watch.spaceStore.searchResult", newVal);
+
+				await this.submitSearchResult();
+
+			},{ deep: true})
+
 
 		},
 
@@ -949,6 +979,10 @@
 
 			if (this.settingsWatch) {
 				this.settingsWatch()
+			}
+
+			if (this.searchWatch) {
+				this.searchWatch();
 			}
 
 		}

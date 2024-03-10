@@ -518,7 +518,7 @@ export default {
 		async getTransactions() {
 
 			console.log('this.spaceStore.settings.general.portfolios', this.spaceStore.settings.general.portfolios)
-
+			console.log('this.options',  this.options);
 
 			const params = new URLSearchParams()
 
@@ -531,17 +531,15 @@ export default {
 				params.append('transactions__portfolio__user_code', item)
 			})
 
+			params.append('global_table_search', this.options.global_table_search)
+
 			const res = await useApi('complexTransaction.get', {
 				urlSearchParams: params
 			})
 
 			this.count = res.count
 
-
 			return res
-
-			console.log('ComplexTransactionList.transactions', this.transactions)
-			console.log('ComplexTransactionList.transactions len', this.transactions.length)
 
 		}
 

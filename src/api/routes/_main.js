@@ -16,6 +16,9 @@ export default {
 	reportsSummaryPortfolios: {
 		get: prefix + '/reports/summary/portfolios/?portfolios={id}'
 	},
+	complexTransactionEvItem: {
+		post: prefix + '/transactions/complex-transaction/ev-item/'
+	},
 	complexTransaction: {
 		get: prefix + '/transactions/complex-transaction/light/'
 	},

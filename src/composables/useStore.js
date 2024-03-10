@@ -144,7 +144,12 @@ export default defineStore('store', {
 							consolidateAccounts: true
 						}
 					},
-					activeTab: 'All'
+					activeTab: 'All',
+					searchQuery: '',
+					searchResult: {
+						type: '',
+						item: null
+					}
 				}
 
 				await this.fetchCurrencies()
