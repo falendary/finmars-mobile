@@ -264,7 +264,11 @@
 						labels.push(item.date)
 
 						if (this.type === 'balance') {
-							data.push(item.nav)
+							if (item.nav) {
+								data.push(item.nav)
+							} else {
+								data.push(null)
+							}
 						} else {
 							data.push(item.cumulative_return)
 						}
@@ -314,12 +318,11 @@
 								},
 								fill: true,
 								segment: {
-									borderColor: (ctx) =>
-										skipped(ctx, 'rgb(0,0,0,0.2)') || down(ctx, 'rgb(192,75,75)'),
-									borderDash: (ctx) => skipped(ctx, [6, 6]),
+									borderColor: ctx => ctx.p0.skip || ctx.p1.skip ? 'rgba(128, 128, 128, 0.5)' : '#F05A22',
+									borderDash: ctx => ctx.p0.skip || ctx.p1.skip ? [6, 6] : [],
 									backgroundColor: (ctx) => skipped(ctx, 'rgb(0,0,0,0.1)')
 								},
-								spanGaps: false // Set to false to visually break the line at null points
+								spanGaps: true // Set to false to visually break the line at null points
 							}
 							// {
 							// 	label: 'Dataset',
