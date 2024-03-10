@@ -24,7 +24,8 @@
 			</ion-button>
 
 			<h3 style="padding-left: 1rem">Recovery</h3>
-			<p style="padding: 0 1rem; font-size: .7rem">If something went wrong you can proceed to Recovery Page. It will reset app</p>
+			<p style="padding: 0 1rem; font-size: .7rem">If something went wrong you can proceed to Recovery Page. It will
+				reset app</p>
 			<ion-button
 				class="ion-margin-horizontal logout"
 				fill="outline"
@@ -48,6 +49,7 @@
 				class="ion-margin-horizontal"
 				fill="outline"
 				expand="block"
+				:disabled="isCalculateButtonDisabled"
 				@click="calculate()"
 			>
 				Calculate
@@ -73,10 +75,10 @@
 			</ion-button>
 
 			<ion-button style="margin-top: 8rem; margin-bottom: 4rem;"
-				class="ion-margin-horizontal logout"
-				fill="outline"
-				expand="block"
-				@click="logout()"
+									class="ion-margin-horizontal logout"
+									fill="outline"
+									expand="block"
+									@click="logout()"
 			>
 				Logout
 			</ion-button>
@@ -95,11 +97,12 @@
 		IonModal,
 		IonPage,
 		IonRefresher,
-		IonRefresherContent, IonToggle,
+		IonRefresherContent,
+		IonToggle,
 		IonToolbar
 	} from '@ionic/vue'
 
-	import { computed, watch } from 'vue'
+	import { computed } from 'vue'
 	import ComplexTransactionList from '@/components/ComplexTransactionList.vue'
 	import useStore from '@/composables/useStore'
 	import { Preferences } from '@capacitor/preferences'
@@ -115,7 +118,7 @@
 			IonPage,
 			IonToolbar,
 			IonModal, IonDatetimeButton, IonDatetime,
-			ComplexTransactionList,
+			ComplexTransactionList
 		},
 		data() {
 			return {
@@ -124,11 +127,14 @@
 				processing: false,
 				workspace: null,
 				username: null,
-				isDarkTheme: false
+				isDarkTheme: false,
+				isCalculateButtonDisabled: false
 			}
 		},
 		methods: {
 			async calculate() {
+
+				this.isCalculateButtonDisabled = true
 
 				this.spaceStore.settings.general.portfolios.forEach((portfolio) => {
 
@@ -148,6 +154,10 @@
 
 				})
 
+				setTimeout(() => {
+					this.isCalculateButtonDisabled = false
+				}, 20000)
+
 				const alert = await alertController.create({
 					header: 'Calculation is in progress',
 					message: 'Please, wait for a few minutes and refresh the page',
@@ -165,7 +175,7 @@
 
 				Preferences.set({ key: 'darkTheme', value: shouldAdd.toString() })
 
-				this.isDarkTheme = shouldAdd;
+				this.isDarkTheme = shouldAdd
 
 			},
 			themeToggleChange(ev) {
@@ -188,15 +198,15 @@
 
 			async clearRegions() {
 
-				console.log("clearRegions?", alertController)
+				console.log('clearRegions?', alertController)
 
-				await Preferences.remove({ key: 'custom_regions'})
+				await Preferences.remove({ key: 'custom_regions' })
 
 				const alert = await alertController.create({
 					header: 'Custom Regions are cleared',
 					message: 'On next login you will see only default regions',
-					buttons: ['Ok'],
-				});
+					buttons: ['Ok']
+				})
 
 				await alert.present()
 
@@ -204,13 +214,13 @@
 			changeSpace() {
 				this.$router.replace('/workspaces')
 
-			},
+			}
 
 		},
 		async created() {
 
 			this.store = useStore()
-			this.spaceStore = computed(() => this.store.getActiveSpaceStore());
+			this.spaceStore = computed(() => this.store.getActiveSpaceStore())
 
 			let { value } = await Preferences.get({ key: 'activeSpaceCode' })
 			this.workspace = value
@@ -237,8 +247,6 @@
 
 		},
 		mounted() {
-
-
 
 
 		}
