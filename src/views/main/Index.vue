@@ -4,6 +4,8 @@
 		<!-- show globalProcessing here in App.vue		-->
 		<ion-tabs v-if="!processing">
 
+			<header-bar></header-bar>
+
 			<ion-router-outlet></ion-router-outlet>
 
 			<ion-tab-bar class="tab_bar" color="medium" slot="bottom">
@@ -237,6 +239,7 @@
 	import dayjs from 'dayjs'
 	import quarterOfYear from 'dayjs/plugin/quarterOfYear'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
+	import HeaderBar from '@/components/HeaderBar.vue'
 
 	dayjs.extend(quarterOfYear)
 
@@ -262,7 +265,8 @@
 			IonButtons,
 			IonButton,
 			IonToggle,
-			IonTitle, IonPage
+			IonTitle, IonPage,
+			HeaderBar
 
 			// settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline
 		},

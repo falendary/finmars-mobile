@@ -1,50 +1,6 @@
 <template>
 	<ion-page>
 
-		<ion-header>
-			<ion-toolbar class="app-header">
-
-				<div class="app-header-inner">
-
-					<div class="app-header-inner-space-name">{{ store.activeSpaceName || 'Finmars' }}</div>
-
-					<div class="display-flex flex-end flex-align-center">
-
-						<ion-modal :keep-contents-mounted="true">
-							<ion-datetime id="datetime_date_from" displayFormat="YYYY-MM-DD"
-														v-model="spaceStore.settings.general.date_from"
-														:prefer-wheel="true"
-														presentation="date"
-														show-default-buttons
-							></ion-datetime>
-						</ion-modal>
-
-
-						<ion-modal :keep-contents-mounted="true">
-							<ion-datetime id="datetime_date_to" displayFormat="YYYY-MM-DD"
-														v-model="spaceStore.settings.general.date_to"
-														:prefer-wheel="true"
-														presentation="date"
-														show-default-buttons
-							></ion-datetime>
-						</ion-modal>
-
-						<ion-datetime-button class="header-date-button" datetime="datetime_date_from" />
-
-						<span style="margin: 0 4px;">-</span>
-
-						<ion-datetime-button class="header-date-button" datetime="datetime_date_to" />
-
-					</div>
-
-				</div>
-
-
-			</ion-toolbar>
-
-		</ion-header>
-
-
 		<ion-content>
 
 			<ion-refresher slot="fixed" @ionRefresh="refresh($event)">
