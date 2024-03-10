@@ -197,7 +197,7 @@
 				<!-- Positions below-->
 
 				<div v-if="!positionsProcessing && activeCategory">
-					<div class="header flex aic sb">Details</div>
+					<div class="header flex aic sb" style="justify-content: space-between"><span>Details</span> <span>{{ spaceStore.settings.general.currency }}</span></div>
 
 					<div class="balance_block instr_block">
 						<div class="bb_header_line instr_block_header flex sb aifs">
@@ -205,7 +205,6 @@
 							<div>
 								<div class="bb_price">
 									{{ $format(activeCategory.subtotal[spaceStore.settings.balance.sumByKey]) }}
-									{{ spaceStore.settings.general.currency }}
 								</div>
 								<!-- <div class="instr_block_change flex jcfe">
 									<div class="instr_change_percent instr_first minus">
