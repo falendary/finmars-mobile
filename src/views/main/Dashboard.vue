@@ -8,10 +8,6 @@
 
 			<div v-if="spaceStore.settings.general.portfolios.length">
 
-<!--				<div class="welcome-block">-->
-<!--					Welcome Back, {{ username }}-->
-<!--				</div>-->
-
 				<div class="dashboard-content">
 
 					<div class="header">Total</div>
@@ -45,7 +41,6 @@
 
 					<div class="header header-with-period-type-picker">
 						<div>Portfolios</div>
-						<period-type-picker></period-type-picker>
 					</div>
 
 					<div v-if="!portfolioHistoryExists">
@@ -321,10 +316,6 @@
 
 			},
 
-			async fetchUser() {
-				let result = await useApi('user.get')
-				this.username = result.first_name || result.username
-			}
 
 		},
 		async created() {
@@ -335,9 +326,6 @@
 			this.spaceStore = computed(() => this.store.getActiveSpaceStore())
 
 			console.log('DASHBOARD_CONTROLLER: this.spaceStore', this.spaceStore)
-
-			this.fetchUser()
-
 
 			watch(this.spaceStore.settings.general, () => {
 

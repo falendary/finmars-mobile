@@ -114,7 +114,7 @@
 <style lang="scss" scoped>
 
 	.period-type-picker {
-		font-size: 1rem;
+		font-size: .7rem;
 	}
 
 </style>

@@ -28,7 +28,6 @@
 
 					<div class="header header-with-period-type-picker" style="margin: 0;">
 						<div>Metrics</div>
-						<period-type-picker></period-type-picker>
 					</div>
 
 					<metrics-block :portfolio="[activeTab]" @refresher="metricsBlockRefresher = $event"></metrics-block>
@@ -938,7 +937,7 @@
 
 			this.tabWatch = watch(
 				() => this.spaceStore.activeTab,
-				async (newVal, oldVal) => {
+				async (newVal) => {
 
 					console.log('Balance.tabWatch.this.spaceStore', newVal)
 
@@ -949,7 +948,7 @@
 				}
 			)
 
-			this.settingsWatch = watch(this.spaceStore.settings.general, async () => {
+			this.settingsWatch = watch(() => this.spaceStore.settings.general, async () => {
 
 				await this.init()
 
@@ -957,7 +956,11 @@
 					await this.portfoliosRefresher()
 				}
 
-			})
+				if (this.metricsBlockRefresher) {
+					await this.metricsBlockRefresher();
+				}
+
+			}, { deep: true})
 
 			this.searchWatch = watch(() => this.spaceStore.searchResult, async (newVal, oldVal) => {
 

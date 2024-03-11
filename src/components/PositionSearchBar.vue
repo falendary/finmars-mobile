@@ -117,10 +117,6 @@
 
 <style lang="scss" scoped>
 
-	.period-type-picker {
-		font-size: 1rem;
-	}
-
 	.position-search-bar {
 		position: relative;
 
