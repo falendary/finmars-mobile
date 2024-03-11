@@ -9,8 +9,8 @@
 					<div class="display-flex flex-align-center">
 						<settings-button></settings-button>
 
-						<div style="margin-left: 0.3rem" class="app-header-inner-space-name">{{ store.activeSpaceName || 'Finmars'
-							}}
+						<div style="margin-left: 0.3rem" >
+							{{ username }}
 						</div>
 					</div>
 
@@ -78,8 +78,8 @@
 
 				<div class="app-header-footer">
 
-					<div>
-						{{ username }}
+					<div class="app-header-inner-space-name">{{ store.activeSpaceName || 'Finmars'
+						}}
 					</div>
 
 					<div class="flex">
