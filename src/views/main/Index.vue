@@ -9,13 +9,13 @@
 			<ion-router-outlet></ion-router-outlet>
 
 			<ion-tab-bar class="tab_bar" color="medium" slot="bottom">
-				<ion-tab-button class="tab" tab="balance" @click="navigate('/main/balance')">
+				<ion-tab-button class="tab" tab="balance" :class="{'tab-selected': activeTab == '/main/balance'}" @click="navigate('/main/balance')">
 					<!--					<ion-icon :icon="balanceIcon" />-->
 					<ion-icon :icon="icons.readerOutline" size="8"></ion-icon>
 					<ion-label>Balance</ion-label>
 				</ion-tab-button>
 
-				<ion-tab-button class="tab" tab="pnl" @click="navigate('/main/pnl')">
+				<ion-tab-button class="tab" :class="{'tab-selected': activeTab == '/main/pnl'}" tab="pnl" @click="navigate('/main/pnl')">
 					<!--					<ion-icon :icon="iconTest" />-->
 					<ion-icon :icon="icons.barChartOutline" size="8"></ion-icon>
 					<ion-label>P&L</ion-label>
@@ -24,7 +24,8 @@
 				<ion-tab-button
 					class="tab tab_logo"
 					tab="dashboard"
-					href="/main/dashboard"
+					:class="{'tab-selected': activeTab == '/main/dashboard'}"
+					@click="navigate('/main/dashboard')"
 				>
 					<svg
 						class="logo_btn"
@@ -41,9 +42,10 @@
 				</ion-tab-button>
 
 				<ion-tab-button
-					class="tab"
+					class="tab selected"
 					tab="transaction"
-					href="/main/transaction"
+					:class="{'tab-selected': activeTab == '/main/transaction'}"
+					@click="navigate('/main/transaction')"
 				>
 					<!--					<ion-icon part="tab" :icon="iconTest" />-->
 					<ion-icon part="tab" :icon="icons.layersOutline" />
@@ -87,7 +89,7 @@
 	} from '@ionic/vue'
 
 	import { barChartOutline, close, layersOutline, readerOutline, settingsOutline, settingsSharp } from 'ionicons/icons'
-	import { computed } from 'vue'
+	import { computed, watch } from 'vue'
 	import useStore from '@/composables/useStore'
 	import useApi from '@/composables/useApi'
 	import dayjs from 'dayjs'
@@ -168,13 +170,16 @@
 						user_code: 'inception',
 						name: 'All Time'
 					}
-				]
+				],
+				activeTab: '/main/dashboard'
 			}
 		},
 		methods: {
 
 			navigate(path) {
 
+				this.activeTab = path;
+				console.log('index.activeTab ', this.activeTab );
 				this.$router.push({ path, query: { tab: this.spaceStore.activeTab }});
 			},
 			goToMore() {
@@ -237,6 +242,19 @@
 					let result = this.adjustDates(this.spaceStore.settings.general.date_to, this.spaceStore.settings.general.date_from)
 
 					this.spaceStore.settings.general.date_from = result.date_from
+
+				}
+			)
+
+			this.queryWatch = watch(
+				() => this.$route,
+				async (newVal) => {
+
+					console.log('index.route.newVal', newVal)
+
+					this.activeTab = newVal.path.split("?")[0]
+
+					console.log('index.activeTab', this.activeTab)
 
 				}
 			)

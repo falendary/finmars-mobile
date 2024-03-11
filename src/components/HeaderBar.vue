@@ -200,9 +200,13 @@
 <style lang="scss" scoped>
 
 	.app-header {
-		height: 3.3rem;
+
 		background: var(--ion-tab-bar-background);
-		padding-top: 0 !important;
+
+		–padding-top: var(–ion-safe-area-top, 0);
+		padding-top: env(safe-area-inset-top);
+		--ion-safe-area-top: 20px;
+		--ion-safe-area-bottom: 20px;
 
 		position: relative;
 
@@ -220,7 +224,7 @@
 			height: 1.6rem;
 			width: 100%;
 			padding: 0 0.5rem;
-			border-bottom: 1px solid var(--ion-card-border-color);
+			//border-bottom: 1px solid var(--ion-date-button-border-color);
 
 
 			.app-header-inner-space-name {
@@ -257,7 +261,7 @@
 			justify-content: space-between;
 			font-size: .6rem;
 			align-items: center;
-			height: 1.5rem;
+			height: 1.8rem;
 			width: 100%;
 			padding: 0 0.5rem;
 
