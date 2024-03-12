@@ -16,6 +16,9 @@ export default {
 	reportsSummaryPortfolios: {
 		get: prefix + '/reports/summary/portfolios/?portfolios={id}'
 	},
+	sendEmail: {
+		post: prefix + '/utils/send-email/'
+	},
 	complexTransactionEvItem: {
 		post: prefix + '/transactions/complex-transaction/ev-item/'
 	},

@@ -2,6 +2,9 @@
 	<ion-modal ref="modal" :is-open="isOpen">
 		<ion-header>
 			<ion-toolbar>
+				<ion-buttons slot="start">
+					<ion-button @click="createOrder()">Send By Email</ion-button>
+				</ion-buttons>
 				<ion-title>Position</ion-title>
 				<ion-buttons slot="end">
 					<ion-button @click="closePositionDialog()">Close</ion-button>
@@ -273,6 +276,12 @@
 
 			</div>
 
+			<order-dialog
+				:position="position"
+				:isOpen="isOrderDialogOpen"
+				@close="isOrderDialogOpen = false"
+			></order-dialog>
+
 		</ion-content>
 	</ion-modal>
 </template>
@@ -284,9 +293,11 @@
 	import useApi from '@/composables/useApi'
 	import useStore from '@/composables/useStore'
 	import CopyButton from '@/components/CopyButton.vue'
+	import OrderDialog from '@/views/dialogs/OrderDialog.vue'
 
 	export default {
 		components: {
+			OrderDialog,
 			IonItem,
 			IonContent,
 			IonTitle,
@@ -295,7 +306,7 @@
 			IonHeader,
 			IonToolbar,
 			IonModal,
-			CopyButton
+			CopyButton,
 
 
 		},
@@ -309,7 +320,8 @@
 				showMoreInstrumentData: false,
 				fullInstrument: null,
 				fullInstrumentAttributes: [],
-				spaceStore: null
+				spaceStore: null,
+				isOrderDialogOpen: false
 			}
 		},
 		watch: {
@@ -321,6 +333,12 @@
 		},
 		emits: ['close'],
 		methods: {
+			createOrder() {
+
+				this.isOrderDialogOpen = true;
+				console.log('create order');
+
+			},
 			closePositionDialog() {
 				this.$emit('close')
 			},

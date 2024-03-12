@@ -891,9 +891,9 @@
 				this.positionsProcessing = false
 
 			},
-			refresh(event) {
+			async refresh(event) {
 
-				this.init()
+				await this.init()
 
 				if (this.portfoliosRefresher) {
 					this.portfoliosRefresher(true)

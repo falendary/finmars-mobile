@@ -142,14 +142,16 @@ export default defineStore('store', {
 							groupByKey: 'instrument.instrument_type.name',
 							sumByKey: 'total',
 							consolidateAccounts: true
-						}
+						},
+						recipients: []
 					},
 					activeTab: 'All',
 					searchQuery: '',
 					searchResult: {
 						type: '',
 						item: null
-					}
+					},
+
 				}
 
 				await this.fetchCurrencies()

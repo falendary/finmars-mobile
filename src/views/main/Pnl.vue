@@ -513,6 +513,7 @@
 			async init() {
 
 				this.activePortfolios = this.getPortfoliosForReportSettings()
+				this.activeCategory = null
 
 				this.positions = []
 				await this.createChart()
@@ -985,8 +986,12 @@
 			},
 			async refresh(event) {
 
-				this.init()
-				this.portfoliosRefresher(true)
+				await this.init()
+
+				if (this.portfoliosRefresher) {
+					this.portfoliosRefresher(true)
+				}
+
 				if (this.metricsBlockRefresher) {
 					this.metricsBlockRefresher()
 				}
