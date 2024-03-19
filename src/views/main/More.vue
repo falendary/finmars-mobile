@@ -49,11 +49,16 @@
 				class="ion-margin-horizontal"
 				fill="outline"
 				expand="block"
+				v-if="spaceStore.settings.general.period_type !== 'custom'"
 				:disabled="isCalculateButtonDisabled"
 				@click="calculate()"
 			>
 				Calculate
 			</ion-button>
+
+			<div v-if="spaceStore.settings.general.period_type === 'custom'">
+				Can not request calculation for <b>Custom</b> period.
+			</div>
 
 
 			<ion-button

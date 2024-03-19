@@ -3,7 +3,7 @@
 		<ion-header>
 			<ion-toolbar>
 				<ion-buttons slot="start">
-					<ion-button @click="createOrder()">Send By Email</ion-button>
+					<ion-button @click="createOrder()">Send Order</ion-button>
 				</ion-buttons>
 				<ion-title>Position</ion-title>
 				<ion-buttons slot="end">

@@ -24,7 +24,7 @@
 
 			<div class="portfolio-content">
 
-				<div v-if="activeTab !== 'All'">
+				<div v-if="activeTab !== 'All' && spaceStore.settings.general.period_type !== 'custom'">
 
 					<div class="header header-with-period-type-picker" style="margin: 0;">
 						<div>Metrics</div>
@@ -950,15 +950,9 @@
 
 			this.settingsWatch = watch(() => this.spaceStore.settings.general, async () => {
 
-				await this.init()
+				console.log("Balance.watch.settings.general")
 
-				if (this.portfoliosRefresher) {
-					await this.portfoliosRefresher()
-				}
-
-				if (this.metricsBlockRefresher) {
-					await this.metricsBlockRefresher();
-				}
+				await this.refresh()
 
 			}, { deep: true})
 

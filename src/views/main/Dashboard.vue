@@ -57,30 +57,32 @@
 							<div class="portfolios-item-line">
 								<div class="pi_header">{{ item.name }}</div>
 							</div>
-							<div class="portfolios-item-line">
-								<div class="pi_price">
-									<IonSkeletonText
-										v-if="item.nav == '-'"
-										:animated="true"
-										style="width: 100px; height: 24px"
-									/>
-									<template v-else
-									>{{ $format(item.nav) }}
-										{{ spaceStore.settings.general.currency }}
-									</template
-									>
+							<div>
+								<div class="portfolios-item-line text-right">
+									<div class="pi_price">
+										<IonSkeletonText
+											v-if="item.nav == '-'"
+											:animated="true"
+											style="width: 100px; height: 24px"
+										/>
+										<template v-else
+										>{{ $format(item.nav) }}
+											{{ spaceStore.settings.general.currency }}
+										</template
+										>
+									</div>
+
 								</div>
-
-							</div>
-							<div class="portfolios-item-line">
+								<div class="portfolios-item-line text-right">
 
 
-								<IonSkeletonText
-									v-if="item.cumulative_return == '-'"
-									:animated="true"
-									style="width: 80px; height: 25px"
-								/>
-								<ChangePrice v-else :total="item.total" :percent="item.cumulative_return" />
+									<IonSkeletonText
+										v-if="item.cumulative_return == '-'"
+										:animated="true"
+										style="width: 80px; height: 25px"
+									/>
+									<ChangePrice v-else :total="item.total" :percent="item.cumulative_return" />
+								</div>
 							</div>
 						</div>
 					</div>
@@ -246,7 +248,7 @@
 					this.grandNavRefresher()
 				}
 				if (this.topPerformersRefresher) {
-					this.topPerformersRefresher();
+					this.topPerformersRefresher()
 				}
 
 
@@ -262,7 +264,7 @@
 			async fetchPortfolios() {
 
 				this.portfolios = []
-				this.portfolioHistoryExists = true;
+				this.portfolioHistoryExists = true
 
 				// TODO Consider refactor here
 				// Some weird logic that I do not like
@@ -289,7 +291,7 @@
 							this.portfolios[k].total = '--'
 							this.portfolios[k].cumulative_return = '--'
 
-							this.portfolioHistoryExists = false;
+							this.portfolioHistoryExists = false
 
 						} else {
 
@@ -314,7 +316,7 @@
 
 				console.log('this.portfolios', this.portfolios)
 
-			},
+			}
 
 
 		},
@@ -448,6 +450,7 @@
 		line-height: 24px;
 		color: var(--ion-text-color);
 		opacity: .7;
+		margin-right: .5rem;
 	}
 
 	.pi_price {
@@ -461,5 +464,9 @@
 		font-weight: 500;
 		font-size: 16px;
 		line-height: 24px;
+	}
+	.portfolios-item {
+		display: flex;
+		justify-content: space-between;
 	}
 </style>

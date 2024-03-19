@@ -103,6 +103,14 @@
 
 										</ion-item>
 
+										<ion-item v-if="item['item_group_name']">
+											<ion-label>
+												Type
+											</ion-label>
+											{{ item['item_group_name'] }}
+
+										</ion-item>
+
 									</div>
 								</div>
 
@@ -145,6 +153,22 @@
 												Account
 											</ion-label>
 											{{ item['account.user_code'] }}
+
+										</ion-item>
+
+										<ion-item v-if="item['complex_transaction.transaction_type.name'] && item['complex_transaction.transaction_type.name'] != '-'">
+											<ion-label>
+												Transaction Type
+											</ion-label>
+											{{ item['complex_transaction.transaction_type.name'] }}
+
+										</ion-item>
+
+										<ion-item v-if="item['complex_transaction.code']">
+											<ion-label>
+												Transaction Code
+											</ion-label>
+											{{ item['complex_transaction.code'] }}
 
 										</ion-item>
 
@@ -271,6 +295,7 @@
 
 			},
 
+			// Probably do not needed
 			async doBalanceSearch(query){
 				try {
 					console.log('handleSearch', event)
@@ -392,6 +417,10 @@
 
 					this.plSearchResults = res.items
 
+					this.balanceSearchResults = res.items.filter((item) =>{
+						return item.item_group === 10; // only opened positions
+					})
+
 				} catch (error) {
 
 					console.error('error', error)
@@ -475,7 +504,7 @@
 
 				this.searchProcessing = true
 
-				await this.doBalanceSearch(query);
+				// await this.doBalanceSearch(query);
 				await this.doPLSearch(query);
 				await this.doTransactionsSearch(query);
 
@@ -578,6 +607,8 @@
 			right: 1.5rem;
 			top: 1.5rem;
 		}
+
+		padding-bottom: 5rem;
 	}
 
 

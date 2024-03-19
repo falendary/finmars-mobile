@@ -9,7 +9,7 @@
 					<div class="display-flex flex-align-center">
 						<settings-button></settings-button>
 
-						<div style="margin-left: 0.3rem" >
+						<div style="margin-left: 0.3rem">
 							{{ username }}
 						</div>
 					</div>
@@ -52,11 +52,19 @@
 
 						<div v-if="currentPath == '/main/pnl'">
 
-							<ion-datetime-button class="header-date-button" datetime="datetime_date_from" />
+							<div v-if="spaceStore.settings.general.period_type === 'custom'">
 
-							<span style="margin: 0 4px;">-</span>
+								<ion-datetime-button class="header-date-button" datetime="datetime_date_from" />
 
-							<ion-datetime-button class="header-date-button" datetime="datetime_date_to" />
+								<span style="margin: 0 4px;">-</span>
+
+								<ion-datetime-button class="header-date-button" datetime="datetime_date_to" />
+
+							</div>
+
+							<div v-if="spaceStore.settings.general.period_type !== 'custom' ">
+								<ion-datetime-button class="header-date-button" datetime="datetime_date_to" />
+							</div>
 
 						</div>
 
@@ -146,7 +154,7 @@
 				store: null,
 				spaceStore: null,
 				currentPath: '/main/dashboard',
-				username: '',
+				username: ''
 			}
 		},
 		emits: ['queryChange'],
@@ -167,7 +175,7 @@
 		},
 		mounted() {
 
-			this.fetchUser();
+			this.fetchUser()
 
 			console.log('currentPath', this.currentPath)
 

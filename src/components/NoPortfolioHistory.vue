@@ -14,10 +14,16 @@
 			class="ion-margin-horizontal"
 			fill="outline"
 			expand="block"
+			:disabled="isCalculateButtonDisabled"
+			v-if="spaceStore.settings.general.period_type !== 'custom'"
 			@click="calculate()"
 		>
 			Calculate
 		</ion-button>
+
+		<div v-if="spaceStore.settings.general.period_type === 'custom'">
+			Can not request calculation for <b>Custom</b> period.
+		</div>
 
 	</div>
 </template>
@@ -70,11 +76,14 @@
 				store: null,
 				spaceStore: null,
 				portfolioHistoryItems: [],
-				processing: false
+				processing: false,
+				isCalculateButtonDisabled: false
 			}
 		},
 		methods: {
 			async calculate() {
+
+				this.isCalculateButtonDisabled = true
 
 				let segmentation_type = 'business_days_end_of_months';
 
@@ -99,6 +108,10 @@
 					})
 
 				})
+
+				setTimeout(() => {
+					this.isCalculateButtonDisabled = false
+				}, 20000)
 
 				const alert = await alertController.create({
 					header: 'Calculation is in progress',

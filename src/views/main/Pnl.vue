@@ -32,7 +32,7 @@
 
 			<div class="portfolio-content"></div>
 
-			<div v-if="activeTab !== 'All'">
+			<div v-if="activeTab !== 'All' && spaceStore.settings.general.period_type !== 'custom'">
 
 				<div class="header header-with-period-type-picker" style="margin: 0;">
 					<div>Metrics</div>

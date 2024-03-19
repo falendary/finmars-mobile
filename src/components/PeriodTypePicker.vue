@@ -78,6 +78,10 @@
 					{
 						user_code: 'inception',
 						name: 'All Time'
+					},
+					{
+						user_code: 'custom',
+						name: 'Custom'
 					}
 				]
 			}

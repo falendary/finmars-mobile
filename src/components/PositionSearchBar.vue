@@ -122,8 +122,8 @@
 
 		.clear-search-result-icon-button {
 			position: absolute;
-			right: 1.5rem;
-			top: 1.5rem;
+			right: 1rem;
+			top: 1rem;
 		}
 	}
 

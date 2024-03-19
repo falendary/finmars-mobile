@@ -10,37 +10,59 @@
 		</ion-header>
 		<ion-content class="ion-padding">
 
-			<div>
+			<div class="order-dialog-wrap">
 
-				<input class="order-dialog-subject-input" type="text" v-model="subjectText">
+				<div v-if="state === 'initial'">
 
-				<textarea name="" id="" cols="30" rows="10" v-model="orderText"></textarea>
+					<input class="order-dialog-subject-input" type="text" v-model="subjectText">
 
-				<div class="order-dialog-footer">
+					<textarea name="" id="" cols="30" rows="10" v-model="orderText"></textarea>
 
-					<ion-button fill="outline" :class="{'active': transactionType === 'buy'}" @click="buy()" style="width: 40vw">
-						Buy
-					</ion-button>
-					<ion-button fill="outline" :class="{'active': transactionType === 'sell'}" @click="sell()"
-											style="width: 40vw">Sell
-					</ion-button>
+					<div class="order-dialog-footer">
 
-				</div>
+						<ion-button fill="outline" :class="{'active': transactionType === 'buy'}" @click="buy()" style="width: 40vw">
+							Buy
+						</ion-button>
+						<ion-button fill="outline" :class="{'active': transactionType === 'sell'}" @click="sell()"
+												style="width: 40vw">Sell
+						</ion-button>
 
-				<h4>Recipients</h4>
-				<div>
-					<ion-chip v-for="item in spaceStore.settings.recipients">
-						<ion-label>{{item}}</ion-label>
-						<span class="order-dialog-delete-chip" @click="removeEmail(item)">x</span>
-					</ion-chip>
-
-					<div class="flex" style="align-items: center; margin-top: 0.5rem;">
-						<ion-input class="order-dialog-add-email-input" type="text" v-model="userEmail"></ion-input>
-						<ion-button class="order-dialog-add-email" @click="addEmail()" style="width: 100%">Add</ion-button>
 					</div>
+
+					<h4>Recipients</h4>
+					<div>
+						<ion-chip v-for="item in spaceStore.settings.recipients">
+							<ion-label>{{ item }}</ion-label>
+							<span class="order-dialog-delete-chip" @click="removeEmail(item)">x</span>
+						</ion-chip>
+
+						<div class="flex" style="align-items: center; margin-top: 0.5rem;">
+							<ion-input class="order-dialog-add-email-input" type="text" v-model="userEmail"></ion-input>
+							<ion-button class="order-dialog-add-email"
+													:disabled="!userEmail.length"
+													@click="addEmail()" style="width: 100%">Add
+							</ion-button>
+						</div>
+					</div>
+
+					<ion-button @click="sendOrder()" style="width: 100%">Send Order</ion-button>
+
 				</div>
 
-				<ion-button @click="sendOrder()" style="width: 100%">Send Order</ion-button>
+				<div v-if="state === 'success'" class="text-center">
+
+					<ion-icon style="font-size: 3rem; margin-bottom: 1rem; margin-top: 1rem;" slot="icon-only" :ios="icons.diamondOutline"  :md="icons.diamondOutline"></ion-icon>
+
+					<div>Order successfully sent</div>
+
+				</div>
+
+				<div v-if="state === 'error'">
+					Something went wrong
+
+					<ion-button @click="state = 'init'" style="width: 100%">Try Again</ion-button>
+				</div>
+
 
 			</div>
 
@@ -56,15 +78,16 @@
 		IonChip,
 		IonContent,
 		IonHeader,
-		IonInput, IonItem,
+		IonIcon,
+		IonInput,
+		IonItem,
 		IonModal,
 		IonTitle,
-		IonToolbar,
-		IonIcon
+		IonToolbar
 	} from '@ionic/vue'
 	import useStore from '@/composables/useStore'
 	import useApi from '@/composables/useApi.js'
-	import { closeOutline } from 'ionicons/icons'
+	import { closeOutline, diamondOutline } from 'ionicons/icons'
 
 	export default {
 		components: {
@@ -87,8 +110,10 @@
 		data() {
 			return {
 				icons: {
-					closeOutline
+					closeOutline,
+					diamondOutline
 				},
+				state: 'initial', // 'initial', 'success', 'error'
 				showMoreInstrumentData: false,
 				fullInstrument: null,
 				fullInstrumentAttributes: [],
@@ -100,6 +125,7 @@
 				subjectText: '',
 				orderText: '',
 				userEmail: ''
+
 
 			}
 		},
@@ -114,11 +140,11 @@
 		methods: {
 			buy() {
 				this.transactionType = 'buy'
-				this.updateOrderText();
+				this.updateOrderText()
 			},
 			sell() {
 				this.transactionType = 'sell'
-				this.updateOrderText();
+				this.updateOrderText()
 			},
 			async fetchUser() {
 				let result = await useApi('user.get')
@@ -126,19 +152,33 @@
 			},
 			async sendOrder() {
 
-				console.log('this.orderText', this.orderText)
-				console.log('this.spaceStore.recipients', this.spaceStore.settings.recipients)
+				try {
 
-				let res = await useApi('sendEmail.post', {
-					body: {
-						"subject": this.subjectText,
-						"message": this.orderText,
-						"recipient_list": this.spaceStore.settings.recipients,
-						"html_message": this.orderText
-					}
-				});
+					console.log('this.orderText', this.orderText)
+					console.log('this.spaceStore.recipients', this.spaceStore.settings.recipients)
 
-				console.log('sendOrder.res', res);
+					let res = await useApi('sendEmail.post', {
+						body: {
+							'subject': this.subjectText,
+							'message': this.orderText,
+							'recipient_list': this.spaceStore.settings.recipients,
+							'html_message': this.orderText
+						}
+					})
+
+					this.state = 'success';
+
+					console.log('sendOrder.res', res)
+
+					setTimeout(() => {
+						this.$emit('close')
+					}, 2000)
+
+				} catch (e) {
+					this.state = 'error'
+				}
+
+
 
 			},
 			closeOrderDialog() {
@@ -154,8 +194,8 @@
 				})
 			},
 			addEmail() {
-				this.spaceStore.settings.recipients.push(this.userEmail);
-				this.userEmail = '';
+				this.spaceStore.settings.recipients.push(this.userEmail)
+				this.userEmail = ''
 			}
 		},
 		async created() {
@@ -166,10 +206,11 @@
 		},
 		async mounted() {
 
+			this.state = 'initial';
 
 
-			this.updateOrderText();
-			await this.fetchUser();
+			this.updateOrderText()
+			await this.fetchUser()
 			this.subjectText = `Order Request from ${this.username}`
 		},
 		beforeUnmount() {
@@ -201,6 +242,7 @@
 		background: transparent;
 		border: 1px solid var(--ion-card-border-color);
 	}
+
 	.order-dialog-subject-input {
 		width: 100%;
 		resize: none;
@@ -216,19 +258,24 @@
 		margin: 0;
 		margin-left: 0.5rem;
 	}
+
 	.order-dialog-add-email-input {
 		border: 1px solid var(--ion-color-primary);
 		border-radius: .5rem;
 	}
 
 	.order-dialog-delete-chip {
-		border: 1px solid  var(--ion-color-primary);
+		border: 1px solid var(--ion-color-primary);
 		display: inline-block;
 		margin-left: 0.5rem;
 		height: 1rem;
 		width: 1rem;
 		text-align: center;
 		border-radius: 6px;
+	}
+
+	.order-dialog-wrap {
+		padding-bottom: 5rem;
 	}
 
 

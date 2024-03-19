@@ -215,7 +215,7 @@
 
 				this.processing = true
 
-				this.targetValue = '--';
+				this.targetValue = '--'
 
 				await this.fetchNavOrTotal()
 
@@ -582,7 +582,7 @@
 				if (this.$route.path.indexOf(this.type) === -1) {
 					this.refresh()
 				} else {
-					this.init();
+					this.init()
 				}
 
 			}
@@ -619,7 +619,7 @@
 	}
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 
 	.history-chart-holder {
 		background: var(--ion-pane-background);
@@ -650,5 +650,12 @@
 			font-size: 20px;
 			line-height: 24px;
 		}
+	}
+
+	.swiper-pagination-bullet:first-of-type {
+		width: 10px;
+		height: 10px;
+		position: relative;
+		top: 1px;
 	}
 </style>

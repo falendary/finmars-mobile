@@ -127,21 +127,9 @@
 					})
 
 					this.portfolioHistoryItems.push({
-						'name': 'Total',
-						'key': 'total',
-						'value': this.$format(this.portfolioHistory.total) + ' ' + this.spaceStore.settings.general.currency
-					})
-
-					this.portfolioHistoryItems.push({
 						'name': 'Deposit',
 						'key': 'cash_inflow',
 						'value': this.$format(this.portfolioHistory.cash_inflow) + ' ' + this.spaceStore.settings.general.currency
-					})
-
-					this.portfolioHistoryItems.push({
-						'name': 'Withdraw',
-						'key': 'cash_outflow',
-						'value': this.$format(this.portfolioHistory.cash_outflow) + ' ' + this.spaceStore.settings.general.currency
 					})
 
 					if (this.portfolioHistory.cumulative_return) {
@@ -154,9 +142,21 @@
 
 					}
 
+					this.portfolioHistoryItems.push({
+						'name': 'P&L',
+						'key': 'total',
+						'value': this.$format(this.portfolioHistory.total) + ' ' + this.spaceStore.settings.general.currency
+					})
+
+					this.portfolioHistoryItems.push({
+						'name': 'Withdraw',
+						'key': 'cash_outflow',
+						'value': this.$format(this.portfolioHistory.cash_outflow) + ' ' + this.spaceStore.settings.general.currency
+					})
+
 					if (this.portfolioHistory.annualized_return) {
 						this.portfolioHistoryItems.push({
-							'name': 'Annualized Return',
+							'name': 'Return p.a.',
 							'key': 'annualized_return',
 							'value': parseFloat(this.portfolioHistory.annualized_return * 100).toFixed(2) + '%'
 						})
