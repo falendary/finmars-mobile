@@ -73,12 +73,14 @@
 
 					<div class="transactions_desc_block" v-if="openDescId == item.id">
 						<template v-for="field in userFieldsMap">
-							<div
-								class="tdb_row flex sb"
-								v-if="item['complex_transaction.' + field.key]"
+							<div class="tdb_row flex sb"
+								v-if="item['complex_transaction.' + field.key] && item['complex_transaction.' + field.key] !== '-'"
 							>
 								<div class="tdb_prop">{{ field.name }}:</div>
-								<div class="tdb_value">
+								<div class="tdb_value" v-if="field.key.indexOf('user_number_') !== -1">
+									{{ $format(item['complex_transaction.' + field.key]) }}
+								</div>
+								<div class="tdb_value" v-if="field.key.indexOf('user_number_') === -1">
 									{{ item['complex_transaction.' + field.key] }}
 								</div>
 							</div>

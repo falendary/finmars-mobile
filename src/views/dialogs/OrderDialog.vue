@@ -178,8 +178,6 @@
 					this.state = 'error'
 				}
 
-
-
 			},
 			closeOrderDialog() {
 				this.$emit('close')
