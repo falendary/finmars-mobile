@@ -740,14 +740,7 @@
 								label: function(context) {
 									let labelIndex = context.dataIndex
 
-									if (context.datasetIndex === 1) {
-										labelIndex =
-											context.chart.data.datasets[0].data.length + labelIndex
-									}
-
 									return (
-										context.chart.data.labels[labelIndex] +
-										': ' +
 										context.formattedValue
 									)
 								}

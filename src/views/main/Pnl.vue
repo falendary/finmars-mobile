@@ -239,7 +239,7 @@
 					<ion-toolbar>
 						<ion-title>Chart Settings</ion-title>
 						<ion-buttons slot="end">
-							<ion-button @click="saveChartSettings()">Save</ion-button>
+							<ion-button @click="chartSettingsModalIsOpen = false;">Close</ion-button>
 						</ion-buttons>
 					</ion-toolbar>
 				</ion-header>
@@ -290,6 +290,10 @@
 							</ion-select>
 						</ion-item>
 
+						<div class="display-flex" style="justify-content: end; margin-top: 0.5rem">
+							<ion-button @click="saveChartSettings()">Save</ion-button>
+						</div>
+
 
 					</div>
 
@@ -302,7 +306,7 @@
 </template>
 
 <script>
-	import { computed, watch } from 'vue'
+	import { computed, toRaw, watch } from 'vue'
 	import {
 		IonButton,
 		IonButtons,
@@ -679,7 +683,9 @@
 				this.categoriesTotalSum = 0
 
 				this.categories.forEach((item) => {
-					this.categoriesTotalSum = this.categoriesTotalSum + item.subtotal[this.spaceStore.settings.pl.sumByKey]
+					if (item.subtotal[this.spaceStore.settings.pl.sumByKey] > 0) {
+						this.categoriesTotalSum = this.categoriesTotalSum + item.subtotal[this.spaceStore.settings.pl.sumByKey]
+					}
 				})
 
 			},
@@ -702,6 +708,7 @@
 					})
 
 					this.minPercent = 10
+
 
 					this.chartData.data = {
 						labels: this.categories.map((item) => {
@@ -756,7 +763,7 @@
 							},
 							tooltip: {
 								callbacks: {
-									label: function(context) {
+									label: (context) => {
 										let labelIndex = context.dataIndex
 
 										console.log('context', context)
@@ -770,9 +777,7 @@
 										console.log('labelIndex', labelIndex)
 
 										return (
-											'Value' +
-											': ' +
-											vueThis.originalDataSet[context.dataIndex]
+											this.$format(vueThis.originalDataSet[context.dataIndex])
 										)
 									}
 								}
@@ -830,6 +835,45 @@
 								vueThis.fetchPositions()
 
 
+							}
+						},
+						scales: {
+							x: {
+								ticks: {
+									callback: (value, index) => {
+
+										// console.log('value', value)
+										// console.log('index', index)
+
+										let categories = JSON.parse(JSON.stringify(this.categories)).reverse();
+
+										if (categories) {
+
+											let item = categories[index]
+
+											if (item) {
+												return this.$format(Math.round(item.subtotal[this.spaceStore.settings.pl.sumByKey]))
+											} else {
+
+												let maxValue = 0
+
+												categories.forEach((item) => {
+													if (item.subtotal[this.spaceStore.settings.pl.sumByKey] > maxValue) {
+														maxValue = item.subtotal[this.spaceStore.settings.pl.sumByKey]
+													}
+												})
+
+												return this.$format(Math.round(maxValue))
+
+											}
+
+
+										}
+
+										return value
+									}
+
+								}
 							}
 						}
 					}
