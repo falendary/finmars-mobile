@@ -347,7 +347,7 @@
 		padding-right: env(safe-area-inset-right);
 	}
 
-	.safe--area, .ion-page {
+	.safe--area {
 		–padding-top: var(–ion-safe-area-top, 0);
 		padding-top: env(safe-area-inset-top);
 		--ion-safe-area-top: 20px;
