@@ -102,7 +102,7 @@
 					this.workspace = this.workspaces[0].id
 				}
 
-				console.log('Workspaces init', this.workspace)
+				// console.log('Workspaces init', this.workspace)
 
 				const user = await this.fetchUser()
 

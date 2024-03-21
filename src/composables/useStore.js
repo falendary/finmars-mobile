@@ -19,7 +19,7 @@ export default defineStore('store', {
 	actions: {
 		setPeriodType(periodType) {
 
-			console.log('store.setPeriodType', periodType)
+			// console.log('store.setPeriodType', periodType)
 
 			this.activeSpaceStore.settings.general.periodType = periodType
 		},
@@ -83,12 +83,12 @@ export default defineStore('store', {
 		},
 		async initSpaceStore() {
 
-			console.log('STORE: initSpaceStore')
+			// console.log('STORE: initSpaceStore')
 
 			let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
 			let { value: activeSpaceName } = await Preferences.get({ key: 'activeSpaceName' })
 
-			console.log('STORE: initSpaceStore.activeSpaceCode', activeSpaceCode)
+			// console.log('STORE: initSpaceStore.activeSpaceCode', activeSpaceCode)
 
 			this.activeSpaceCode = activeSpaceCode
 			this.activeSpaceName = activeSpaceName
@@ -103,13 +103,13 @@ export default defineStore('store', {
 
 			// if (this.activeSpaceStore) {
 			// 	// seems already inited, skip
-			// 	console.log('STORE: already exists', activeSpaceCode)
+			// 	// console.log('STORE: already exists', activeSpaceCode)
 			// 	return
 			// }
 
 			if (activeSpaceCode) {
 
-				console.log('STORE: Creating new space store', activeSpaceCode)
+				// console.log('STORE: Creating new space store', activeSpaceCode)
 
 				let date_from = dayjs().add(-3, 'month').format('YYYY-MM-DD')
 				let date_to = dayjs().add(-1, 'day').format('YYYY-MM-DD')
@@ -165,7 +165,7 @@ export default defineStore('store', {
 
 				if (value) {
 
-					console.log('STORE: found settings in device storage. Applying...')
+					// console.log('STORE: found settings in device storage. Applying...')
 
 					let settingsFromDevice = JSON.parse(value)
 
@@ -192,12 +192,12 @@ export default defineStore('store', {
 
 				watch(this.activeSpaceStore.settings, (newVal) => {
 
-					console.log('STORE: settings changed')
+					// console.log('STORE: settings changed')
 
 					Preferences.set({ key: this.activeSpaceCode + '_settings', value: JSON.stringify(newVal) })
 				}, { deep: true })
 
-				console.log('STORE: initSpaceStore.done')
+				// console.log('STORE: initSpaceStore.done')
 
 			}
 

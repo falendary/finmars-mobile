@@ -41,7 +41,7 @@
 
 				await initKeycloak()
 
-				console.log('keycloak inited, redirect to /workspaces')
+				// console.log('keycloak inited, redirect to /workspaces')
 
 				this.$router.replace('/workspaces')
 

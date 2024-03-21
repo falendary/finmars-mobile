@@ -83,7 +83,7 @@
 
 				let { value: darkTheme } = await Preferences.get({ key: 'darkTheme' })
 
-				console.log('from store darkTheme', darkTheme)
+				// console.log('from store darkTheme', darkTheme)
 
 				let isDark = false
 
@@ -157,7 +157,7 @@
 				try {
 					// Pass the signal to your fetch call
 					let data = await useApi('authorizerPing.get', { signal: controller.signal });
-					console.log('doHealthcheck.results', data);
+					// console.log('doHealthcheck.results', data);
 
 					clearTimeout(timeoutId); // Clear the timeout if the request finishes in time
 
@@ -182,7 +182,7 @@
 					clearTimeout(timeoutId); // Clear the timeout in case of an error
 
 					if (error.name === 'AbortError') {
-						console.log('Request was aborted after 1 second');
+						// console.log('Request was aborted after 1 second');
 						this.connectionError = true;
 					} else {
 						// Handle other errors
@@ -197,7 +197,7 @@
 					clearTimeout(this.recoveryTimeout)
 				}
 
-				console.log('resetRecoveryButtonTimer', this.store.globalProcessing)
+				// console.log('resetRecoveryButtonTimer', this.store.globalProcessing)
 
 				// Set a new timeout if globalProcessing is true
 				if (this.store.globalProcessing) {
@@ -216,7 +216,7 @@
 
 				if (tokens) {
 
-					console.log('APP_INIT: Has tokens in Storage, trying to reinit Keycloak')
+					// console.log('APP_INIT: Has tokens in Storage, trying to reinit Keycloak')
 
 					try {
 						await initKeycloak()
@@ -224,16 +224,16 @@
 						this.store.globalProcessing = false
 
 						if (activeSpaceCode) {
-							console.log('APP_INIT: has activeSpaceCode. redirect to dashboard')
+							// console.log('APP_INIT: has activeSpaceCode. redirect to dashboard')
 							this.$router.replace('/main/dashboard')
 						} else {
-							console.log('APP_INIT: has activeSpaceCode. redirect to workspaces')
+							// console.log('APP_INIT: has activeSpaceCode. redirect to workspaces')
 							this.$router.replace('/workspaces')
 						}
 
 					} catch (e) {
 
-						console.log('APP_INIT: keycloak.error', e)
+						// console.log('APP_INIT: keycloak.error', e)
 						await Preferences.remove({ key: 'kcTokens' })
 						this.$router.replace('/welcome')
 
@@ -242,13 +242,13 @@
 
 				} else {
 
-					console.log('APP_INIT: no tokens in Storage, trying to parse query parameters')
+					// console.log('APP_INIT: no tokens in Storage, trying to parse query parameters')
 
 					if (window.location.href.indexOf('state=') !== -1) {
 
 						this.isBlurred = false
 
-						console.log('APP_INIT: Probably got redirect from keycloak, trying to parse query parameters')
+						// console.log('APP_INIT: Probably got redirect from keycloak, trying to parse query parameters')
 
 						this.store.globalProcessing = true
 						await initKeycloak()
@@ -261,7 +261,7 @@
 
 					} else {
 
-						console.log('APP_INIT: Nothing, its first open, wait until user select region. Keycloak IS NOT INITED')
+						// console.log('APP_INIT: Nothing, its first open, wait until user select region. Keycloak IS NOT INITED')
 
 						if (this.$route.path !== '/welcome') {
 							this.$router.replace('/welcome')

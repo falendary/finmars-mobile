@@ -89,7 +89,7 @@
 			},
 			async init() {
 
-				console.log('Indicators.init')
+				// console.log('Indicators.init')
 
 				this.processing = true;
 
@@ -152,7 +152,7 @@
 		},
 		mounted() {
 
-			console.log("indicators mounted")
+			// console.log("indicators mounted")
 
 			this.init()
 

@@ -241,7 +241,7 @@
 			},
 			init() {
 
-				console.log('Dashboard.init')
+				// console.log('Dashboard.init')
 
 				this.processing = true
 
@@ -276,7 +276,7 @@
 				// TODO Consider refactor here
 				// Some weird logic that I do not like
 
-				console.log('DASHBOARD_CONTROLLER: fetchPortfolios', JSON.stringify(this.spaceStore.settings.general.portfolios, null, 4))
+				// console.log('DASHBOARD_CONTROLLER: fetchPortfolios', JSON.stringify(this.spaceStore.settings.general.portfolios, null, 4))
 
 				this.portfolios = this.spaceStore.settings.general.portfolios.map((o, k) => {
 
@@ -321,7 +321,7 @@
 					}
 				})
 
-				console.log('this.portfolios', this.portfolios)
+				// console.log('this.portfolios', this.portfolios)
 
 			}
 
@@ -329,16 +329,16 @@
 		},
 		async created() {
 
-			console.log('DASHBOARD_CONTROLLER: created')
+			// console.log('DASHBOARD_CONTROLLER: created')
 
 			this.store = useStore()
 			this.spaceStore = computed(() => this.store.getActiveSpaceStore())
 
-			console.log('DASHBOARD_CONTROLLER: this.spaceStore', this.spaceStore)
+			// console.log('DASHBOARD_CONTROLLER: this.spaceStore', this.spaceStore)
 
 			watch(this.spaceStore.settings.general, () => {
 
-				console.log('DASHBOARD_CONTROLLER: watch this.spaceStore.settings.general')
+				// console.log('DASHBOARD_CONTROLLER: watch this.spaceStore.settings.general')
 
 				this.transactionsOpts.end_date = this.spaceStore.settings.general.date_to
 				this.transactionsOpts.begin_date = dayjs(this.spaceStore.settings.general.date_to)
@@ -363,7 +363,7 @@
 
 		},
 		mounted() {
-			console.log('DASHBOARD_CONTROLLER: mounted')
+			// console.log('DASHBOARD_CONTROLLER: mounted')
 		}
 	}
 

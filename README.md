@@ -34,6 +34,7 @@ npx cap build android --keystorepath=/Users/szhitenev/projects/finmars/data/keys
 
 
 ionic cap sync android
+npx cap open android
 VITE_APP_PLATFORM='android' ionic capacitor build android
 
 

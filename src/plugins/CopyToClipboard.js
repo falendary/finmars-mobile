@@ -4,7 +4,7 @@ export default {
 
 			try {
 				await navigator.clipboard.writeText(text);
-				console.log('Text copied to clipboard');
+				// console.log('Text copied to clipboard');
 				// Optionally, show a success message to the user
 			} catch (err) {
 				console.error('Failed to copy text: ', err);

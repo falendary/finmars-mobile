@@ -215,7 +215,7 @@
 
 				let filters = []
 
-				console.log('props.options.portfolios', this.options.portfolios)
+				// console.log('props.options.portfolios', this.options.portfolios)
 
 				if (this.options.filter_entry_user_code) {
 

@@ -1,7 +1,7 @@
 <template>
 	<ion-page v-if="pageReady">
 
-		<ion-content v-if="activeTab">
+		<ion-content v-if="activePath === '/main/pnl'">
 			<ion-refresher slot="fixed" @ionRefresh="refresh($event)">
 				<ion-refresher-content />
 			</ion-refresher>
@@ -24,7 +24,6 @@
 				:date_from="spaceStore.settings.general.date_from"
 				:date_to="spaceStore.settings.general.date_to"
 				:currency="spaceStore.settings.general.currency"
-				:activeTab="activeTab"
 				@tabChange="tabChangeHandler"
 				@refresher="portfoliosRefresher = $event"
 			/>
@@ -406,7 +405,8 @@
 				metricsBlockRefresher: null,
 
 				activeTab: null,
-				pageReady: false
+				pageReady: false,
+				activePath: null
 			}
 		},
 		computed: {
@@ -438,12 +438,12 @@
 			async submitSearchResult() {
 
 				if (!this.spaceStore.searchType) {
-					console.log("pnl.submitSearchResult.noType: do_refresh")
+					// console.log("pnl.submitSearchResult.noType: do_refresh")
 					this.refresh();
 				}
 
 				if (this.spaceStore.searchType && this.spaceStore.searchType !== 'pnl') {
-					console.log("pnl.submitSearchResult.searchResult_exists: wrong_type")
+					// console.log("pnl.submitSearchResult.searchResult_exists: wrong_type")
 					return;
 				}
 
@@ -479,7 +479,7 @@
 
 					})
 
-					console.log('pnl.submitSearchResult.activeCategory', this.activeCategory)
+					// console.log('pnl.submitSearchResult.activeCategory', this.activeCategory)
 
 					await this.fetchPositions()
 
@@ -500,13 +500,7 @@
 			},
 			async tabChangeHandler(data) {
 
-				console.log('PL.tabChangeHandler', data)
-
-				this.$router.push({
-					query: {
-						tab: data.activeTab
-					}
-				})
+				// console.log('PL.tabChangeHandler', data)
 
 				this.activeTab = data.activeTab
 				this.spaceStore.activeTab = data.activeTab
@@ -615,7 +609,7 @@
 					value_type: 10
 				})
 
-				// console.log('this.groupByAttributes', this.groupByAttributes);
+				// // console.log('this.groupByAttributes', this.groupByAttributes);
 
 			},
 			colorByCat(item, index) {
@@ -697,7 +691,7 @@
 
 					await this.fetchCategories();
 
-					console.log('createChart.categories', this.categories)
+					// console.log('createChart.categories', this.categories)
 
 					this.chartData = {}
 
@@ -751,7 +745,7 @@
 						]
 					}
 
-					console.log('this.chartData', this.chartData)
+					// console.log('this.chartData', this.chartData)
 
 					this.chartData.options = {
 						responsive: true,
@@ -766,15 +760,15 @@
 									label: (context) => {
 										let labelIndex = context.dataIndex
 
-										console.log('context', context)
-										console.log('labelIndex', labelIndex)
+										// console.log('context', context)
+										// console.log('labelIndex', labelIndex)
 
 										if (context.datasetIndex === 0) {
 											labelIndex =
 												context.chart.data.datasets[0].data.length + labelIndex
 										}
 
-										console.log('labelIndex', labelIndex)
+										// console.log('labelIndex', labelIndex)
 
 										return (
 											this.$format(vueThis.originalDataSet[context.dataIndex])
@@ -799,7 +793,7 @@
 								var clickedValue = this.data.datasets[clickedDataset].data[clickedBarIndex]
 
 								// Do something with the clicked bar
-								console.log(`You clicked on: ${this.data.labels[clickedBarIndex]} with value: ${clickedValue}`)
+								// console.log(`You clicked on: ${this.data.labels[clickedBarIndex]} with value: ${clickedValue}`)
 
 
 								this.data.datasets[0].borderColor = this.data.datasets[0].borderColor.map((item, index) => {
@@ -842,8 +836,8 @@
 								ticks: {
 									callback: (value, index) => {
 
-										// console.log('value', value)
-										// console.log('index', index)
+										// // console.log('value', value)
+										// // console.log('index', index)
 
 										let categories = JSON.parse(JSON.stringify(this.categories)).reverse();
 
@@ -884,8 +878,8 @@
 
 					this.chartProcessing = false
 
-					console.log('createChart.balanceChartObj', this.balanceChartObj)
-					console.log('createChart.chartProcessing', this.chartProcessing)
+					// console.log('createChart.balanceChartObj', this.balanceChartObj)
+					// console.log('createChart.chartProcessing', this.chartProcessing)
 
 				} catch (error) {
 
@@ -1063,11 +1057,11 @@
 
 			this.activeTab = this.spaceStore.activeTab
 
-			console.log('this.activeTab', this.activeTab)
+			// console.log('this.activeTab', this.activeTab)
 
 			await this.init()
 
-			if (this.spaceStore.searchResult) {
+			if (this.spaceStore.searchResult && this.spaceStore.searchResult.type) {
 				await this.submitSearchResult();
 			}
 
@@ -1075,11 +1069,13 @@
 				() => this.spaceStore.activeTab,
 				async (newVal) => {
 
-					console.log('Balance.tabWatch.this.spaceStore', newVal)
+					// console.log('Balance.tabWatch.this.spaceStore', newVal)
 
 					this.activeTab = newVal
 
-					await this.init()
+					if (this.activePath === '/main/pnl') {
+						await this.init()
+					}
 
 				}
 			)
@@ -1100,11 +1096,26 @@
 
 			this.searchWatch = watch(() => this.spaceStore.searchResult, async (newVal, oldVal) => {
 
-				console.log("pnl.watch.spaceStore.searchResult", newVal);
+				// console.log("pnl.watch.spaceStore.searchResult", newVal);
 
 				await this.submitSearchResult();
 
 			},{ deep: true})
+
+			this.activePath = this.$route.path
+
+			this.routeWatch = watch(
+				() => this.$route,
+				async (newVal) => {
+
+					// console.log('headerBar.route.newVal', newVal)
+
+					this.activePath = newVal.path
+
+					// console.log('headerBar.currentPath', this.currentPath)
+
+				}
+			)
 
 
 		},

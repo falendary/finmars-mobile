@@ -174,7 +174,7 @@
 			},
 			toggleDarkTheme(shouldAdd) {
 
-				console.log('shouldAdd', shouldAdd)
+				// console.log('shouldAdd', shouldAdd)
 
 				document.body.classList.toggle('dark', shouldAdd)
 
@@ -185,7 +185,7 @@
 			},
 			themeToggleChange(ev) {
 
-				console.log('themeToggleChange', ev)
+				// console.log('themeToggleChange', ev)
 
 				this.toggleDarkTheme(ev.detail.checked)
 			},
@@ -203,7 +203,7 @@
 
 			async clearRegions() {
 
-				console.log('clearRegions?', alertController)
+				// console.log('clearRegions?', alertController)
 
 				await Preferences.remove({ key: 'custom_regions' })
 

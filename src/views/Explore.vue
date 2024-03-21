@@ -158,7 +158,7 @@
 		},
 		async mounted() {
 
-			console.log('Explore.mounted')
+			// console.log('Explore.mounted')
 
 
 		},

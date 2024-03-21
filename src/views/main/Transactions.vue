@@ -115,7 +115,7 @@
 
 			this.searchWatch = watch(() => this.spaceStore.searchResult, async (newVal, oldVal) => {
 
-				console.log("transaction.watch.spaceStore.searchResult", newVal);
+				// console.log("transaction.watch.spaceStore.searchResult", newVal);
 
 				this.transactionsOpts.global_table_search = this.spaceStore.searchQuery
 

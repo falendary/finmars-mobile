@@ -428,7 +428,7 @@
 			createOrder() {
 
 				this.isOrderDialogOpen = true;
-				console.log('create order');
+				// console.log('create order');
 
 			},
 			closePositionDialog() {
@@ -436,7 +436,7 @@
 			},
 			async getFullInstrument() {
 
-				console.log('PositionDialog.position', this.position)
+				// console.log('PositionDialog.position', this.position)
 
 				this.fullInstrument = await useApi('instrument.get', {
 					params: { id: this.position['instrument.id'] }

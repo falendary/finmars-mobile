@@ -64,7 +64,7 @@
 			},
 			async submitSearchResult(data) {
 
-				console.log('submitSearchResult', data);
+				// console.log('submitSearchResult', data);
 
 				this.isSearchDialogOpen = false
 
@@ -73,7 +73,10 @@
 				this.spaceStore.searchResult = data.result;
 
 				if (data.type === 'balance' || data.type === 'pnl') {
-					this.$router.push(`/main/${data.type}?tab=${data.result['portfolio.user_code']}`)
+
+					this.spaceStore.activeTab = data.result['portfolio.user_code'];
+
+					this.$router.push(`/main/${data.type}`)
 				} else if (data.type === 'transaction') {
 					this.$router.push(`/main/${data.type}`)
 				}

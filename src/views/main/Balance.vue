@@ -1,7 +1,7 @@
 <template>
 	<ion-page>
 
-		<ion-content v-if="activeTab">
+		<ion-content v-if="activePath === '/main/balance'">
 			<ion-refresher slot="fixed" @ionRefresh="refresh($event)">
 				<ion-refresher-content />
 			</ion-refresher>
@@ -13,24 +13,21 @@
 			</div>
 
 			<HistoryChartComp
-				v-if="activeTab"
 				:date_to="spaceStore.settings.general.date_to"
 				:currency="spaceStore.settings.general.currency"
-				:activeTab="activeTab"
 				@tabChange="tabChangeHandler"
 				@refresher="portfoliosRefresher = $event"
 			/>
 
-
 			<div class="portfolio-content">
 
-				<div v-if="activeTab !== 'All' && spaceStore.settings.general.period_type !== 'custom'">
+				<div v-if="spaceStore.activeTab !== 'All' && spaceStore.settings.general.period_type !== 'custom'">
 
 					<div class="header header-with-period-type-picker" style="margin: 0;">
 						<div>Metrics</div>
 					</div>
 
-					<metrics-block :portfolio="[activeTab]" @refresher="metricsBlockRefresher = $event"></metrics-block>
+					<metrics-block :portfolio="[spaceStore.activeTab]" @refresher="metricsBlockRefresher = $event"></metrics-block>
 
 				</div>
 
@@ -268,7 +265,6 @@
 				</ion-content>
 			</ion-modal>
 
-
 		</ion-content>
 
 	</ion-page>
@@ -382,8 +378,8 @@
 				activePosition: {},
 				metricsBlockRefresher: null,
 
-				activeTab: null,
-				pageReady: false
+				pageReady: false,
+				activePath: null
 
 			}
 		},
@@ -409,7 +405,7 @@
 			},
 
 			portfolio() {
-				return this.spaceStore.portfolios.find((o) => o.user_code == this.activeTab)
+				return this.spaceStore.portfolios.find((o) => o.user_code == this.spaceStore.activeTab)
 			}
 		},
 		methods: {
@@ -417,19 +413,19 @@
 			async submitSearchResult() {
 
 				if (!this.spaceStore.searchType) {
-					console.log("balance.submitSearchResult.noType: do_refresh")
-					this.refresh();
+					// console.log("balance.submitSearchResult.noType: do_refresh")
+					await this.refresh();
 				}
 
 				if (this.spaceStore.searchType && this.spaceStore.searchType !== 'balance') {
-					console.log("balance.submitSearchResult.searchResult_exists: wrong_type")
+					// console.log("balance.submitSearchResult.searchResult_exists: wrong_type")
 					return;
 				}
 
 				let item = this.spaceStore.searchResult
 
-				console.log('Balance.submitSearchResult.item', item)
-				console.log('Balance.submitSearchResult.categories', this.categories)
+				// console.log('Balance.submitSearchResult.item', item)
+				// console.log('Balance.submitSearchResult.categories', this.categories)
 
 				this.positions = []
 
@@ -461,7 +457,7 @@
 
 					})
 
-					console.log('submitSearchResult.activeCategory', this.activeCategory)
+					// console.log('submitSearchResult.activeCategory', this.activeCategory)
 
 					await this.fetchPositions()
 
@@ -488,15 +484,8 @@
 
 			async tabChangeHandler(data) {
 
-				console.log('Balance.tabChangeHandler', data)
+				// console.log('Balance.tabChangeHandler', data)
 
-				this.$router.push({
-					query: {
-						tab: data.activeTab
-					}
-				})
-
-				this.activeTab = data.activeTab
 				this.spaceStore.activeTab = data.activeTab
 
 				await this.init()
@@ -618,7 +607,7 @@
 					value_type: 10
 				})
 
-				// console.log('this.groupByAttributes', this.groupByAttributes);
+				// // console.log('this.groupByAttributes', this.groupByAttributes);
 
 			},
 			colorByCat(item, index) {
@@ -671,10 +660,10 @@
 
 			getPortfoliosForReportSettings() {
 
-				if (this.activeTab === 'All') {
+				if (this.spaceStore.activeTab === 'All') {
 					return this.spaceStore.settings.general.portfolios
 				} else {
-					return [this.activeTab]
+					return [this.spaceStore.activeTab]
 				}
 
 			},
@@ -753,8 +742,8 @@
 				this.fetchPositions()
 
 
-				// console.log('createChart.chartData', this.chartData)
-				// console.log('createChart.chartProcessing', this.chartProcessing)
+				// // console.log('createChart.chartData', this.chartData)
+				// // console.log('createChart.chartProcessing', this.chartProcessing)
 
 			},
 			async fetchReport() {
@@ -886,7 +875,7 @@
 				await this.init()
 
 				if (this.portfoliosRefresher) {
-					this.portfoliosRefresher(true)
+					this.portfoliosRefresher()
 				}
 
 				if (this.metricsBlockRefresher) {
@@ -904,7 +893,7 @@
 		},
 		async mounted() {
 
-			console.log('Balance.mounted')
+			// console.log('Balance.mounted')
 			this.pageReady = true
 
 			await this.fetchBalanceReportAttributes()
@@ -913,11 +902,10 @@
 				this.spaceStore.activeTab = 'All'
 			}
 
-			this.activeTab = this.spaceStore.activeTab
 
 			// await this.init()
 
-			if (this.spaceStore.searchResult) {
+			if (this.spaceStore.searchResult && this.spaceStore.searchResult.type) {
 				await this.submitSearchResult();
 			}
 
@@ -927,16 +915,17 @@
 
 					console.log('Balance.tabWatch.this.spaceStore', newVal)
 
-					this.activeTab = newVal
 
-					await this.init()
+					if (this.activePath === '/main/balance') {
+						await this.init()
+					}
 
 				}
 			)
 
 			this.settingsWatch = watch(() => this.spaceStore.settings.general, async () => {
 
-				console.log("Balance.watch.settings.general")
+				// console.log("Balance.watch.settings.general")
 
 				await this.refresh()
 
@@ -944,12 +933,25 @@
 
 			this.searchWatch = watch(() => this.spaceStore.searchResult, async (newVal, oldVal) => {
 
-				console.log("balance.watch.spaceStore.searchResult", newVal);
+				// console.log("balance.watch.spaceStore.searchResult", newVal);
 
 				await this.submitSearchResult();
 
 			},{ deep: true})
 
+
+			this.activePath = this.$route.path
+
+			this.routeWatch = watch(
+				() => this.$route,
+				async (newVal) => {
+
+					this.activePath = newVal.path
+
+					// console.log('headerBar.currentPath', this.currentPath)
+
+				}
+			)
 
 		},
 

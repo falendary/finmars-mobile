@@ -199,7 +199,7 @@
 				}
 				if (this.passcode.length === 4) {
 					// Validate or use the passcode here.
-					console.log('Passcode entered:', this.passcode)
+					// console.log('Passcode entered:', this.passcode)
 
 					if (this.savedPasscode === this.passcode) {
 
@@ -282,8 +282,8 @@
 
 			async onAuthenticate() {
 
-				console.log('this.biometry', this.biometry);
-				console.log('this.biometryOptions', this.biometryOptions);
+				// console.log('this.biometry', this.biometry);
+				// console.log('this.biometryOptions', this.biometryOptions);
 
 				try {
 					// options is a reactive proxy, we can't pass it directly to a plugin.
@@ -298,7 +298,7 @@
 					}, 500)
 
 				} catch (error) {
-					console.log('error', error);
+					// console.log('error', error);
 					// Someday TypeScript will let us type catch clauses...
 					// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 					// await this.showErrorAlert(error)
@@ -308,7 +308,7 @@
 
 			async updateBiometryInfo(info) {
 
-				console.log('updateBiometryInfo.info', info);
+				// console.log('updateBiometryInfo.info', info);
 
 				this.biometry = info
 			}
@@ -348,12 +348,12 @@
 			await this.updateBiometryInfo(await BiometricAuth.checkBiometry())
 
 
-			console.log('created.updateBiometryInfo', this.biometry)
+			// console.log('created.updateBiometryInfo', this.biometry)
 
 			try {
 				this.appListener = await BiometricAuth.addResumeListener(this.updateBiometryInfo)
 
-				console.log('created.appListener', this.appListener)
+				// console.log('created.appListener', this.appListener)
 
 			} catch (error) {
 				if (error instanceof Error) {

@@ -81,9 +81,14 @@
 				this.spaceStore.searchResult = data.result
 
 				if (data.type === 'balance' || data.type === 'pnl') {
-					this.$router.push(`/main/${data.type}?tab=${data.result['portfolio.user_code']}`)
-				} else if (data.type === 'transaction') {
+
+					this.spaceStore.activeTab = data.result['portfolio.user_code'];
 					this.$router.push(`/main/${data.type}`)
+
+				} else if (data.type === 'transaction') {
+
+					this.$router.push(`/main/${data.type}`)
+
 				}
 
 			},
@@ -93,7 +98,7 @@
 				this.spaceStore.searchType = ''
 				this.spaceStore.searchResult = null
 
-				console.log('clearSearchResult.searchResult', this.spaceStore.searchResult)
+				// console.log('clearSearchResult.searchResult', this.spaceStore.searchResult)
 
 			}
 

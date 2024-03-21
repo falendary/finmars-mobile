@@ -84,7 +84,7 @@ export default async function useApi(
 	let url = routes[route][method]
 
 	if (!url) {
-		console.log('Route not found:', route_opt)
+		// console.log('Route not found:', route_opt)
 		return false
 	}
 
@@ -156,11 +156,11 @@ export default async function useApi(
 	} catch (e) {
 		clearTimeout(timeoutId);
 		if (axios.isCancel(e)) {
-			console.log('Request was cancelled due to timeout');
+			// console.log('Request was cancelled due to timeout');
 			return { error: true, code: 'TIMEOUT' }; // Handle timeout specifically
 		}
 
-		console.log('e:', e)
+		// console.log('e:', e)
 		let [code, url] = e.message.split('  ')
 
 		let errors = {

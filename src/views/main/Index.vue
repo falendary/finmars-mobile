@@ -9,13 +9,13 @@
 			<ion-router-outlet></ion-router-outlet>
 
 			<ion-tab-bar class="tab_bar" color="medium" slot="bottom">
-				<ion-tab-button class="tab" tab="balance" :class="{'tab-selected': activeTab == '/main/balance'}" @click="navigate('/main/balance')">
+				<ion-tab-button class="tab" tab="balance" href="/main/balance" >
 					<!--					<ion-icon :icon="balanceIcon" />-->
 					<ion-icon :icon="icons.readerOutline" size="8"></ion-icon>
 					<ion-label>Balance</ion-label>
 				</ion-tab-button>
 
-				<ion-tab-button class="tab" :class="{'tab-selected': activeTab == '/main/pnl'}" tab="pnl" @click="navigate('/main/pnl')">
+				<ion-tab-button class="tab"  tab="pnl"  href="/main/pnl">
 					<!--					<ion-icon :icon="iconTest" />-->
 					<ion-icon :icon="icons.barChartOutline" size="8"></ion-icon>
 					<ion-label>P&L</ion-label>
@@ -24,8 +24,9 @@
 				<ion-tab-button
 					class="tab tab_logo"
 					tab="dashboard"
-					:class="{'tab-selected': activeTab == '/main/dashboard'}"
-					@click="navigate('/main/dashboard')"
+					href="/main/dashboard"
+
+
 				>
 					<svg
 						class="logo_btn"
@@ -44,8 +45,8 @@
 				<ion-tab-button
 					class="tab selected"
 					tab="transaction"
-					:class="{'tab-selected': activeTab == '/main/transaction'}"
-					@click="navigate('/main/transaction')"
+					href="/main/transaction"
+
 				>
 					<!--					<ion-icon part="tab" :icon="iconTest" />-->
 					<ion-icon part="tab" :icon="icons.layersOutline" />
@@ -178,9 +179,9 @@
 
 			navigate(path) {
 
-				this.activeTab = path;
-				console.log('index.activeTab ', this.activeTab );
-				this.$router.push({ path, query: { tab: this.spaceStore.activeTab }});
+				this.spaceStore.activeTab = path;
+				// console.log('index.activeTab ', this.activeTab );
+				this.$router.push({ path });
 			},
 			goToMore() {
 				this.isOpen = false
@@ -223,8 +224,8 @@
 
 			this.spaceStore = computed(() => this.store.getActiveSpaceStore())
 
-			console.log('Index.spaceStore', this.spaceStore)
-			console.log('Index.store.activeSpaceCode', this.store.activeSpaceCode)
+			// console.log('Index.spaceStore', this.spaceStore)
+			// console.log('Index.store.activeSpaceCode', this.store.activeSpaceCode)
 
 			// Adjust dates, just in case date_from bigger then date_to
 			let result = this.adjustDates(this.spaceStore.settings.general.date_to, this.spaceStore.settings.general.date_from)
@@ -236,8 +237,8 @@
 				() => this.spaceStore.settings.general.date_to,
 				() => {
 
-					console.log('this.spaceStore.settings.general.date_to', this.spaceStore.settings.general.date_to)
-					console.log('this.spaceStore.settings.general.date_from', this.spaceStore.settings.general.date_from)
+					// console.log('this.spaceStore.settings.general.date_to', this.spaceStore.settings.general.date_to)
+					// console.log('this.spaceStore.settings.general.date_from', this.spaceStore.settings.general.date_from)
 
 					let result = this.adjustDates(this.spaceStore.settings.general.date_to, this.spaceStore.settings.general.date_from)
 
@@ -250,17 +251,17 @@
 				() => this.$route,
 				async (newVal) => {
 
-					console.log('index.route.newVal', newVal)
+					// console.log('index.route.newVal', newVal)
 
 					this.activeTab = newVal.path.split("?")[0]
 
-					console.log('index.activeTab', this.activeTab)
+					// console.log('index.activeTab', this.activeTab)
 
 				}
 			)
 
 
-			console.log('INDEX_CONTROLLER: Store is ready')
+			// console.log('INDEX_CONTROLLER: Store is ready')
 			this.processing = false
 			this.store.globalProcessing = false
 

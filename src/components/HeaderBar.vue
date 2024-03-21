@@ -177,27 +177,26 @@
 
 			this.fetchUser()
 
-			console.log('currentPath', this.currentPath)
+			// console.log('currentPath', this.currentPath)
 
-			this.queryWatch = watch(
+			this.routeWatch = watch(
 				() => this.$route,
 				async (newVal) => {
 
-					console.log('headerBar.route.newVal', newVal)
+					// console.log('headerBar.route.newVal', newVal)
 
 					this.currentPath = newVal.path
 
-					console.log('headerBar.currentPath', this.currentPath)
+					// console.log('headerBar.currentPath', this.currentPath)
 
 				}
 			)
 
-
 		},
 		beforeUnmount() {
 
-			if (this.queryWatch) {
-				this.queryWatch()
+			if (this.routeWatch) {
+				this.routeWatch()
 			}
 
 		}

@@ -89,7 +89,7 @@
 		methods: {
 			periodTypeChange(value){
 
-				console.log('periodTypeChange', value);
+				// console.log('periodTypeChange', value);
 
 				this.store.setPeriodType(value)
 			}

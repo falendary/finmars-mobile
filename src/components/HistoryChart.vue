@@ -29,7 +29,7 @@
 
 						<div
 							style="height: 80px; width: calc(100% + 10px); margin: 0 0 -5px -5px"
-							v-show="!error" v-if="!chartProcessing && activeTab !== 'All'"
+							v-show="!error" v-if="!chartProcessing && spaceStore.activeTab !== 'All'"
 						>
 
 							<Line v-if="chartData" :data="chartData.data" :options="chartData.options"></Line>
@@ -84,7 +84,7 @@
 </template>
 
 <script>
-	import { computed } from 'vue'
+	import { computed, watch } from 'vue'
 	import { IonSkeletonText } from '@ionic/vue'
 	import { Swiper, SwiperSlide } from 'swiper/vue'
 	import { Pagination } from 'swiper'
@@ -106,7 +106,6 @@
 			date_to: String,
 			date_from: String,
 			currency: String,
-			activeTab: String,
 			type: {
 				type: String,
 				default: 'balance'
@@ -131,7 +130,7 @@
 				targetValue: '--',
 				swiperInstance: null,
 				ignoreSlideChange: false,
-				showSwiper: true
+				showSwiper: true,
 			}
 		},
 		methods: {
@@ -143,16 +142,18 @@
 				console.log('HistoryChart.onSwiper.this.portfolios', this.portfolios)
 
 				let slideIndex = this.portfolios.findIndex(
-					(o) => o === this.activeTab
+					(o) => o === this.spaceStore.activeTab
 				)
 
-				console.log('HistoryChart.this.activeTab', this.activeTab)
+				console.log('HistoryChart.this.spaceStore.activeTab', this.spaceStore.activeTab)
 				console.log('HistoryChart.onSwiper', slideIndex)
 
-				if (slideIndex != -1) {
+				if (slideIndex !== -1) {
 					swiper.slideTo(slideIndex)
 					this.init()
 				}
+
+				this.showSwiper = true
 
 
 			},
@@ -168,14 +169,13 @@
 					setTimeout(() => {
 						this.chartProcessing = false
 					}, 500)
+
 				} catch (error) {
 					console.error('Could not create history chart', error)
 				}
 
 			},
 			async refresh() {
-
-				console.log('HISTORY_CHART: refreshing')
 
 				this.processing = true
 
@@ -192,7 +192,7 @@
 
 				await this.fetchNavOrTotal()
 
-				if (this.activeTab !== 'All') {
+				if (this.spaceStore.activeTab !== 'All') {
 					await this.reloadChart()
 				}
 
@@ -202,12 +202,12 @@
 			},
 			getPortfoliosForReportSettings() {
 
-				console.log('HistoryChart.this.activeTab', this.activeTab)
+				// console.log('HistoryChart.this.spaceStore.activeTab', this.spaceStore.activeTab)
 
-				if (this.activeTab === 'All') {
+				if (this.spaceStore.activeTab === 'All') {
 					return this.spaceStore.settings.general.portfolios
 				} else {
-					return [this.activeTab]
+					return [this.spaceStore.activeTab]
 				}
 
 			},
@@ -219,9 +219,9 @@
 
 				await this.fetchNavOrTotal()
 
-				console.log('HistoryChart.init.activeTab', this.activeTab)
+				// console.log('HistoryChart.init.activeTab', this.spaceStore.activeTab)
 
-				if (this.activeTab !== 'All') {
+				if (this.spaceStore.activeTab !== 'All') {
 					await this.reloadChart()
 				}
 
@@ -234,7 +234,7 @@
 					filters: {
 						status: 'ok',
 						period_type: this.spaceStore.settings.general.period_type,
-						portfolio__user_code: this.activeTab,
+						portfolio__user_code: this.spaceStore.activeTab,
 						pricing_policy__user_code: this.spaceStore.settings.general.pricing_policy,
 						currency__user_code: this.spaceStore.settings.general.currency,
 						date_before: this.spaceStore.settings.general.date_to
@@ -252,8 +252,8 @@
 
 					let width, height, gradient
 
-					console.log('createChart.type', this.type)
-					console.log('createChart.res.results', res.results)
+					// console.log('createChart.type', this.type)
+					// console.log('createChart.res.results', res.results)
 
 					let labels = []
 					let data = []
@@ -277,7 +277,7 @@
 
 					})
 
-					// console.log('data', data);
+					// // console.log('data', data);
 
 					this.chartData = {}
 
@@ -360,7 +360,7 @@
 					}
 
 
-					console.log('HistoryChart.chartData', this.chartData)
+					// console.log('HistoryChart.chartData', this.chartData)
 
 				}
 
@@ -506,13 +506,13 @@
 				this.targetValue = '--'
 
 				// Portfolio History is not support multiportfolio calculations
-				if (this.type === 'balance' && this.activeTab !== 'All') {
+				if (this.type === 'balance' && this.spaceStore.activeTab !== 'All') {
 
 					const data = await useApi('portfolioHistory.get', {
 						filters: {
 							status: 'ok',
 							period_type: this.spaceStore.settings.general.period_type,
-							portfolio__user_code: this.activeTab,
+							portfolio__user_code: this.spaceStore.activeTab,
 							pricing_policy__user_code: this.spaceStore.settings.general.pricing_policy,
 							currency__user_code: this.spaceStore.settings.general.currency,
 							date_before: this.spaceStore.settings.general.date_to,
@@ -530,7 +530,7 @@
 						this.targetValue = '--'
 					}
 
-				} else if (this.type === 'balance' && this.activeTab === 'All') {
+				} else if (this.type === 'balance' && this.spaceStore.activeTab === 'All') {
 
 					await this.fetchBalanceReport()
 
@@ -542,6 +542,7 @@
 				}
 
 			},
+
 			async setActivePortfolios() {
 
 				this.portfolios = []
@@ -561,39 +562,38 @@
 
 				let userCode = this.portfolios[swiper.realIndex]
 
-				if (userCode != this.spaceStore.activeTab) {
+				if (userCode !== this.spaceStore.activeTab) {
 
-					console.log('onTabChange.userCode', userCode)
+					// console.log('onTabChange.userCode', userCode)
 
-					this.$emit('tabChange', {
-						activeTab: userCode
-					})
-				}
+					this.spaceStore.activeTab = userCode
 
-			}
-		},
-		watch: {
-			// Watch for changes in activeTab prop
-			activeTab(newValue, oldValue) {
-				console.log(`tabWatch.Active tab changed from ${oldValue} to ${newValue} ${this.type}`)
-				console.log(`tabWatch.Active this.$route.path ${this.$route.path}`)
-				// React to the change as needed
-				// So, we need to reboot chart if its not current page
-				if (this.$route.path.indexOf(this.type) === -1) {
-					this.refresh()
-				} else {
-					this.init()
 				}
 
 			}
 		},
 		mounted() {
 
-			console.log('HistoryChart.this.spaceStore.settings.general.portfolios', this.spaceStore.settings.general.portfolios)
-
 			this.setActivePortfolios()
 
 			this.init()
+
+		},
+		beforeUnmount() {
+
+			if (this.routeWatch) {
+				this.routeWatch()
+			}
+
+			if (this.swiperInstance) {
+				this.swiperInstance.destroy(true, true)
+				this.swiperInstance = null
+				this.showSwiper = false // Hide the swiper
+				this.$nextTick(() => {
+					this.showSwiper = true // Re-show the swiper, causing it to reinitialize
+				})
+
+			}
 
 		},
 		async created() {
@@ -602,17 +602,6 @@
 			this.spaceStore = computed(() => this.store.getActiveSpaceStore())
 
 			this.$emit('refresher', this.refresh)
-
-
-		},
-		beforeUnmount() {
-
-			console.log('historychart.beforeUnmount', this.type)
-
-			// https://vuejs.org/guide/essentials/watchers.html#stopping-a-watcher
-			if (this.tabWatch) {
-				this.tabWatch()
-			}
 
 
 		}

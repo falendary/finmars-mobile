@@ -517,8 +517,8 @@ export default {
 		},
 		async getTransactions() {
 
-			console.log('this.spaceStore.settings.general.portfolios', this.spaceStore.settings.general.portfolios)
-			console.log('this.options',  this.options);
+			// console.log('this.spaceStore.settings.general.portfolios', this.spaceStore.settings.general.portfolios)
+			// console.log('this.options',  this.options);
 
 			const params = new URLSearchParams()
 
@@ -550,7 +550,7 @@ export default {
 	},
 	async mounted() {
 
-		console.log('ComplexTransactionList.options', this.options)
+		// console.log('ComplexTransactionList.options', this.options)
 
 		this.processing = true
 

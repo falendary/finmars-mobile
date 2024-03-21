@@ -98,7 +98,7 @@
 				}
 				if (this.passcode.length === 4) {
 					// Validate or use the passcode here.
-					console.log('Passcode entered:', this.passcode)
+					// console.log('Passcode entered:', this.passcode)
 				}
 			},
 			clearLast() {

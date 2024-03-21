@@ -154,8 +154,8 @@
 
 				try {
 
-					console.log('this.orderText', this.orderText)
-					console.log('this.spaceStore.recipients', this.spaceStore.settings.recipients)
+					// console.log('this.orderText', this.orderText)
+					// console.log('this.spaceStore.recipients', this.spaceStore.settings.recipients)
 
 					let res = await useApi('sendEmail.post', {
 						body: {
@@ -168,7 +168,7 @@
 
 					this.state = 'success';
 
-					console.log('sendOrder.res', res)
+					// console.log('sendOrder.res', res)
 
 					setTimeout(() => {
 						this.$emit('close')

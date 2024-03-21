@@ -16,7 +16,7 @@ export async function initKeycloak() {
 
 	let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
 
-	console.log('region.keycloakOpts', JSON.stringify(region.keycloakOpts, null, 4));
+	// console.log('region.keycloakOpts', JSON.stringify(region.keycloakOpts, null, 4));
 
 	window.keycloak = Keycloak(region.keycloakOpts)
 
@@ -32,8 +32,8 @@ export async function initKeycloak() {
 		appDestinationPath = 'main/dashboard'
 	}
 
-	console.log('initKeycloak.activeSpaceCode', activeSpaceCode);
-	console.log('initKeycloak.appDestinationPath', appDestinationPath);
+	// console.log('initKeycloak.activeSpaceCode', activeSpaceCode);
+	// console.log('initKeycloak.appDestinationPath', appDestinationPath);
 
 	let kcOpts = {
 		onLoad: 'login-required',
@@ -47,7 +47,7 @@ export async function initKeycloak() {
 
 	if (window.Cordova) {
 
-		console.log('window.Cordova', window.Cordova)
+		// console.log('window.Cordova', window.Cordova)
 
 		kcOpts['adapter'] = 'capacitor'
 		kcOpts['responseMode'] = 'query'
@@ -55,7 +55,7 @@ export async function initKeycloak() {
 
 		const platform = import.meta.env.VITE_APP_PLATFORM;
 
-		// console.log('import.meta.env', import.meta.env);
+		// // console.log('import.meta.env', import.meta.env);
 
 		if (platform == 'android') {
 			kcOpts['redirectUri'] = 'https://finmars.com/' + appDestinationPath
@@ -65,7 +65,7 @@ export async function initKeycloak() {
 
 	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))
 
-	// console.log('kcOpts', JSON.stringify(kcOpts, null, 4))
+	// // console.log('kcOpts', JSON.stringify(kcOpts, null, 4))
 
 	await window.keycloak.init(kcOpts)
 
@@ -87,7 +87,7 @@ export async function logoutKeycloak() {
 
 	if (window.Cordova) {
 
-		console.log('window.Cordova', window.Cordova)
+		// console.log('window.Cordova', window.Cordova)
 		logoutOptions['redirectUri'] = 'finmars://welcome'
 
 		const platform = import.meta.env.VITE_APP_PLATFORM;
@@ -109,7 +109,7 @@ export async function logoutKeycloak() {
 
 function setTokens() {
 
-	// console.log('initKeycloak.setTokens', window.keycloak.token)
+	// // console.log('initKeycloak.setTokens', window.keycloak.token)
 
 	// alert('setTokens: ' + keycloak.token)
 
@@ -160,7 +160,7 @@ export async function clearTokens() {
 
 // async function refreshTokens() {
 //
-// 	console.log('refreshTokens')
+// 	// console.log('refreshTokens')
 //
 // 	const isRefreshed = await window.keycloak.updateToken(5)
 //

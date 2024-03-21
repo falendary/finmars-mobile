@@ -192,9 +192,9 @@
 
 				}
 
-				console.log('welcome.login.region.value', this.region)
-				console.log('welcome.login.customRegion', this.customRegion)
-				console.log('welcome.login.regionObj', regionObj)
+				// console.log('welcome.login.region.value', this.region)
+				// console.log('welcome.login.customRegion', this.customRegion)
+				// console.log('welcome.login.regionObj', regionObj)
 
 
 				if (regionObj) {
@@ -224,12 +224,12 @@
 
 			}
 
-			console.log('Welcome.errorMessage', this.errorMessage)
+			// console.log('Welcome.errorMessage', this.errorMessage)
 
 
 			let custom_regions = await Preferences.get({ key: 'custom_regions' })
 
-			console.log('custom_regions', custom_regions)
+			// console.log('custom_regions', custom_regions)
 
 			if (custom_regions && custom_regions.value) {
 				var custom_regions_objects = JSON.parse(custom_regions.value)

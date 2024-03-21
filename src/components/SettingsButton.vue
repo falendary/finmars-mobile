@@ -266,7 +266,7 @@
 
 			navigate(path) {
 
-				this.$router.push({ path, query: { tab: this.spaceStore.activeTab }});
+				this.$router.push({ path });
 			},
 			goToMore() {
 				this.isOpen = false
@@ -309,8 +309,8 @@
 
 			this.spaceStore = computed(() => this.store.getActiveSpaceStore())
 
-			console.log('Index.spaceStore', this.spaceStore)
-			console.log('Index.store.activeSpaceCode', this.store.activeSpaceCode)
+			// console.log('Index.spaceStore', this.spaceStore)
+			// console.log('Index.store.activeSpaceCode', this.store.activeSpaceCode)
 
 			// Adjust dates, just in case date_from bigger then date_to
 			let result = this.adjustDates(this.spaceStore.settings.general.date_to, this.spaceStore.settings.general.date_from)
@@ -322,8 +322,8 @@
 				() => this.spaceStore.settings.general.date_to,
 				() => {
 
-					console.log('this.spaceStore.settings.general.date_to', this.spaceStore.settings.general.date_to)
-					console.log('this.spaceStore.settings.general.date_from', this.spaceStore.settings.general.date_from)
+					// console.log('this.spaceStore.settings.general.date_to', this.spaceStore.settings.general.date_to)
+					// console.log('this.spaceStore.settings.general.date_from', this.spaceStore.settings.general.date_from)
 
 					let result = this.adjustDates(this.spaceStore.settings.general.date_to, this.spaceStore.settings.general.date_from)
 
@@ -333,7 +333,7 @@
 			)
 
 
-			console.log('INDEX_CONTROLLER: Store is ready')
+			// console.log('INDEX_CONTROLLER: Store is ready')
 			this.processing = false
 			this.store.globalProcessing = false
 

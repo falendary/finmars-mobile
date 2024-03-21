@@ -298,8 +298,8 @@
 			// Probably do not needed
 			async doBalanceSearch(query){
 				try {
-					console.log('handleSearch', event)
-					console.log('reportType', this.reportType)
+					// console.log('handleSearch', event)
+					// console.log('reportType', this.reportType)
 
 					let url = 'backendBalanceReportItems.post'
 
@@ -308,7 +308,7 @@
 					// 	url = 'backendPLReportItems.post'
 					// }
 
-					console.log('url', url);
+					// console.log('url', url);
 
 					let res = await useApi(url, {
 						body: {
@@ -367,12 +367,12 @@
 			},
 			async doPLSearch(query){
 				try {
-					console.log('handleSearch', event)
-					console.log('reportType', this.reportType)
+					// console.log('handleSearch', event)
+					// console.log('reportType', this.reportType)
 
 					let url = 'backendPLReportItems.post'
 
-					console.log('url', url);
+					// console.log('url', url);
 
 					let res = await useApi(url, {
 						body: {
@@ -435,12 +435,12 @@
 			},
 			async doTransactionsSearch(query){
 				try {
-					console.log('handleSearch', event)
-					console.log('reportType', this.reportType)
+					// console.log('handleSearch', event)
+					// console.log('reportType', this.reportType)
 
 					let url = 'backendTransactionReportItems.post'
 
-					console.log('url', url);
+					// console.log('url', url);
 
 					let res = await useApi(url, {
 						body: {
@@ -524,7 +524,7 @@
 
 			async submitSearchResult(event, type,  item) {
 
-				console.log('SearchDialog.submitSearchResult.item', item)
+				// console.log('SearchDialog.submitSearchResult.item', item)
 
 				this.searchProcessing = true
 

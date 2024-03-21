@@ -16,7 +16,7 @@ const router = createRouter({
 //
 // 	const { value: space } = await Preferences.get({ key: 'space' })
 //
-// 	console.log('to.path ', to.path );
+// 	// console.log('to.path ', to.path );
 //
 // 	if (to.path == '/logout') {
 // 		Preferences.clear()

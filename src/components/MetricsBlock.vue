@@ -91,7 +91,7 @@
 			},
 			async getPortfolioHistory() {
 
-				console.log('Metricsblock.getPortfolioHistory')
+				// console.log('Metricsblock.getPortfolioHistory')
 
 				this.processing = true
 
@@ -249,8 +249,8 @@
 			// Watch for changes in activeTab prop
 			portfolio(newValue, oldValue) {
 
-				// console.log('metricsBlock.portfolio.newValue', newValue)
-				// console.log('metricsBlock.portfolio.oldValue', oldValue)
+				// // console.log('metricsBlock.portfolio.newValue', newValue)
+				// // console.log('metricsBlock.portfolio.oldValue', oldValue)
 
 				if (Array.isArray(newValue) && newValue.length && Array.isArray(oldValue) && oldValue.length) {
 					if (newValue[0] !== oldValue[0]) {

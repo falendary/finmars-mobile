@@ -16,7 +16,7 @@
 
 	const router = useRouter()
 
-	console.log("Logout Page Init")
+	// console.log("Logout Page Init")
 
 	import {  logoutKeycloak } from '@/services/keycloakService.js'
 	import { Preferences } from '@capacitor/preferences'

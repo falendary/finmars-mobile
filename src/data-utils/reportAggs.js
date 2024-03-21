@@ -72,7 +72,7 @@ export const reportGroup = ({
 				if (group.name.indexOf('.')) {
 					var pieces = group.name.split('.')
 
-					console.log('pieces', pieces);
+					// console.log('pieces', pieces);
 
 					if (pieces.length >= 3) {
 						verbose_name = pieces[1] // need middle of it
@@ -209,7 +209,7 @@ export const reportGroup = ({
 	// 		.filter((o) => o[sum_field] != 0)
 	// 		.sort((a, b) => b[sum_field] - a[sum_field])
 	// }
-	console.log('res:', res)
+	// console.log('res:', res)
 
 	for (let prop in res) {
 		let colorKey = 0
@@ -228,7 +228,7 @@ export const reportGroup = ({
 		if (!res[prop].subcats.length) delete res[prop]
 	}
 
-	console.log('reportGroup.res', res)
+	// console.log('reportGroup.res', res)
 
 	return res
 }
@@ -288,7 +288,7 @@ export const reportGroupPL = ({
 	}
 
 	let items = injectIntoItemsV2(report.items, report, 'pl-report')
-	console.log('items:', items)
+	// console.log('items:', items)
 
 	let res = items.reduce((result, item) => {
 		fieldsToGroup.forEach((group) => {
@@ -335,7 +335,7 @@ export const reportGroupPL = ({
 				})
 			} else {
 				existingInstr[sum_field] += item[sum_field]
-				console.log('item.item_group_code:', item.item_group_code)
+				// console.log('item.item_group_code:', item.item_group_code)
 
 				if (item.item_group_code == 'OPENED')
 					existingInstr.change.value += item[sum_field]
@@ -416,8 +416,8 @@ var unwrapRelationsAsFlatDicts = function(items) {
 }
 
 var joinFlatRelationToItem = function(item, key, relation) {
-	// console.log('joinFlatRelationToItem.key', key)
-	// console.log('joinFlatRelationToItem.item', item[key])
+	// // console.log('joinFlatRelationToItem.key', key)
+	// // console.log('joinFlatRelationToItem.item', item[key])
 
 	if (relation) {
 		Object.keys(relation).forEach(function(relation_key) {
@@ -448,7 +448,7 @@ function injectIntoItemsV2(items, reportOptions, entityType) {
 		reportOptions.item_account_types
 	)
 
-	console.log('portfolios_as_dict', portfolios_as_dict)
+	// console.log('portfolios_as_dict', portfolios_as_dict)
 
 	var counterparties_as_dict = null
 	if (reportOptions.item_counterparties) {
@@ -845,7 +845,7 @@ function injectIntoItemsV2(items, reportOptions, entityType) {
 		}
 	})
 
-	// console.log('INJECTED', items);
+	// // console.log('INJECTED', items);
 
 	return items
 }

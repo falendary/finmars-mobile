@@ -8,7 +8,7 @@ async function initFormbricks(user) {
 
 	if (typeof window !== 'undefined') {
 
-		console.log('initFormbricks', user)
+		// console.log('initFormbricks', user)
 
 		try {
 
