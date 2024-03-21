@@ -52,7 +52,7 @@
 							class="portfolios-item"
 							v-for="item in portfolios"
 							v-bind:key="item.id"
-							@click="$router.push('/main/balance?tab=' + item.user_code)"
+							@click="selectPortfolio($event, item)"
 						>
 							<div class="portfolios-item-line">
 								<div class="pi_header">{{ item.name }}</div>
@@ -232,6 +232,13 @@
 			}
 		},
 		methods: {
+			selectPortfolio($event, item) {
+
+				this.spaceStore.activeTab = item.user_code;
+
+				this.$router.push('/main/balance')
+
+			},
 			init() {
 
 				console.log('Dashboard.init')
