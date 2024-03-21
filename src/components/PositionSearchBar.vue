@@ -1,11 +1,11 @@
 <template>
 	<div class="position-search-bar">
 
-		<ion-searchbar :value="spaceStore.searchQuery" @ionFocus="openSearchDialog($event)" show-cancel-button="never"
-									 show-clear-button="never"></ion-searchbar>
-
-		<ion-icon class="clear-search-result-icon-button" slot="icon-only" :ios="icons.closeOutline" :md="close"
-							@click="clearSearchResult($event)"></ion-icon>
+		<ion-searchbar :value="spaceStore.searchQuery"
+									 show-clear-button="never"
+									 @ionFocus="openSearchDialog($event)" show-cancel-button="always"
+									 @ionCancel="clearSearchResult()"
+									 ></ion-searchbar>
 
 		<search-dialog
 			@resultSelectCallback="submitSearchResult"
@@ -119,12 +119,14 @@
 
 	.position-search-bar {
 		position: relative;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
 
-		.clear-search-result-icon-button {
-			position: absolute;
-			right: 1rem;
-			top: 1rem;
-		}
+	.clear-search-result-icon-button {
+		margin-right: .5rem;
+		margin-top: 0;
 	}
 
 </style>
