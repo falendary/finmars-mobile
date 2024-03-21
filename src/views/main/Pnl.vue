@@ -451,7 +451,7 @@
 
 				this.positions = []
 
-				if (item) {
+				if (item && item.type) {
 
 					await this.fetchCategories();
 
@@ -1057,18 +1057,11 @@
 			this.pageReady = true
 
 
-			console.log('this.$router.options.history.state.back', this.$router.options.history.state.back)
-
-			this.activeTab = this.$route.query.tab || 'All'
-
-			if (this.$router.options.history.state.back.indexOf('?tab=') !== -1) {
-				let activeTabFromHistory = this.$router.options.history.state.back.split('?tab=')[1]
-
-				activeTabFromHistory = decodeURIComponent(activeTabFromHistory.replace(/\+/g, ' '))
-				this.activeTab = activeTabFromHistory
+			if (!this.spaceStore.activeTab) {
+				this.spaceStore.activeTab = 'All'
 			}
 
-			this.spaceStore.activeTab = this.activeTab
+			this.activeTab = this.spaceStore.activeTab
 
 			console.log('this.activeTab', this.activeTab)
 

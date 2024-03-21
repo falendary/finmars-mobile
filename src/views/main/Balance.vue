@@ -433,7 +433,7 @@
 
 				this.positions = []
 
-				if (item) {
+				if (item && item.type) {
 
 					await this.fetchCategories();
 
@@ -909,17 +909,13 @@
 
 			await this.fetchBalanceReportAttributes()
 
-			this.activeTab = this.$route.query.tab || 'All'
-
-			if (this.$router.options.history.state.back.indexOf('?tab=') !== -1) {
-				let activeTabFromHistory = this.$router.options.history.state.back.split('?tab=')[1]
-				activeTabFromHistory = decodeURIComponent(activeTabFromHistory.replace(/\+/g, ' '))
-				this.activeTab = activeTabFromHistory
+			if (!this.spaceStore.activeTab) {
+				this.spaceStore.activeTab = 'All'
 			}
 
-			this.spaceStore.activeTab = this.activeTab
+			this.activeTab = this.spaceStore.activeTab
 
-			await this.init()
+			// await this.init()
 
 			if (this.spaceStore.searchResult) {
 				await this.submitSearchResult();

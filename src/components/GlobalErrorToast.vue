@@ -103,7 +103,8 @@
 
 	.global-error-toast {
 		position: fixed;
-		top: 0;
+		top:  env(safe-area-inset-top);
+		–top: var(–ion-safe-area-top, 1rem);
 		width: 100%;
 		display: flex;
 		//padding: 1rem;

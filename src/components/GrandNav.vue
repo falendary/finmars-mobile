@@ -65,7 +65,8 @@ export default {
 
 	methods: {
 		goToBalance() {
-			this.$router.push('/main/balance?tab=All')
+			this.spaceStore.activeTab = 'All';
+			this.$router.push('/main/balance')
 		},
 		async refresh() {
 			this.grandTotal = 0
