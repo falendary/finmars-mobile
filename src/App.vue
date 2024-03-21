@@ -292,6 +292,7 @@
 			this.doHealthcheck()
 
 			this.globalInternval = setInterval(() => {
+				this.isBlurred = false;
 				this.resetRecoveryButtonTimer()
 				this.doHealthcheck()
 			}, 15 * 1000) // do healthcheck every 10 seconds
