@@ -308,7 +308,6 @@
 
 	import { Doughnut } from 'vue-chartjs'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
-	import PositionDialog from '@/views/dialogs/PositionDialog.vue'
 	import SearchDialog from '@/views/dialogs/SearchDialog.vue'
 	import MetricsBlock from '@/components/MetricsBlock.vue'
 	import PeriodTypePicker from '@/components/PeriodTypePicker.vue'
@@ -341,7 +340,6 @@
 
 			Doughnut,
 
-			PositionDialog,
 			SearchDialog,
 
 			MetricsBlock,
@@ -380,7 +378,6 @@
 				activeInstrument: null,
 
 				selectedPositionForDialog: null,
-				isPositionDialogOpen: false,
 
 				activePosition: {},
 				metricsBlockRefresher: null,

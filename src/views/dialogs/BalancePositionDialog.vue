@@ -38,20 +38,19 @@
 					</ion-badge>
 				</ion-item>
 
-				<ion-item v-if="position['pricing_currency.user_code'] && position['pricing_currency.user_code'] != '-'">
+				<ion-item v-if="position.nominal_position_size">
 					<ion-label>
-						Pricing Currency
+						Position Size (Nominal)
 					</ion-label>
-					<ion-badge color="primary" class="selectable">{{ position['pricing_currency.user_code'] }}
+					<ion-badge color="primary" class="selectable">{{ $format(position.nominal_position_size) }}
 					</ion-badge>
 				</ion-item>
 
-
-				<ion-item v-if="position.nominal_position_size">
+				<ion-item v-if="position.instrument_factor">
 					<ion-label>
-						Position Size
+						Factor
 					</ion-label>
-					<ion-badge color="primary" class="selectable">{{ $format(position.nominal_position_size) }}
+					<ion-badge color="primary" class="selectable">{{ position.instrument_factor }}
 					</ion-badge>
 				</ion-item>
 
@@ -62,6 +61,30 @@
 						Price
 					</ion-label>
 					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.instrument_principal_price) }} {{ position['pricing_currency.user_code'] }}
+					</ion-badge>
+				</ion-item>
+
+				<ion-item v-if="position.instrument_accrued_price">
+					<ion-label>
+						Accrued Price
+					</ion-label>
+					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.instrument_accrued_price) }} {{ position['accrued_currency.user_code'] }}
+					</ion-badge>
+				</ion-item>
+
+				<ion-item v-if="position['pricing_currency.user_code'] && position['pricing_currency.user_code'] != '-'">
+					<ion-label>
+						Pricing Currency
+					</ion-label>
+					<ion-badge color="primary" class="selectable">{{ position['pricing_currency.user_code'] }}
+					</ion-badge>
+				</ion-item>
+
+				<ion-item v-if="position['instrument.price_multiplier']">
+					<ion-label>
+						Multiplier
+					</ion-label>
+					<ion-badge color="primary" class="selectable">{{ position['instrument.price_multiplier'] }}
 					</ion-badge>
 				</ion-item>
 
@@ -80,6 +103,47 @@
 					<ion-badge color="primary" class="selectable">{{ $format(position.market_value) }} {{ spaceStore.settings.general.currency }}
 					</ion-badge>
 				</ion-item>
+
+				<ion-item v-if="position.ytm">
+					<ion-label>
+						YTM
+					</ion-label>
+					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.ytm) * 100 }}%</ion-badge>
+				</ion-item>
+
+				<ion-item v-if="position.modified_duration">
+					<ion-label>
+						Modified Duration
+					</ion-label>
+					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.modified_duration) }} Years
+					</ion-badge>
+				</ion-item>
+
+				<ion-item v-if="position.position_return">
+					<ion-label>
+						Return (All Time)
+					</ion-label>
+					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.position_return) * 100 }}%</ion-badge>
+				</ion-item>
+
+				<ion-item v-if="position.return_annually">
+					<ion-label>
+						Return (P. A.)
+					</ion-label>
+					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.return_annually) * 100 }}%
+					</ion-badge>
+				</ion-item>
+
+
+				<ion-item v-if="position.net_cost_price">
+					<ion-label>
+						Net Cost Price
+					</ion-label>
+					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.net_cost_price) }} {{ spaceStore.settings.general.currency }}
+					</ion-badge>
+				</ion-item>
+
+				<h1>P&L</h1>
 
 				<ion-item v-if="position.total">
 					<ion-label>
@@ -108,14 +172,6 @@
 						Overheads
 					</ion-label>
 					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.overheads) }} {{ spaceStore.settings.general.currency }}</ion-badge>
-				</ion-item>
-
-				<ion-item v-if="position.net_cost_price">
-					<ion-label>
-						Net Cost Price
-					</ion-label>
-					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.net_cost_price) }} {{ spaceStore.settings.general.currency }}
-					</ion-badge>
 				</ion-item>
 
 
@@ -232,44 +288,12 @@
 						</ion-badge>
 					</ion-item>
 
-
 					<ion-item v-if="position.exposure">
 						<ion-label>
 							Exposure
 						</ion-label>
 						<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.exposure) }} {{ spaceStore.settings.general.currency }}</ion-badge>
 					</ion-item>
-
-					<ion-item v-if="position.ytm">
-						<ion-label>
-							YTM
-						</ion-label>
-						<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.ytm) * 100 }}%</ion-badge>
-					</ion-item>
-
-					<ion-item v-if="position.modified_duration">
-						<ion-label>
-							Modified Duration
-						</ion-label>
-						<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.modified_duration) }} Years
-						</ion-badge>
-					</ion-item>
-
-					<ion-item v-if="position.position_return">
-						<ion-label>
-							Return (Inception)
-						</ion-label>
-						<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.position_return) * 100 }}%</ion-badge>
-					</ion-item>
-
-					<ion-item v-if="position.return_annually">
-						<ion-label>
-							Return (Annually)
-						</ion-label>
-						<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.return_annually) * 100 }}%
-						</ion-badge>
-					</ion-item>
-
 
 				</div>
 

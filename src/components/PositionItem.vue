@@ -59,7 +59,7 @@
 					{{ $format(item.position_size) }}
 				</ion-chip>
 
-				<ion-chip :id="item.id + 'position_size'" v-if="item.position_size && itemType == 'pl'">Open
+				<ion-chip :id="item.id + 'position_size'" v-if="item.position_size && itemType == 'pl'">Opened
 					{{ $format(item.position_size) }}
 				</ion-chip>
 				<ion-chip :id="item.id + 'position_size'" v-if="!item.position_size && itemType == 'pl'">Closed</ion-chip>
@@ -103,11 +103,17 @@
 
 	</div>
 
-	<position-dialog
+	<balance-position-dialog
 		:position="item"
-		:isOpen="isPositionDialogOpen"
-		@close="isPositionDialogOpen = false"
-	></position-dialog>
+		:isOpen="isBalancePositionDialogOpen"
+		@close="isBalancePositionDialogOpen = false"
+	></balance-position-dialog>
+
+	<pnl-position-dialog
+		:position="item"
+		:isOpen="isPnlPositionDialogOpen"
+		@close="isPnlPositionDialogOpen = false"
+	></pnl-position-dialog>
 
 </template>
 
@@ -131,11 +137,13 @@
 	import Passcode from '@/components/Passcode.vue'
 	import TransactionListComp from '@/components/TransactionList.vue'
 	import metaService from '@/services/metaService.js'
-	import PositionDialog from '@/views/dialogs/PositionDialog.vue'
+	import BalancePositionDialog from '@/views/dialogs/BalancePositionDialog.vue'
+	import PnlPositionDialog from '@/views/dialogs/PnlPositionDialog.vue'
 
 	export default {
 		components: {
-			PositionDialog,
+			BalancePositionDialog,
+			PnlPositionDialog,
 			TransactionListComp,
 			IonSkeletonText,
 			IonIcon,
@@ -176,7 +184,8 @@
 				portfolioHistoryItems: [],
 				processing: false,
 
-				isPositionDialogOpen: false
+				isBalancePositionDialogOpen: false,
+				isPnlPositionDialogOpen: false
 			}
 		},
 		methods: {
@@ -185,7 +194,11 @@
 			},
 			async openPositionModal($event, item) {
 
-				this.isPositionDialogOpen = true
+				if (item.item_group_name) {
+					this.isPnlPositionDialogOpen = true
+				} else {
+					this.isBalancePositionDialogOpen = true
+				}
 
 			},
 			activatePosition($event, item) {
