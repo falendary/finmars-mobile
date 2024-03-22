@@ -123,14 +123,14 @@
 					<ion-label>
 						Return (All Time)
 					</ion-label>
-					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.position_return) * 100 }}%</ion-badge>
+					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.position_return * 100)  }}%</ion-badge>
 				</ion-item>
 
 				<ion-item v-if="position.return_annually">
 					<ion-label>
 						Return (P. A.)
 					</ion-label>
-					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.return_annually) * 100 }}%
+					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.return_annually * 100)  }}%
 					</ion-badge>
 				</ion-item>
 
@@ -139,7 +139,7 @@
 					<ion-label>
 						Net Cost Price
 					</ion-label>
-					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.net_cost_price) }} {{ spaceStore.settings.general.currency }}
+					<ion-badge color="primary" class="selectable">{{ $format(position.net_cost_price) }} {{ spaceStore.settings.general.currency }}
 					</ion-badge>
 				</ion-item>
 
@@ -157,21 +157,21 @@
 					<ion-label>
 						Capital Gain
 					</ion-label>
-					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.principal) }} {{ spaceStore.settings.general.currency }}</ion-badge>
+					<ion-badge color="primary" class="selectable">{{ $format(position.principal) }} {{ spaceStore.settings.general.currency }}</ion-badge>
 				</ion-item>
 
 				<ion-item v-if="position.carry">
 					<ion-label>
 						Carry
 					</ion-label>
-					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.carry) }} {{ spaceStore.settings.general.currency }}</ion-badge>
+					<ion-badge color="primary" class="selectable">{{ $format(position.carry) }} {{ spaceStore.settings.general.currency }}</ion-badge>
 				</ion-item>
 
 				<ion-item v-if="position.overheads">
 					<ion-label>
 						Overheads
 					</ion-label>
-					<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.overheads) }} {{ spaceStore.settings.general.currency }}</ion-badge>
+					<ion-badge color="primary" class="selectable">{{ $format(position.overheads) }} {{ spaceStore.settings.general.currency }}</ion-badge>
 				</ion-item>
 
 
@@ -267,7 +267,7 @@
 						<ion-label>
 							Gross Cost Price
 						</ion-label>
-						<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.gross_cost_price) }} {{ spaceStore.settings.general.currency }}
+						<ion-badge color="primary" class="selectable">{{ $format(position.gross_cost_price) }} {{ spaceStore.settings.general.currency }}
 						</ion-badge>
 					</ion-item>
 
@@ -284,7 +284,7 @@
 						<ion-label>
 							Amount Invested
 						</ion-label>
-						<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.amount_invested) }} {{ spaceStore.settings.general.currency }}
+						<ion-badge color="primary" class="selectable">{{ $format(position.amount_invested) }} {{ spaceStore.settings.general.currency }}
 						</ion-badge>
 					</ion-item>
 
@@ -292,7 +292,7 @@
 						<ion-label>
 							Exposure
 						</ion-label>
-						<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.exposure) }} {{ spaceStore.settings.general.currency }}</ion-badge>
+						<ion-badge color="primary" class="selectable">{{ $format(position.exposure) }} {{ spaceStore.settings.general.currency }}</ion-badge>
 					</ion-item>
 
 				</div>
