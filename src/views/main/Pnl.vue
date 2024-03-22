@@ -1095,6 +1095,7 @@
 
 			// console.log('this.activeTab', this.activeTab)
 
+			this.activePath = this.$route.path
 			await this.init()
 
 			if (this.spaceStore.searchResult) {
@@ -1137,8 +1138,6 @@
 				await this.submitSearchResult()
 
 			}, { deep: true })
-
-			this.activePath = this.$route.path
 
 			this.routeWatch = watch(
 				() => this.$route,

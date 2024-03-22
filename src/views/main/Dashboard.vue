@@ -126,6 +126,7 @@
 						<div class="header header-with-period-type-picker">
 
 							<top-performers @refresher="topPerformersRefresher = $event"></top-performers>
+
 						</div>
 
 					</div>
@@ -345,6 +346,8 @@
 
 			// console.log('DASHBOARD_CONTROLLER: this.spaceStore', this.spaceStore)
 
+			await this.init()
+
 			watch(() => this.spaceStore.settings.general, async () => {
 
 				// console.log('DASHBOARD_CONTROLLER: watch this.spaceStore.settings.general')
@@ -357,8 +360,6 @@
 				await this.init()
 
 			}, { deep: true })
-
-			this.init()
 
 			this.transactionsOpts = {
 				end_date: this.spaceStore.settings.general.date_to,

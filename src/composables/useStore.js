@@ -147,10 +147,8 @@ export default defineStore('store', {
 					},
 					activeTab: 'All',
 					searchQuery: '',
-					searchResult: {
-						type: '',
-						item: null
-					},
+					searchType: '',
+					searchResult: null
 
 				}
 

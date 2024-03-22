@@ -90,7 +90,7 @@
 	} from '@ionic/vue'
 
 	import { barChartOutline, close, layersOutline, readerOutline, settingsOutline, settingsSharp } from 'ionicons/icons'
-	import { computed, watch } from 'vue'
+	import { computed, nextTick, watch } from 'vue'
 	import useStore from '@/composables/useStore'
 	import useApi from '@/composables/useApi'
 	import dayjs from 'dayjs'
@@ -260,7 +260,7 @@
 				}
 			)
 
-
+			await nextTick()
 			// console.log('INDEX_CONTROLLER: Store is ready')
 			this.processing = false
 			this.store.globalProcessing = false

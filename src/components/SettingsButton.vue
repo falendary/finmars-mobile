@@ -305,7 +305,6 @@
 			this.store = useStore()
 			this.store.globalProcessing = true
 
-			await this.store.initSpaceStore()
 
 			this.spaceStore = computed(() => this.store.getActiveSpaceStore())
 

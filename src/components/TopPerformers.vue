@@ -103,10 +103,6 @@
 			// settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline
 		},
 		props: {
-			portfolio: {
-				type: String,
-				required: true
-			}
 		},
 		emits: ['refresher'],
 		data() {
@@ -223,9 +219,9 @@
 			this.$emit('refresher', this.refresh)
 
 		},
-		mounted() {
+		async mounted() {
 
-			this.fetchPositions()
+			await this.fetchPositions()
 
 		},
 		beforeUnmount() {

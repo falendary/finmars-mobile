@@ -389,7 +389,7 @@
 				metricsBlockRefresher: null,
 
 				activePath: null,
-				pageProcessing: false
+				pageProcessing: true
 
 			}
 		},
@@ -930,7 +930,10 @@
 				this.spaceStore.activeTab = 'All'
 			}
 
-			await this.smallRefresh()
+			// order is important
+			this.activePath = this.$route.path
+
+			await this.init()
 
 			if (this.spaceStore.searchResult) {
 				await this.submitSearchResult()
@@ -967,7 +970,7 @@
 			}, { deep: true })
 
 
-			this.activePath = this.$route.path
+
 
 			this.routeWatch = watch(
 				() => this.$route,
