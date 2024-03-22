@@ -367,7 +367,7 @@
 				categoriesTotalSum: null,
 				portfolioHistory: null,
 				transactionsOpts: null,
-				chartProcessing: true,
+				chartProcessing: false,
 				positionsProcessing: false,
 				colorsCat: {},
 				portfoliosRefresher: null,
@@ -706,10 +706,6 @@
 
 				await this.fetchCategories()
 
-				if (this.balanceChartObj) {
-					this.balanceChartObj.destroy()
-				}
-
 				this.chartData = {}
 
 				this.chartData.data = {
@@ -755,8 +751,7 @@
 
 				this.chartProcessing = false
 
-				this.fetchPositions()
-
+				await this.fetchPositions()
 
 				// // console.log('createChart.chartData', this.chartData)
 				// // console.log('createChart.chartProcessing', this.chartProcessing)

@@ -96,7 +96,7 @@
 				this.processing = true
 
 				this.portfolioHistory = null
-				this.portfolioHistoryItems = []
+				// this.portfolioHistoryItems = []
 
 				const data = await useApi('portfolioHistory.get', {
 					filters: {
@@ -109,6 +109,8 @@
 						date_after: this.spaceStore.settings.general.date_to
 					}
 				})
+
+				this.portfolioHistoryItems = []
 
 
 				if (data.results.length) {
@@ -247,23 +249,26 @@
 
 		watch: {
 			// Watch for changes in activeTab prop
-			portfolio(newValue, oldValue) {
+			portfolio: {
+				async handler(newValue, oldValue) {
 
-				// // console.log('metricsBlock.portfolio.newValue', newValue)
-				// // console.log('metricsBlock.portfolio.oldValue', oldValue)
+					console.log('metrics.newValue', newValue);
+					console.log('metrics.oldValue', oldValue);
 
-				if (Array.isArray(newValue) && newValue.length && Array.isArray(oldValue) && oldValue.length) {
-					if (newValue[0] !== oldValue[0]) {
-						this.getPortfolioHistory()
+					if (Array.isArray(newValue) && newValue.length && Array.isArray(oldValue) && oldValue.length) {
+						if (newValue[0] !== oldValue[0]) {
+							await this.getPortfolioHistory()
+						}
 					}
-				}
 
+
+				}
 			}
 
 		},
-		mounted() {
+		async mounted() {
 
-			this.getPortfolioHistory()
+			await this.getPortfolioHistory()
 
 		},
 		beforeUnmount() {
