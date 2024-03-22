@@ -207,7 +207,7 @@ export default {
 	}
 
 	.grand-nav-value {
-		font-size: 2.5rem;
+		font-size: 2.3rem;
 		font-weight: bold;
 	}
 

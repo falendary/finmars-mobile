@@ -355,7 +355,7 @@
 
 					<ion-item v-if="position.return_annually">
 						<ion-label>
-							Return (P. A.)
+							Return p.a.
 						</ion-label>
 						<ion-badge color="primary" class="selectable">{{ $roundToTwo(position.return_annually * 100)  }}%
 						</ion-badge>

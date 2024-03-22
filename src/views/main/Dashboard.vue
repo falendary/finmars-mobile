@@ -345,7 +345,7 @@
 
 			// console.log('DASHBOARD_CONTROLLER: this.spaceStore', this.spaceStore)
 
-			watch(this.spaceStore.settings.general, () => {
+			watch(() => this.spaceStore.settings.general, async () => {
 
 				// console.log('DASHBOARD_CONTROLLER: watch this.spaceStore.settings.general')
 
@@ -354,7 +354,7 @@
 					.add(-1, 'month')
 					.format('YYYY-MM-DD')
 
-				this.init()
+				await this.init()
 
 			}, { deep: true })
 
