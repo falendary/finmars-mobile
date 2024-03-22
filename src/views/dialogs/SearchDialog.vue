@@ -295,7 +295,6 @@
 
 			},
 
-			// Probably do not needed
 			async doBalanceSearch(query){
 				try {
 					// console.log('handleSearch', event)
@@ -417,9 +416,9 @@
 
 					this.plSearchResults = res.items
 
-					this.balanceSearchResults = res.items.filter((item) =>{
-						return item.item_group === 10; // only opened positions
-					})
+					// this.balanceSearchResults = res.items.filter((item) =>{
+					// 	return item.item_group === 10; // only opened positions
+					// })
 
 				} catch (error) {
 
@@ -504,7 +503,7 @@
 
 				this.searchProcessing = true
 
-				// await this.doBalanceSearch(query);
+				await this.doBalanceSearch(query);
 				await this.doPLSearch(query);
 				await this.doTransactionsSearch(query);
 

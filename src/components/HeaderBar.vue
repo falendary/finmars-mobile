@@ -71,11 +71,19 @@
 
 						<div v-if="currentPath == '/main/transaction'">
 
-							<ion-datetime-button class="header-date-button" datetime="datetime_date_from" />
+							<div v-if="spaceStore.settings.general.period_type === 'custom'">
 
-							<span style="margin: 0 4px;">-</span>
+								<ion-datetime-button class="header-date-button" datetime="datetime_date_from" />
 
-							<ion-datetime-button class="header-date-button" datetime="datetime_date_to" />
+								<span style="margin: 0 4px;">-</span>
+
+								<ion-datetime-button class="header-date-button" datetime="datetime_date_to" />
+
+							</div>
+
+							<div v-if="spaceStore.settings.general.period_type !== 'custom' ">
+								<ion-datetime-button class="header-date-button" datetime="datetime_date_to" />
+							</div>
 
 						</div>
 

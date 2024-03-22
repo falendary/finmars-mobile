@@ -252,8 +252,8 @@
 			portfolio: {
 				async handler(newValue, oldValue) {
 
-					console.log('metrics.newValue', newValue);
-					console.log('metrics.oldValue', oldValue);
+					// console.log('metrics.newValue', newValue);
+					// console.log('metrics.oldValue', oldValue);
 
 					if (Array.isArray(newValue) && newValue.length && Array.isArray(oldValue) && oldValue.length) {
 						if (newValue[0] !== oldValue[0]) {

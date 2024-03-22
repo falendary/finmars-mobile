@@ -43,7 +43,7 @@
 
 					</div>
 
-					<div v-show="!chartProcessing">
+					<div v-if="!chartProcessing">
 
 						<div class="balance_block">
 							<div class="bb_header_line flex sb aic">
@@ -114,7 +114,7 @@
 
 					</div>
 
-					<div v-show="chartProcessing" class="balance_block">
+					<div v-if="chartProcessing" class="balance_block">
 
 						<div class="bb_header_line flex sb aic">
 							<div class="bb_header">
@@ -161,7 +161,7 @@
 							<div class="bb_header_line instr_block_header flex sb aifs">
 								<div class="bb_header">{{ activeCategory.___group_name }}</div>
 								<div>
-									<div class="bb_price">
+									<div class="bb_price" v-if="!spaceStore.searchResult">
 										{{ $format(activeCategory.subtotal[spaceStore.settings.balance.sumByKey]) }}
 									</div>
 									<!-- <div class="instr_block_change flex jcfe">
@@ -281,7 +281,7 @@
 </template>
 
 <script>
-	import { computed, watch } from 'vue'
+	import { computed, toRaw, watch } from 'vue'
 	import {
 		IonButton,
 		IonButtons,
@@ -434,16 +434,18 @@
 
 				let item = this.spaceStore.searchResult
 
-				// console.log('Balance.submitSearchResult.item', item)
-				// console.log('Balance.submitSearchResult.categories', this.categories)
+				console.log('Balance.submitSearchResult.item', item)
+				console.log('Balance.submitSearchResult.categories', this.categories)
 
 				this.positions = []
 
-				if (item && item.type) {
+				if (item) {
 
 					await this.fetchCategories()
 
-					this.categories.forEach((category) => {
+					let categories = toRaw(this.categories)
+
+					categories.forEach((category) => {
 
 						// because we use user_code instead of names and other non unique fields for relations
 						// also because of user_code not equal to name of instrument type
@@ -467,12 +469,15 @@
 
 					})
 
-					// console.log('submitSearchResult.activeCategory', this.activeCategory)
+					console.log('submitSearchResult.activeCategory', this.activeCategory)
 
 					await this.fetchPositions()
 
-					this.positions = this.positions.filter((position) => {
-						return position.id === item.id
+					console.log('submitSearchResult.positions', this.positions);
+					console.log('submitSearchResult.item', toRaw(item).id);
+
+					this.positions = toRaw(this.positions).filter((position) => {
+						return position.id === toRaw(item).id
 					})
 
 					this.pageProcessing = false;
@@ -480,18 +485,16 @@
 				} else {
 					await this.refresh()
 				}
-				// Todo refactor
-				// this.activatePosition(new Event('click'), item)
 
 			},
 
 			roundToTwo(num) {
 				return +(Math.round(num + 'e+2') + 'e-2')
 			},
-			saveChartSettings() {
+			async saveChartSettings() {
 				this.chartSettingsModalIsOpen = false
 				this.activeCategory = null
-				this.createChart()
+				await this.createChart()
 			},
 
 			async tabChangeHandler(data) {
@@ -702,11 +705,13 @@
 
 				this.chartProcessing = true
 
-				this.chartData = null
+				// console.log("createChart.Fetching categories")
 
 				await this.fetchCategories()
 
-				this.chartData = {}
+				this.chartData = {};
+
+				// console.log('createChart.chartData', this.chartData)
 
 				this.chartData.data = {
 					labels: this.categories.map((item) => {
@@ -736,8 +741,6 @@
 						tooltip: {
 							callbacks: {
 								label: function(context) {
-									let labelIndex = context.dataIndex
-
 									return (
 										context.formattedValue
 									)
@@ -753,7 +756,7 @@
 
 				await this.fetchPositions()
 
-				// // console.log('createChart.chartData', this.chartData)
+
 				// // console.log('createChart.chartProcessing', this.chartProcessing)
 
 			},
@@ -927,10 +930,9 @@
 				this.spaceStore.activeTab = 'All'
 			}
 
+			await this.smallRefresh()
 
-			// await this.init()
-
-			if (this.spaceStore.searchResult && this.spaceStore.searchResult.type) {
+			if (this.spaceStore.searchResult) {
 				await this.submitSearchResult()
 			}
 

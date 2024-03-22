@@ -55,7 +55,7 @@
 						<div class="bb_header_line flex sb aic">
 							<div class="bb_header">{{ groupByName }}</div>
 							<div class="bb_price">
-								{{ $format(categoriesTotalSum) }}
+								{{ $format(categoriesTotalTrueSum) }}
 								{{ spaceStore.settings.general.currency }}
 							</div>
 						</div>
@@ -180,7 +180,7 @@
 						<div class="bb_header_line instr_block_header flex sb aifs">
 							<div class="bb_header">{{ activeCategory.___group_name }}</div>
 							<div>
-								<div class="bb_price">
+								<div class="bb_price" v-if="!spaceStore.searchResult">
 									{{ $format(activeCategory.subtotal[spaceStore.settings.pl.sumByKey]) }}
 									<!--								{{ spaceStore.settings.general.currency }}-->
 								</div>
@@ -313,7 +313,7 @@
 </template>
 
 <script>
-	import { computed, watch } from 'vue'
+	import { computed, toRaw, watch } from 'vue'
 	import {
 		IonButton,
 		IonButtons,
@@ -407,7 +407,8 @@
 
 				numericBalanceReportAttributes: [],
 				groupByAttributes: [],
-				categoriesTotalSum: null,
+				categoriesTotalSum: null, // used only to find out bar length for chart
+				categoriesTotalTrueSum: null,
 				chartData: null,
 				positionsError: '',
 				chartHeight: 200,
@@ -450,7 +451,7 @@
 
 				if (!this.spaceStore.searchType) {
 					// console.log("pnl.submitSearchResult.noType: do_refresh")
-					this.refresh()
+					await this.refresh()
 				}
 
 				if (this.spaceStore.searchType && this.spaceStore.searchType !== 'pnl') {
@@ -462,11 +463,13 @@
 
 				this.positions = []
 
-				if (item && item.type) {
+				if (item) {
 
 					await this.fetchCategories()
 
-					this.categories.forEach((category) => {
+					let categories = toRaw(this.categories)
+
+					categories.forEach((category) => {
 
 						// because we use user_code instead of names and other non unique fields for relations
 						// also because of user_code not equal to name of instrument type
@@ -494,12 +497,12 @@
 
 					await this.fetchPositions()
 
-					this.positions = this.positions.filter((position) => {
-						return position.id === item.id
+					this.positions = toRaw(this.positions).filter((position) => {
+						return position.id === toRaw(item).id
 					})
 
 				} else {
-					this.refresh()
+					await this.refresh()
 				}
 			},
 			roundToTwo(num) {
@@ -689,12 +692,17 @@
 
 				this.categories = res.items.sort((a, b) => b.subtotal[this.spaceStore.settings.pl.sumByKey] - a.subtotal[this.spaceStore.settings.pl.sumByKey])
 
+				this.categoriesTotalTrueSum = 0;
 				this.categoriesTotalSum = 0
 
 				this.categories.forEach((item) => {
 					if (item.subtotal[this.spaceStore.settings.pl.sumByKey] > 0) {
 						this.categoriesTotalSum = this.categoriesTotalSum + item.subtotal[this.spaceStore.settings.pl.sumByKey]
 					}
+
+					this.categoriesTotalTrueSum = this.categoriesTotalTrueSum + item.subtotal[this.spaceStore.settings.pl.sumByKey]
+
+
 				})
 
 			},
@@ -1089,7 +1097,7 @@
 
 			await this.init()
 
-			if (this.spaceStore.searchResult && this.spaceStore.searchResult.type) {
+			if (this.spaceStore.searchResult) {
 				await this.submitSearchResult()
 			}
 
