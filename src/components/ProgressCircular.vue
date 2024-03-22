@@ -1,13 +1,12 @@
 <template>
-	<div class='progress-holder' :class="'progress-size-' + diameter" :style='{background: bg}'>
+	<div class="progress-holder" :class="'progress-size-' + diameter" :style="{background: bg}">
 
-		<img src='/img/sphere.png' alt=''>
+		<img src="/img/sphere.png" alt="">
 
-		<div class='progress progress-circular'
+		<div class="progress progress-circular"
 				 :class="'front-line-' +frontLineColor + ' back-line-' +backLineColor"
 				 :style="{'border-top-color': color, 'border-right-color': color}"
 		>
-
 
 		</div>
 
@@ -15,33 +14,29 @@
 
 </template>
 
-<script>
+<script>/**
+	 * Created by szhitenev on 30.09.2023.
+	 */
 
-	/**
-				 * Created by szhitenev on 30.09.2023.
-				 */
+	import { Preferences } from '@capacitor/preferences'
 
-				export default {
+export default {
 
-					props: {
-						diameter: {
-							type: Number,
-							required: true,
-							default: 10
-						},
-						bg: {
-							type: String,
-							required: false,
-							default: 'white'
-						}
-					},
+		props: {
+			diameter: {
+				type: Number,
+				required: true,
+				default: 10
+			},
+		},
 
-					data() {
-						return {
-							progressInterval: null,
-							frontLineColor: 'default',
-							backLineColor: 'default',
-							color: '#F05A22',
+		data() {
+			return {
+				progressInterval: null,
+				frontLineColor: 'default',
+				backLineColor: 'default',
+				bg: 'white',
+				color: '#F05A22',
 				brightColors: [
 					'#FF5733', '#FFC300', '#36D7B7', '#3399FF', '#FF33FF', // Original colors
 					'#FF6666', '#FF9900', '#66FF66', '#33CCFF', '#FF66CC', // Additional colors
@@ -101,6 +96,32 @@
 			}, 2000)
 
 		},
+		async mounted() {
+
+			let { value: darkTheme } = await Preferences.get({ key: 'darkTheme' })
+
+			if (darkTheme === 'true') {
+				this.isDarkTheme = true
+			} else if (darkTheme === 'false') {
+				this.isDarkTheme = false
+			} else {
+
+				if (window.matchMedia) {
+					const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
+
+					if (prefersDark.matches) {
+						this.isDarkTheme = true
+					}
+				}
+			}
+
+			this.bg = 'white'
+
+			if (this.isDarkTheme) {
+				this.bg = 'black'
+			}
+
+		},
 		beforeUnmount() {
 			clearInterval(this.progressInterval)
 		}
@@ -109,44 +130,53 @@
 
 </script>
 
-<style lang='scss'>
+<style lang="scss">
 
 	.progress-size-10 {
 		width: 10px;
 		height: 10px;
 	}
+
 	.progress-size-20 {
 		width: 20px;
 		height: 20px;
 	}
+
 	.progress-size-30 {
 		width: 30px;
 		height: 30px;
 	}
+
 	.progress-size-40 {
 		width: 40px;
 		height: 40px;
 	}
+
 	.progress-size-50 {
 		width: 50px;
 		height: 50px;
 	}
+
 	.progress-size-60 {
 		width: 60px;
 		height: 60px;
 	}
+
 	.progress-size-70 {
 		width: 70px;
 		height: 70px;
 	}
+
 	.progress-size-80 {
 		width: 80px;
 		height: 80px;
 	}
+
 	.progress-size-90 {
 		width: 90px;
 		height: 90px;
 	}
+
 	.progress-size-100 {
 		width: 100px;
 		height: 100px;
@@ -159,7 +189,7 @@
 		border-radius: 50%;
 		/* border: 1px solid red; */
 		text-align: center;
-		box-shadow: 0 0 10px rgba(0,0,0,1);
+		box-shadow: 0 0 10px rgba(0, 0, 0, 1);
 		display: flex;
 		justify-content: center;
 		align-items: center;
@@ -288,7 +318,6 @@
 			background-position: left -102% top 0%;
 		}
 	}
-
 
 
 </style>

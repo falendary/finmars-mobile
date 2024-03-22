@@ -32,7 +32,7 @@
 		<div v-show="store.globalProcessing" class="display-flex align-center justify-center height-100">
 			<ion-button class="global-process-close-button" @click="goToRecovery()" v-show="showRecoveryButton">Recovery
 			</ion-button>
-			<progress-circular bg="black" diameter="90"></progress-circular>
+			<progress-circular diameter="90"></progress-circular>
 		</div>
 
 	</ion-app>
