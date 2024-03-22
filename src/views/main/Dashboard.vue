@@ -6,135 +6,143 @@
 				<ion-refresher-content />
 			</ion-refresher>
 
-			<div v-if="spaceStore.settings.general.portfolios.length">
+			<div v-if="!processing">
 
-				<div class="dashboard-content">
+				<div v-if="spaceStore.settings.general.portfolios.length">
 
-					<div class="header">Total</div>
+					<div class="dashboard-content">
 
-					<grand-nav @refresher="grandNavRefresher = $event"></grand-nav>
+						<div class="header">Total</div>
 
-					<div
-						class="main_chart"
-						v-if="store.layout?.dashboard?.isShowHistoryChart"
-					>
-						<div class="main_chart_h">Net Asset Value (NAV)</div>
-						<div class="main_chart_price">
-							- {{ spaceStore.settings.general.currency }}
-						</div>
+						<grand-nav @refresher="grandNavRefresher = $event"></grand-nav>
 
 						<div
-							v-show="isReadyChart"
-							style="height: 80px; width: calc(100% + 10px); margin: 0 0 -5px -5px"
+							class="main_chart"
+							v-if="store.layout?.dashboard?.isShowHistoryChart"
 						>
-							<canvas id="myChart"><p>Chart</p></canvas>
-						</div>
-						<div
-							v-show="!isReadyChart"
-							class="center aic"
-							style="height: 80px; margin: 0 0 -5px -5px"
-						>
-							<IonSpinner style="width: 100px" color="primary" name="bubbles" />
-						</div>
-					</div>
-
-
-					<div class="header header-with-period-type-picker">
-						<div>Portfolios</div>
-					</div>
-
-					<div v-if="!portfolioHistoryExists">
-						<no-portfolio-history></no-portfolio-history>
-					</div>
-
-					<div class="portfolios" v-if="portfolios.length">
-						<div
-							class="portfolios-item"
-							v-for="item in portfolios"
-							v-bind:key="item.id"
-							@click="selectPortfolio($event, item)"
-						>
-							<div class="portfolios-item-line">
-								<div class="pi_header">{{ item.name }}</div>
+							<div class="main_chart_h">Net Asset Value (NAV)</div>
+							<div class="main_chart_price">
+								- {{ spaceStore.settings.general.currency }}
 							</div>
-							<div>
-								<div class="portfolios-item-line text-right">
+
+							<div
+								v-show="isReadyChart"
+								style="height: 80px; width: calc(100% + 10px); margin: 0 0 -5px -5px"
+							>
+								<canvas id="myChart"><p>Chart</p></canvas>
+							</div>
+							<div
+								v-show="!isReadyChart"
+								class="center aic"
+								style="height: 80px; margin: 0 0 -5px -5px"
+							>
+								<IonSpinner style="width: 100px" color="primary" name="bubbles" />
+							</div>
+						</div>
+
+
+						<div class="header header-with-period-type-picker">
+							<div>Portfolios</div>
+						</div>
+
+						<div v-if="!portfolioHistoryExists">
+							<no-portfolio-history></no-portfolio-history>
+						</div>
+
+						<div class="portfolios" v-if="portfolios.length">
+							<div
+								class="portfolios-item"
+								v-for="item in portfolios"
+								v-bind:key="item.id"
+								@click="selectPortfolio($event, item)"
+							>
+								<div class="portfolios-item-line">
+									<div class="pi_header">{{ item.name }}</div>
+								</div>
+								<div>
+									<div class="portfolios-item-line text-right">
+										<div class="pi_price">
+											<IonSkeletonText
+												v-if="item.nav == '-'"
+												:animated="true"
+												style="width: 100px; height: 24px"
+											/>
+											<template v-else
+											>{{ $format(item.nav) }}
+												{{ spaceStore.settings.general.currency }}
+											</template
+											>
+										</div>
+
+									</div>
+									<div class="portfolios-item-line text-right">
+
+
+										<IonSkeletonText
+											v-if="item.cumulative_return == '-'"
+											:animated="true"
+											style="width: 80px; height: 25px"
+										/>
+										<ChangePrice v-else :total="item.total" :percent="item.cumulative_return" />
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="portfolios" v-if="portfolios === null">
+							<div class="portfolios-item" v-for="item in [1, 1, 1]">
+								<div class="portfolios-item-line">
+									<div class="pi_header">
+										<IonSkeletonText
+											:animated="true"
+											style="width: 130px; height: 24px"
+										/>
+									</div>
+									<div class="pi_price_change">
+										<IonSkeletonText
+											:animated="true"
+											style="width: 60px; height: 24px"
+										/>
+									</div>
+								</div>
+								<div class="portfolios-item-line">
 									<div class="pi_price">
 										<IonSkeletonText
-											v-if="item.nav == '-'"
 											:animated="true"
 											style="width: 100px; height: 24px"
 										/>
-										<template v-else
-										>{{ $format(item.nav) }}
-											{{ spaceStore.settings.general.currency }}
-										</template
-										>
 									</div>
 
 								</div>
-								<div class="portfolios-item-line text-right">
-
-
+								<div class="portfolios-item-line">
 									<IonSkeletonText
-										v-if="item.cumulative_return == '-'"
 										:animated="true"
 										style="width: 80px; height: 25px"
 									/>
-									<ChangePrice v-else :total="item.total" :percent="item.cumulative_return" />
 								</div>
 							</div>
 						</div>
-					</div>
 
-					<div class="portfolios" v-if="portfolios === null">
-						<div class="portfolios-item" v-for="item in [1, 1, 1]">
-							<div class="portfolios-item-line">
-								<div class="pi_header">
-									<IonSkeletonText
-										:animated="true"
-										style="width: 130px; height: 24px"
-									/>
-								</div>
-								<div class="pi_price_change">
-									<IonSkeletonText
-										:animated="true"
-										style="width: 60px; height: 24px"
-									/>
-								</div>
-							</div>
-							<div class="portfolios-item-line">
-								<div class="pi_price">
-									<IonSkeletonText
-										:animated="true"
-										style="width: 100px; height: 24px"
-									/>
-								</div>
+						<div class="header header-with-period-type-picker">
 
-							</div>
-							<div class="portfolios-item-line">
-								<IonSkeletonText
-									:animated="true"
-									style="width: 80px; height: 25px"
-								/>
-							</div>
+							<top-performers @refresher="topPerformersRefresher = $event"></top-performers>
 						</div>
+
 					</div>
 
-					<div class="header header-with-period-type-picker">
+				</div>
 
-						<top-performers @refresher="topPerformersRefresher = $event"></top-performers>
-					</div>
+				<div v-if="!spaceStore.settings.general.portfolios.length">
+
+					<p class="text-center">Nothing to view</p>
+					<p class="text-center">Please select Portfolios in Settings</p>
 
 				</div>
 
 			</div>
 
-			<div v-if="!spaceStore.settings.general.portfolios.length">
-
-				<p class="text-center">Nothing to view</p>
-				<p class="text-center">Please select Portfolios in Settings</p>
-
+			<div class="display-flex align-center justify-center" style="padding-top: 2rem;" v-if="processing">
+				<progress-circular diameter="100"></progress-circular>
 			</div>
 
 		</ion-content>
@@ -180,6 +188,7 @@
 	import PeriodTypePicker from '@/components/PeriodTypePicker.vue'
 	import NoPortfolioHistory from '@/components/NoPortfolioHistory.vue'
 	import TopPerformers from '@/components/TopPerformers.vue'
+	import ProgressCircular from '@/components/ProgressCircular.vue'
 	// Stores the controller so that the chart initialization routine can look it up
 	Chart.register(
 		LineElement,
@@ -194,6 +203,7 @@
 
 	export default {
 		components: {
+			ProgressCircular,
 			IndicatorsComp,
 			IonSelectOption,
 			IonSelect,
@@ -239,25 +249,24 @@
 				this.$router.push('/main/balance')
 
 			},
-			init() {
+			async init() {
 
 				// console.log('Dashboard.init')
 
 				this.processing = true
 
-				this.fetchPortfolios()
+				await this.fetchPortfolios()
 
 				if (this.indicatorsRefresher) {
-					this.indicatorsRefresher()
+					await this.indicatorsRefresher()
 				}
 
 				if (this.grandNavRefresher) {
-					this.grandNavRefresher()
+					await this.grandNavRefresher()
 				}
 				if (this.topPerformersRefresher) {
 					this.topPerformersRefresher()
 				}
-
 
 				this.processing = false
 
