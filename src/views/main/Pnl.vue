@@ -914,63 +914,70 @@
 			async fetchReport() {
 				let filters = []
 
-				let res = await useApi('backendPLReportGroups.post', {
-					body: {
-						account_mode: this.spaceStore.settings.general.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
-						accounts: this.spaceStore.settings.general.accounts,
-						accounts_cash: [],
-						accounts_position: [],
-						allocation_detailing: true,
-						allocation_mode: 0,
-						approach_multiplier: 0.5,
-						calculate_pl: true,
-						calculationGroup: 'portfolio',
-						cost_method: 1,
-						custom_fields_to_calculate: '',
-						expression_iterations_count: 1,
-						filters,
-						frontend_request_options: {
-							columns: [
-								{
-									'key': this.spaceStore.settings.pl.groupByKey,
-									'value_type': 10
+				let report_settings = {
+					account_mode: this.spaceStore.settings.general.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
+					accounts: this.spaceStore.settings.general.accounts,
+					accounts_cash: [],
+					accounts_position: [],
+					allocation_detailing: true,
+					allocation_mode: 0,
+					approach_multiplier: 0.5,
+					calculate_pl: true,
+					calculationGroup: 'portfolio',
+					cost_method: 1,
+					custom_fields_to_calculate: '',
+					expression_iterations_count: 1,
+					filters,
+					frontend_request_options: {
+						columns: [
+							{
+								'key': this.spaceStore.settings.pl.groupByKey,
+								'value_type': 10
+							},
+							{
+								'key': this.spaceStore.settings.pl.sumByKey,
+								'report_settings': {
+									'subtotal_formula_id': 1 // sum
 								},
-								{
-									'key': this.spaceStore.settings.pl.sumByKey,
-									'report_settings': {
-										'subtotal_formula_id': 1 // sum
-									},
-									'value_type': 20
-								}
-							],
-							groups_types: [
-								{
-									'key': this.spaceStore.settings.pl.groupByKey,
-									'value_type': 10
-								}
-							],
-							page: 1,
-							filter_settings: []
-						},
-						pl_include_zero: false,
-						portfolio_mode: 1,
-						portfolios: this.getPortfoliosForReportSettings(),
-						pricing_policy: this.spaceStore.settings.general.pricing_policy,
-						report_currency: this.spaceStore.settings.general.currency,
-						report_date: this.spaceStore.settings.general.date_to,
-						pl_first_date: this.spaceStore.settings.general.date_from,
-						report_type: 1,
-						show_balance_exposure_details: false,
-						show_transaction_details: true,
-						strategies1: [],
-						strategies2: [],
-						strategies3: [],
-						strategy1_mode: 0,
-						strategy2_mode: 0,
-						strategy3_mode: 0,
-						table_font_size: 'small',
-						task_id: null
-					}
+								'value_type': 20
+							}
+						],
+						groups_types: [
+							{
+								'key': this.spaceStore.settings.pl.groupByKey,
+								'value_type': 10
+							}
+						],
+						page: 1,
+						filter_settings: []
+					},
+					pl_include_zero: false,
+					portfolio_mode: 1,
+					portfolios: this.getPortfoliosForReportSettings(),
+					pricing_policy: this.spaceStore.settings.general.pricing_policy,
+					report_currency: this.spaceStore.settings.general.currency,
+					report_date: this.spaceStore.settings.general.date_to,
+					report_type: 1,
+					show_balance_exposure_details: false,
+					show_transaction_details: true,
+					strategies1: [],
+					strategies2: [],
+					strategies3: [],
+					strategy1_mode: 0,
+					strategy2_mode: 0,
+					strategy3_mode: 0,
+					table_font_size: 'small',
+					task_id: null
+				}
+
+				if (this.spaceStore.settings.general.period_type === 'custom') {
+					report_settings.pl_first_date = this.spaceStore.settings.general.date_from;
+				} else {
+					report_settings.period_type = this.spaceStore.settings.general.period_type;
+				}
+
+				let res = await useApi('backendPLReportGroups.post', {
+					body: report_settings
 				})
 
 				return res

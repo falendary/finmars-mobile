@@ -105,7 +105,7 @@
 
 										<ion-item v-if="item['item_group_name']">
 											<ion-label>
-												Type
+												PL Group
 											</ion-label>
 											{{ item['item_group_name'] }}
 
