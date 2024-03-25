@@ -572,6 +572,9 @@
 
 				if (userCode !== this.spaceStore.activeTab) {
 
+
+					this.spaceStore.activeTab = userCode
+
 					// console.log('onTabChange.userCode', userCode)
 					this.chartData = null;
 
@@ -583,7 +586,7 @@
 						await this.reloadChart()
 					}
 
-					this.spaceStore.activeTab = userCode
+
 
 				}
 
