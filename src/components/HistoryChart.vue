@@ -27,6 +27,20 @@
 							{{ spaceStore.settings.general.currency }}
 						</div>
 
+						<div class="main_chart_chip"
+								 :class="{
+									plus: balanceTabCumulitiveReturn > 0,
+									neutral: balanceTabCumulitiveReturn == 0,
+									minus: balanceTabCumulitiveReturn < 0,
+								}"
+								 v-if="spaceStore.activeTab !== 'All'">
+							<div class="main_chart_chip-total">
+								<img v-if="balanceTabCumulitiveReturn < 0" src="/img/change_down.svg" alt="">
+								<img v-if="balanceTabCumulitiveReturn > 0" src="/img/change_up.svg" alt="">
+								{{balanceTabTotal}}</div>
+							<div class="main_chart_chip-percent">{{balanceTabCumulitiveReturn}}%</div>
+						</div>
+
 						<div
 							style="height: 80px; width: calc(100% + 10px); margin: 0 0 -5px -5px"
 							v-show="!error" v-if="!chartProcessing && spaceStore.activeTab !== 'All'"
@@ -84,17 +98,19 @@
 </template>
 
 <script>
-	import { computed, watch } from 'vue'
+	import { computed } from 'vue'
 	import { IonSkeletonText } from '@ionic/vue'
 	import { Swiper, SwiperSlide } from 'swiper/vue'
 	import { Pagination } from 'swiper'
 	import useApi from '@/composables/useApi'
 	import useStore from '@/composables/useStore'
 	import { Line } from 'vue-chartjs'
+	import ChangePrice from '@/components/ChangePrice.vue'
 
 	export default {
 		name: 'HistoryChart',
 		components: {
+			ChangePrice,
 			IonSkeletonText,
 			Swiper,
 			SwiperSlide,
@@ -131,6 +147,9 @@
 				swiperInstance: null,
 				ignoreSlideChange: false,
 				showSwiper: true,
+
+				balanceTabTotal: '-',
+				balanceTabCumulitiveReturn: '-'
 			}
 		},
 		methods: {
@@ -365,6 +384,40 @@
 				}
 
 			},
+			async fetchPortfolioHistoryForBalance() {
+
+				console.log('fetchPortfolioHistoryForBalance.spaceStore.activeTab', this.spaceStore.activeTab);
+
+				if (this.spaceStore.activeTab !== 'All') {
+
+					let data = await useApi('portfolioHistory.get', {
+						filters: {
+							status: 'ok',
+							period_type: this.spaceStore.settings.general.period_type,
+							portfolio__user_code: this.spaceStore.activeTab,
+							pricing_policy__user_code: this.spaceStore.settings.general.pricing_policy,
+							currency__user_code: this.spaceStore.settings.general.currency,
+							date_before: this.spaceStore.settings.general.date_to,
+							date_after: this.spaceStore.settings.general.date_to
+						}
+					})
+
+					console.log('fetchPortfolioHistoryForBalance.data', data)
+
+					if (!data.results.length) {
+
+						this.balanceTabTotal = '-'
+						this.balanceTabCumulitiveReturn = '-'
+
+					} else {
+						this.balanceTabTotal = this.$format(data.results[0].total);
+						this.balanceTabCumulitiveReturn = parseFloat(data.results[0].cumulative_return * 100).toFixed(2)
+					}
+
+				}
+
+
+			},
 			async fetchBalanceReport() {
 				let filters = []
 
@@ -495,9 +548,9 @@
 				}
 
 				if (this.spaceStore.settings.general.period_type === 'custom') {
-					report_settings.pl_first_date = this.spaceStore.settings.general.date_from;
+					report_settings.pl_first_date = this.spaceStore.settings.general.date_from
 				} else {
-					report_settings.period_type = this.spaceStore.settings.general.period_type;
+					report_settings.period_type = this.spaceStore.settings.general.period_type
 				}
 
 				let res = await useApi('backendPLReportGroups.post', {
@@ -538,6 +591,8 @@
 						this.targetValue = '--'
 					}
 
+					await this.fetchPortfolioHistoryForBalance()
+
 				} else if (this.type === 'balance' && this.spaceStore.activeTab === 'All') {
 
 					await this.fetchBalanceReport()
@@ -576,7 +631,7 @@
 					this.spaceStore.activeTab = userCode
 
 					// console.log('onTabChange.userCode', userCode)
-					this.chartData = null;
+					this.chartData = null
 
 					await this.fetchNavOrTotal()
 
@@ -585,7 +640,6 @@
 					if (this.spaceStore.activeTab !== 'All') {
 						await this.reloadChart()
 					}
-
 
 
 				}
@@ -667,4 +721,36 @@
 		position: relative;
 		top: 1px;
 	}
+
+	.main_chart_chip {
+		position: absolute;
+		top: .6rem;
+		right: 0.6rem;
+	}
+
+	.main_chart_chip {
+		text-align: right;
+		font-size: 12px;
+
+		.main_chart_chip-total {
+			font-size: 16px;
+			img {
+				width: 10px;
+			}
+		}
+		&.plus {
+			//background: rgba(52, 199, 89, 0.17);
+			color: rgba(52, 199, 89, 1);
+		}
+		&.minus {
+			//background: var(--ion-background-color);
+			color: #ff2d55;
+		}
+		&.neutral {
+			//background: #EFEFEF;
+			color: #747474;
+		}
+	}
+
+
 </style>

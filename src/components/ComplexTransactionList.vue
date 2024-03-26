@@ -251,7 +251,7 @@
 				<template v-for="field in userFieldsMap">
 					<div
 						class="complex-transaction-user-field-item flex sb"
-						v-if="activeComplexTransaction[field.key]"
+						v-if="activeComplexTransaction[field.key] && activeComplexTransaction[field.key] != '-'"
 					>
 						<div class="complex-transaction-user-field-key">{{ field.name }}:</div>
 						<div class="complex-transaction-user-field-value">
@@ -285,7 +285,7 @@
 				<template v-for="field in transactionFieldsMap">
 					<div
 						class="complex-transaction-user-field-item flex sb"
-						v-if="activeTransaction[field.key]"
+						v-if="activeTransaction[field.key] && activeTransaction[field.key] != '-' && (activeTransaction[field.key + '_object'] && activeTransaction[field.key + '_object'].name != '-') "
 					>
 						<div class="complex-transaction-user-field-key">{{ field.name }}:</div>
 						<div class="complex-transaction-user-field-value">
