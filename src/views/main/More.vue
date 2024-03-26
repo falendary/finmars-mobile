@@ -57,7 +57,7 @@
 			</ion-button>
 
 			<div v-if="spaceStore.settings.general.period_type === 'custom'">
-				Can not request calculation for <b>Custom</b> period.
+				Not supported for <b>Custom</b>
 			</div>
 
 

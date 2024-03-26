@@ -63,7 +63,7 @@ export default async function useApi(
 		headers = {},
 		provider = true, // Query object,
 		signal: externalSignal, // NEW: Accepting a signal for aborting the request
-		timeout = 30 * 1000 // NEW: Default timeout of 30 second
+		timeout = 60 * 1000 // NEW: Default timeout of 30 second
 	} = {}
 ) {
 	let loggerName = 'API - ' + Date.now()

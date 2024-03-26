@@ -18,7 +18,7 @@
 
 				<div style="margin-top: 0.5rem; min-height: 50vh;" class="position-relative">
 
-					<div v-if="!searchProcessing && query">
+					<div v-if="query">
 
 						<div v-if="balanceSearchResults.length">
 
@@ -309,6 +309,8 @@
 
 					// console.log('url', url);
 
+					this.balanceSearchResults = [];
+
 					let res = await useApi(url, {
 						body: {
 							account_mode: this.spaceStore.settings.general.consolidateAccounts ? 0 : 1, // 0 - ignore, 1 - independent
@@ -350,7 +352,11 @@
 						}
 					})
 
-					this.balanceSearchResults = res.items
+					if (res && res.items) {
+						this.balanceSearchResults = res.items;
+					} else {
+						this.balanceSearchResults = [];
+					}
 
 				} catch (error) {
 
@@ -368,6 +374,8 @@
 				try {
 					// console.log('handleSearch', event)
 					// console.log('reportType', this.reportType)
+
+					this.plSearchResults = [];
 
 					let url = 'backendPLReportItems.post'
 
@@ -414,7 +422,11 @@
 						}
 					})
 
-					this.plSearchResults = res.items
+					if (res && res.items) {
+						this.plSearchResults = res.items
+					} else {
+						this.plSearchResults = []
+					}
 
 					// this.balanceSearchResults = res.items.filter((item) =>{
 					// 	return item.item_group === 10; // only opened positions
@@ -438,6 +450,8 @@
 					// console.log('reportType', this.reportType)
 
 					let url = 'backendTransactionReportItems.post'
+
+					this.transactionsSearchResults = []
 
 					// console.log('url', url);
 
@@ -482,7 +496,11 @@
 						}
 					})
 
-					this.transactionsSearchResults = res.items
+					if (res && res.items) {
+						this.transactionsSearchResults = res.items
+					} else {
+						this.transactionsSearchResults = []
+					}
 
 				} catch (error) {
 
