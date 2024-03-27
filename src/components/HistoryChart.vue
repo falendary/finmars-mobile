@@ -33,7 +33,7 @@
 									neutral: balanceTabCumulitiveReturn == 0,
 									minus: balanceTabCumulitiveReturn < 0,
 								}"
-								 v-if="spaceStore.activeTab !== 'All'">
+								 v-if="spaceStore.activeTab !== 'All' && type === 'balance'">
 							<div class="main_chart_chip-total">
 								<img v-if="balanceTabCumulitiveReturn < 0" src="/img/change_down.svg" alt="">
 								<img v-if="balanceTabCumulitiveReturn > 0" src="/img/change_up.svg" alt="">
