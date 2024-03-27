@@ -557,7 +557,11 @@
 					body: report_settings
 				})
 
-				this.targetValue = res.items[0].subtotal.total
+				this.targetValue = 0;
+
+				res.items.forEach((item) => {
+					this.targetValue = this.targetValue + item.subtotal.total
+				})
 
 				return res
 			},
