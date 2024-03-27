@@ -129,6 +129,7 @@ export default defineStore('store', {
 							portfolios: [],
 							accounts: [],
 							consolidateAccounts: false,
+							allocationMode: false,
 							period_type: 'ytd'
 						},
 						balance: {

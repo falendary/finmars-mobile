@@ -127,6 +127,16 @@
 					</ion-checkbox>
 				</ion-item>
 
+				<ion-item>
+					<ion-checkbox
+						v-model="spaceStore.settings.general.allocationMode"
+						labelPlacement="start"
+						class="chart_view"
+					>
+						Allocation Mode
+					</ion-checkbox>
+				</ion-item>
+
 
 			</ion-list>
 
@@ -147,12 +157,10 @@
 	</ion-modal>
 
 
-
 </template>
 
 <script>
 	import {
-		alertController,
 		IonButton,
 		IonButtons,
 		IonCheckbox,
@@ -172,18 +180,14 @@
 		IonTabButton,
 		IonTabs,
 		IonTitle,
-		IonToggle,
 		IonToolbar
 	} from '@ionic/vue'
 
 	import { barChartOutline, close, layersOutline, readerOutline, settingsOutline, settingsSharp } from 'ionicons/icons'
 	import { computed } from 'vue'
 	import useStore from '@/composables/useStore'
-	import useApi from '@/composables/useApi'
 	import dayjs from 'dayjs'
 	import quarterOfYear from 'dayjs/plugin/quarterOfYear'
-	import ProgressCircular from '@/components/ProgressCircular.vue'
-	import HeaderBar from '@/components/HeaderBar.vue'
 	import SearchButton from '@/components/SearchButton.vue'
 
 	dayjs.extend(quarterOfYear)
@@ -210,7 +214,7 @@
 			IonButtons,
 			IonTitle, IonPage,
 			SearchButton,
-			IonButton,
+			IonButton
 
 
 			// settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline
@@ -266,7 +270,7 @@
 
 			navigate(path) {
 
-				this.$router.push({ path });
+				this.$router.push({ path })
 			},
 			goToMore() {
 				this.isOpen = false
@@ -353,7 +357,7 @@
 
 
 <style lang="scss" scoped>
-  .copy-button {
+	.copy-button {
 		margin-top: 0;
 		background: var(--ion-background-color);
 	}

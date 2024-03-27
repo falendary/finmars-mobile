@@ -8,7 +8,7 @@
 				<div>
 					<div class="grand-nav-value">{{ grandNavVerbose }} {{ spaceStore.settings.general.currency }}</div>
 				</div>
-				<div>
+				<div v-if="grandTotal">
 					<span class="grand-total-value" :class="{
 			plus: grandTotal > 0,
 			neutral: grandTotal == 0,
@@ -79,7 +79,7 @@ export default {
 
 	methods: {
 		goToBalance() {
-			this.spaceStore.activeTab = 'All';
+			this.spaceStore.activeTab = 'All'
 			this.$router.push('/main/balance')
 		},
 		async refresh() {
@@ -100,7 +100,7 @@ export default {
 					accounts_cash: [],
 					accounts_position: [],
 					allocation_detailing: true,
-					allocation_mode: 0,
+					allocation_mode: this.spaceStore.settings.general.allocationMode ? 1 : 0,
 					approach_multiplier: 0.5,
 					calculate_pl: true,
 					calculationGroup: 'portfolio',
@@ -193,7 +193,7 @@ export default {
 				accounts_cash: [],
 				accounts_position: [],
 				allocation_detailing: true,
-				allocation_mode: 0,
+				allocation_mode: this.spaceStore.settings.general.allocationMode ? 1 : 0,
 				approach_multiplier: 0.5,
 				calculate_pl: true,
 				calculationGroup: 'portfolio',
@@ -241,9 +241,9 @@ export default {
 			}
 
 			if (this.spaceStore.settings.general.period_type === 'custom') {
-				report_settings.pl_first_date = this.spaceStore.settings.general.date_from;
+				report_settings.pl_first_date = this.spaceStore.settings.general.date_from
 			} else {
-				report_settings.period_type = this.spaceStore.settings.general.period_type;
+				report_settings.period_type = this.spaceStore.settings.general.period_type
 			}
 
 			let res = await useApi('backendPLReportGroups.post', {
@@ -349,10 +349,12 @@ export default {
 			background: rgba(52, 199, 89, 0.17);
 			color: rgba(52, 199, 89, 1);
 		}
+
 		&.minus {
 			background: var(--ion-background-color);
 			color: #ff2d55;
 		}
+
 		&.neutral {
 			background: #EFEFEF;
 			color: #747474;

@@ -136,7 +136,7 @@
 							accounts_cash: [],
 							accounts_position: [],
 							allocation_detailing: true,
-							allocation_mode: 0,
+							allocation_mode: this.spaceStore.settings.general.allocationMode ? 1 : 0,
 							approach_multiplier: 0.5,
 							calculate_pl: true,
 							calculationGroup: 'portfolio',

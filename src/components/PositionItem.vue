@@ -92,6 +92,21 @@
 					</ion-content>
 				</ion-popover>
 
+				<ion-chip :id="item.id + 'allocation'" class="instr_pos"
+									v-if="item['allocation.user_code'] && item['allocation.user_code'] != '-'">
+					{{ item['allocation.name'] }}
+				</ion-chip>
+
+				<ion-popover :trigger="item.id + 'allocation'">
+					<ion-content>
+						<div class="position-item-popover-content">Allocation</div>
+					</ion-content>
+				</ion-popover>
+
+
+
+
+
 			</div>
 		</div>
 
