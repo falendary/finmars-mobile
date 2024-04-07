@@ -1154,6 +1154,10 @@
 
 					this.activePath = newVal.path
 
+					if (this.activePath === '/main/pnl') {
+						await this.smallRefresh()
+					}
+
 					// console.log('headerBar.currentPath', this.currentPath)
 
 				}

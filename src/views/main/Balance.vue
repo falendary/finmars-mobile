@@ -978,6 +978,10 @@
 
 					this.activePath = newVal.path
 
+					if (this.activePath === '/main/balance') {
+						await this.smallRefresh()
+					}
+
 					// console.log('headerBar.currentPath', this.currentPath)
 
 				}
