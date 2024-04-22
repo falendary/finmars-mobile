@@ -70,7 +70,8 @@ export default async function useApi(
 	log.time(loggerName)
 
 	let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
-	const { value: workspace } = await Preferences.get({ key: 'activeSpaceCode' })
+	const { value: space_code } = await Preferences.get({ key: 'activeSpaceCode' })
+	const { value: realm_code } = await Preferences.get({ key: 'activeRealmCode' })
 	let { value: region } = await Preferences.get({ key: 'region' })
 
 	// if no region or workspace
@@ -98,7 +99,15 @@ export default async function useApi(
 			url = url.replace('{host}', 'http://0.0.0.0:8000')
 		}
 	} else {
-		url = url.replace('{client}', workspace)
+
+		console.log('realm_code ', realm_code)
+		console.log('realm_code ', typeof realm_code)
+
+		if (realm_code) {
+			url = url.replace('{client}', realm_code + '/' + space_code)
+		} else {
+			url = url.replace('{client}', space_code)
+		}
 		url = url.replace('{host}', region.domain)
 	}
 

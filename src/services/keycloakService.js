@@ -25,6 +25,7 @@ export async function initKeycloak() {
 	// window.keycloak.onTokenExpired = refreshTokens
 
 	let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
+	let { value: activeRealmCode } = await Preferences.get({ key: 'activeRealmCode' })
 
 	let appDestinationPath = 'welcome'
 

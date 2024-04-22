@@ -97,6 +97,7 @@
 
 				this.store = useStore()
 
+				await Preferences.remove({ key: 'activeRealmCode' })
 				await Preferences.remove({ key: 'activeSpaceCode' })
 				await Preferences.remove({ key: 'activeSpaceName' })
 				await Preferences.remove({ key: 'layout' })

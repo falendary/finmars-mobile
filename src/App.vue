@@ -213,6 +213,7 @@
 
 				let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
 				let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
+				let { value: activeRealmCode } = await Preferences.get({ key: 'activeRealmCode' })
 
 				if (tokens) {
 

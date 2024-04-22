@@ -9,6 +9,7 @@ export default defineStore('store', {
 		return {
 			member: null,
 			activeSpaceCode: null,
+			activeRealmCode: null,
 			globalProcessing: false,
 			activeSpace: null,
 			activeSpaceStore: null,
@@ -86,10 +87,12 @@ export default defineStore('store', {
 			// console.log('STORE: initSpaceStore')
 
 			let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
+			let { value: activeRealmCode } = await Preferences.get({ key: 'activeRealmCode' })
 			let { value: activeSpaceName } = await Preferences.get({ key: 'activeSpaceName' })
 
 			// console.log('STORE: initSpaceStore.activeSpaceCode', activeSpaceCode)
 
+			this.activeRealmCode = activeRealmCode
 			this.activeSpaceCode = activeSpaceCode
 			this.activeSpaceName = activeSpaceName
 
@@ -204,6 +207,7 @@ export default defineStore('store', {
 		async clear() {
 			this.activeSpaceStore = null
 			this.activeSpace = null
+			this.activeRealmCode = null
 			this.activeSpaceCode = null
 			this.activeSpaceName = null
 			this.member = null

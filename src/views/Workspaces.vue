@@ -114,6 +114,10 @@
 				})
 
 				await Preferences.remove({
+					key: 'activeRealmCode'
+				})
+
+				await Preferences.remove({
 					key: 'activeSpaceName'
 				})
 
@@ -121,6 +125,7 @@
 				store.activeSpace = null
 				store.activeSpaceName = null
 				store.activeSpaceCode = null
+				store.activeRealmCode = null
 
 				this.processing = false
 
@@ -136,6 +141,13 @@
 					value: workspaceObj.base_api_url
 				})
 
+				if (workspaceObj.realm_code) {
+					await Preferences.set({
+						key: 'activeRealmCode',
+						value: workspaceObj.realm_code
+					})
+				}
+
 				await Preferences.set({
 					key: 'activeSpaceName',
 					value: workspaceObj.name
@@ -145,6 +157,7 @@
 				store.activeSpace = workspaceObj
 				store.activeSpaceName = workspaceObj.name
 				store.activeSpaceCode = workspaceObj.base_api_url
+				store.activeRealmCode = workspaceObj.realm_code
 
 				await this.$router.push('/main/dashboard')
 

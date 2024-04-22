@@ -229,6 +229,7 @@
 				currencies: [],
 				pricingPolicies: [],
 				activeSpaceCode: null,
+				activeRealmCode: null,
 				workspace: null,
 				username: null,
 				isOpen: false,
