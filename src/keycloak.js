@@ -2449,44 +2449,57 @@
 		}
 
 		function check3pCookiesSupported() {
-			var promise = createPromise()
+			var promise = createPromise();
+			var timeout;
 
 			if (loginIframe.enable || kc.silentCheckSsoRedirectUri) {
-				var iframe = document.createElement('iframe')
-				iframe.setAttribute('src', kc.endpoints.thirdPartyCookiesIframe())
-				iframe.setAttribute('title', 'keycloak-3p-check-iframe')
-				iframe.style.display = 'none'
-				document.body.appendChild(iframe)
+				var iframe = document.createElement('iframe');
+				iframe.setAttribute('src', kc.endpoints.thirdPartyCookiesIframe());
+				iframe.setAttribute('title', 'keycloak-3p-check-iframe');
+				iframe.style.display = 'none';
+				document.body.appendChild(iframe);
 
 				var messageCallback = function (event) {
+					clearTimeout(timeout);
+					console.log('Message received:', event);
+
 					if (iframe.contentWindow !== event.source) {
-						return
+						return;
 					}
 
 					if (event.data !== 'supported' && event.data !== 'unsupported') {
-						return
-					} else if (event.data === 'unsupported') {
-						loginIframe.enable = false
+						return;
+					}
+
+					if (event.data === 'unsupported') {
+						loginIframe.enable = false;
 						if (kc.silentCheckSsoFallback) {
-							kc.silentCheckSsoRedirectUri = false
+							kc.silentCheckSsoRedirectUri = false;
 						}
 						logWarn(
 							"[KEYCLOAK] 3rd party cookies aren't supported by this browser. checkLoginIframe and " +
-								'silent check-sso are not available.'
-						)
+							'silent check-sso are not available.'
+						);
 					}
 
-					document.body.removeChild(iframe)
-					window.removeEventListener('message', messageCallback)
-					promise.setSuccess()
-				}
+					document.body.removeChild(iframe);
+					window.removeEventListener('message', messageCallback);
+					promise.setSuccess();
+				};
 
-				window.addEventListener('message', messageCallback, false)
+				timeout = setTimeout(function() {
+					console.log('Timeout reached, assuming iframe failed to load correctly.');
+					document.body.removeChild(iframe);
+					window.removeEventListener('message', messageCallback);
+					promise.setError(new Error("Iframe failed to load in expected time."));
+				}, 5000);  // Timeout of 5000 milliseconds, adjust as necessary
+
+				window.addEventListener('message', messageCallback, false);
 			} else {
-				promise.setSuccess()
+				promise.setSuccess();
 			}
 
-			return promise.promise
+			return promise.promise;
 		}
 
 		function loadAdapter(type, appApi) {

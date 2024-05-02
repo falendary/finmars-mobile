@@ -128,9 +128,9 @@
 					isCustom: true,
 					active: true,
 					name: 'Custom',
-					domain: 'https://finmars.com',
+					domain: 'https://eu-central.finmars.com',
 					keycloakOpts: {
-						url: 'https://eu-central.finmars.com',
+						url: 'https://eu-central-auth.finmars.com',
 						realm: 'finmars',
 						clientId: 'finmars'
 					}
@@ -139,21 +139,21 @@
 					{
 						id: 'eu-central',
 						name: 'Europe (eu-central)',
-						domain: 'https://finmars.com',
+						domain: 'https://eu-central.finmars.com',
 						active: true,
 						keycloakOpts: {
-							url: 'https://eu-central.finmars.com',
+							url: 'https://eu-central-auth.finmars.com',
 							realm: 'finmars',
 							clientId: 'finmars'
 						}
 					},
 					{
-						id: 'eu2-central',
+						id: 'eu-central-2',
 						name: 'Switzerland (eu-central-2)',
 						domain: 'https://eu-central-2.finmars.com',
-						active: false,
+						active: true,
 						keycloakOpts: {
-							url: 'https://eu-central-2.finmars.com',
+							url: 'https://eu-central-2-auth.finmars.com',
 							realm: 'finmars',
 							clientId: 'finmars'
 						}

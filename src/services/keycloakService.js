@@ -11,8 +11,9 @@ async function getRegion() {
 
 export async function initKeycloak() {
 
-
 	const region = await getRegion()
+
+	console.log('initKeycloak.region', region);
 
 	let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
 
@@ -66,9 +67,25 @@ export async function initKeycloak() {
 
 	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))
 
-	// // console.log('kcOpts', JSON.stringify(kcOpts, null, 4))
+	// console.log('kcOpts', JSON.stringify(kcOpts, null, 4))
+	console.log('before_init');
 
-	await window.keycloak.init(kcOpts)
+	try	{
+		await window.keycloak.init(kcOpts)
+	} catch (error) {
+		console.error("Keycloak.init error ", error);
+
+		await Preferences.remove({ key: 'kcTokens' })
+		await Preferences.remove({ key: 'region' })
+		await Preferences.remove({ key: 'activeRealmCode' })
+		await Preferences.remove({ key: 'activeSpaceCode' })
+		await Preferences.remove({ key: 'activeSpaceName' })
+
+		window.location.href = '/welcome'
+
+	}
+
+	console.log("after init?")
 
 	if (window.keycloak.idTokenParsed) {
 		Preferences.set({

@@ -41,7 +41,7 @@
 <script>
 	import { IonApp, IonButton, IonButtons, IonRouterOutlet, toastController } from '@ionic/vue'
 	import { Preferences } from '@capacitor/preferences'
-	import { initKeycloak } from '@/services/keycloakService.js'
+	import { initKeycloak, logoutKeycloak } from '@/services/keycloakService.js'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
 	import { Suspense } from 'vue'
 	import { Network } from '@capacitor/network'
@@ -271,11 +271,34 @@
 					}
 				}
 
-			}
+			},
+			async getRegion() {
+				let { value } = await Preferences.get({ key: 'region' })
+
+				if (!value) return false
+
+				return JSON.parse(value)
+			},
 		},
+
 		async created() {
 
 			this.store = useStore()
+
+			const region = await this.getRegion();
+
+			console.log("APP REGION", region);
+
+			// Deprecated thing, remove in 1.7.0
+			if (region && region.domain === 'https://finmars.com') {
+				await Preferences.remove({ key: 'region' })
+				await Preferences.remove({ key: 'activeRealmCode' })
+				await Preferences.remove({ key: 'activeSpaceCode' })
+				await Preferences.remove({ key: 'activeSpaceName' })
+				await Preferences.remove({ key: 'passcode' })
+
+				window.location.href = '/welcome'
+			}
 
 			await this.initializeDarkTheme()
 
