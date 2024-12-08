@@ -19,7 +19,6 @@
 						<ion-modal :keep-contents-mounted="true">
 							<ion-datetime id="datetime_date" displayFormat="YYYY-MM-DD"
 														v-model="spaceStore.settings.general.date_to"
-														:prefer-wheel="true"
 														presentation="date"
 														show-default-buttons
 							></ion-datetime>
@@ -28,7 +27,6 @@
 						<ion-modal :keep-contents-mounted="true">
 							<ion-datetime id="datetime_date_from" displayFormat="YYYY-MM-DD"
 														v-model="spaceStore.settings.general.date_from"
-														:prefer-wheel="true"
 														presentation="date"
 														show-default-buttons
 							></ion-datetime>
@@ -37,7 +35,6 @@
 						<ion-modal :keep-contents-mounted="true">
 							<ion-datetime id="datetime_date_to" displayFormat="YYYY-MM-DD"
 														v-model="spaceStore.settings.general.date_to"
-														:prefer-wheel="true"
 														presentation="date"
 														show-default-buttons
 							></ion-datetime>

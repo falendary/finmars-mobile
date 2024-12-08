@@ -5,15 +5,6 @@
 
 		<Passcode v-if="showPasscode" @verified="showPasscode = false;"></Passcode>
 
-<!--		<ion-header v-if="isOffline && showOfflineBar && ">-->
-<!--			<ion-toolbar  color="danger">-->
-<!--				<ion-title>Connection Offline</ion-title>-->
-<!--				<ion-buttons slot="end">-->
-<!--					<ion-button @click="showOfflineBar = false;">Close</ion-button>-->
-<!--				</ion-buttons>-->
-<!--			</ion-toolbar>-->
-<!--		</ion-header>-->
-
 		<ion-header v-if="connectionError">
 			<ion-toolbar  color="danger">
 				<p style="margin: 0; font-size: .7rem; padding-left: 1rem;">
@@ -107,9 +98,25 @@
 				}
 
 			},
-			async updateNetworkStatus() {
-				const status = await Network.getStatus()
-				this.isOffline = !status.connected
+			async handleConnectivityChange(isConnected) {
+				if (!isConnected) {
+					const toast = await toastController.create({
+						message: 'You are offline. Check your internet connection.',
+						duration: 3000,
+						position: 'top',
+						color: 'danger',
+					});
+					await toast.present();
+				} else if (this.connectionError) {
+					const toast = await toastController.create({
+						message: 'Internet connection restored.',
+						duration: 1500,
+						position: 'top',
+						color: 'success',
+					});
+					await toast.present();
+				}
+				this.connectionError = !isConnected;
 			},
 			async verifyPasscode() {
 
@@ -150,47 +157,7 @@
 				this.store.globalProcessing = false
 				this.$router.replace('/recovery')
 			},
-			async doHealthcheck() {
-				const controller = new AbortController();
-				const timeoutId = setTimeout(() => controller.abort(), 5000); // Set timeout for 1 second
 
-				try {
-					// Pass the signal to your fetch call
-					let data = await useApi('authorizerPing.get', { signal: controller.signal });
-					// console.log('doHealthcheck.results', data);
-
-					clearTimeout(timeoutId); // Clear the timeout if the request finishes in time
-
-					let hasError = this.connectionError;
-
-					if (data.error) {
-						this.connectionError = true;
-					} else {
-						this.connectionError = false;
-
-						if (hasError) {
-							const toast = await toastController.create({
-								message: 'The connection is restored',
-								duration: 1500,
-								position: 'top',
-							});
-
-							await toast.present();
-						}
-					}
-				} catch (error) {
-					clearTimeout(timeoutId); // Clear the timeout in case of an error
-
-					if (error.name === 'AbortError') {
-						// console.log('Request was aborted after 1 second');
-						this.connectionError = true;
-					} else {
-						// Handle other errors
-						console.error('Failed to perform health check:', error);
-						this.connectionError = true;
-					}
-				}
-			},
 			resetRecoveryButtonTimer() {
 				// Clear any existing timeout
 				if (this.recoveryTimeout) {
@@ -283,6 +250,10 @@
 
 		async created() {
 
+			this.handleConnectivityChange(navigator.onLine); // Check initial state
+			window.addEventListener('online', () => this.handleConnectivityChange(true));
+			window.addEventListener('offline', () => this.handleConnectivityChange(false));
+
 			this.store = useStore()
 
 			const region = await this.getRegion();
@@ -313,12 +284,9 @@
 
 			await this.verifyPasscode()
 
-			this.doHealthcheck()
-
 			this.globalInternval = setInterval(() => {
 				this.isBlurred = false;
 				this.resetRecoveryButtonTimer()
-				this.doHealthcheck()
 			}, 15 * 1000) // do healthcheck every 10 seconds
 
 		},
@@ -340,6 +308,8 @@
 
 		},
 		beforeUnmount() {
+			window.removeEventListener('online', this.handleConnectivityChange);
+			window.removeEventListener('offline', this.handleConnectivityChange);
 			// Clean up listeners when component is destroyed
 			App.removeAllListeners()
 			if (this.recoveryTimeout) {
