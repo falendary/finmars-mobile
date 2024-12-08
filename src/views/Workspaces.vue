@@ -7,14 +7,14 @@
 
 
 					<div>
-						<h1 class="tac">Choose your space</h1>
+						<h1 class="tac">Select your Space</h1>
 
 						<ion-select
 							v-model="workspace"
-							label="Select space"
+							aria-label="Space"
 							placeholder="Space"
 						>
-							<ion-select-option v-for="(item, index) in workspaces" :value="item.id"  :key="index">
+							<ion-select-option v-for="(item, index) in workspaces" :value="item.id" :key="index">
 								{{ item.name }}
 							</ion-select-option>
 						</ion-select>
@@ -23,7 +23,7 @@
 							<ion-button size="small" class="finmars-button-text" @click="init()">Retry</ion-button>
 						</div>
 
-						<IonButton expand="full" @click="setWorkspace()">SELECT</IonButton>
+						<IonButton expand="full" @click="setWorkspace()">Start</IonButton>
 					</div>
 
 				</div>
@@ -50,7 +50,7 @@
 	import initFormbricks from '@/services/formbricks.js'
 
 	export default {
-		components: { IonButton, IonSelect},
+		components: { IonButton, IonSelect },
 
 		data() {
 			return {
@@ -86,20 +86,47 @@
 
 				return result
 			},
+			async getRegion() {
+				let { value } = await Preferences.get({ key: 'region' })
+
+				if (!value) return false
+
+				return JSON.parse(value)
+			},
 			async init() {
 				this.error = null
 
 				this.processing = true
 
-				let data  = await useApi('masterUser.get')
+				const region = await this.getRegion()
+
+				console.log('region', region)
+
+				if (region && region.domain === 'https://finmars.com') {
+					await Preferences.remove({ key: 'region' })
+					await Preferences.remove({ key: 'activeRealmCode' })
+					await Preferences.remove({ key: 'activeSpaceCode' })
+					await Preferences.remove({ key: 'activeSpaceName' })
+					await Preferences.remove({ key: 'passcode' })
+
+					window.location.href = '/welcome'
+				}
+
+				let data = await useApi('masterUser.get')
 
 
 				if (!data.results) {
 					this.error = `Can't get Spaces`
 					return false
 				} else {
+					console.log('data.results', data.results)
 					this.workspaces = data.results
-					this.workspace = this.workspaces[0].id
+
+					if (this.workspaces.length) {
+						this.workspace = this.workspaces[0].id
+					}
+
+
 				}
 
 				// console.log('Workspaces init', this.workspace)
@@ -184,5 +211,6 @@
 		//--background: #fafafa;
 		//--background: ;
 	}
+
 
 </style>

@@ -317,9 +317,8 @@ export default {
 	.grand-nav {
 		padding: 1rem;
 		background: var(--ion-card-background);
-		border-radius: 1.5rem;
+		border-radius: 12px;
 		text-align: right;
-		box-shadow: var(--ion-card-box-shadow);
 		margin: 1rem;
 		border: 1px dotted var(--ion-card-border-color);
 	}

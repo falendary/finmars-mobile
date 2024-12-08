@@ -152,7 +152,7 @@
 			},
 			async doHealthcheck() {
 				const controller = new AbortController();
-				const timeoutId = setTimeout(() => controller.abort(), 1000); // Set timeout for 1 second
+				const timeoutId = setTimeout(() => controller.abort(), 5000); // Set timeout for 1 second
 
 				try {
 					// Pass the signal to your fetch call
@@ -356,6 +356,10 @@
 
 <style lang="scss">
 
+	ion-toolbar {
+		--background: var(--page-background-color);
+	}
+
 	body {
 		--background: #000;
 	}
@@ -453,10 +457,6 @@
 	}
 
 	ion-app ion-content {
-
-		--dot-size: 1px;
-		--dot-space: 22px;
-		//--background: var(--ion-content-background), linear-gradient(90deg, var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center / var(--dot-space) var(--dot-space), linear-gradient(var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center / var(--dot-space) var(--dot-space), var(--dot-color);
 		--background: var(--ion-content-background);
 	}
 

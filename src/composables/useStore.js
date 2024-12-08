@@ -180,6 +180,16 @@ export default defineStore('store', {
 					this.activeSpaceStore.settings.general.period_type = 'ytd'
 				}
 
+				console.log('this.activeSpaceStore', this.activeSpaceStore);
+
+				if (!this.activeSpaceStore.settings.general.portfolios) {
+					this.activeSpaceStore.settings.general.portfolios = []
+				}
+
+				if (!this.activeSpaceStore.settings.general.accounts) {
+					this.activeSpaceStore.settings.general.accounts = []
+				}
+
 				if (!this.activeSpaceStore.settings.general.portfolios.length) {
 					this.activeSpaceStore.portfolios.forEach((item) => {
 

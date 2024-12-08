@@ -100,8 +100,8 @@ export default async function useApi(
 		}
 	} else {
 
-		console.log('realm_code ', realm_code)
-		console.log('realm_code ', typeof realm_code)
+		// console.log('realm_code ', realm_code)
+		// console.log('realm_code ', typeof realm_code)
 
 		if (realm_code) {
 			url = url.replace('{client}', realm_code + '/' + space_code)

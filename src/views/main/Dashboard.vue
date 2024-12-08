@@ -447,8 +447,8 @@
 		background: var(--ion-card-background);
 		//padding: 7px 10px;
 		//box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.05);
-		border-radius: 1rem;
-		box-shadow: var(--ion-card-box-shadow);
+		border-radius: 12px;
+		//box-shadow: var(--ion-card-box-shadow);
 		border: 1px dotted var(--ion-card-border-color);
 		padding: 1rem;
 

@@ -216,7 +216,7 @@
 
 	.app-header {
 
-		background: var(--ion-tab-bar-background);
+		background: var(--page-background-color);
 
 		–padding-top: var(–ion-safe-area-top, 0);
 		padding-top: env(safe-area-inset-top);
@@ -228,6 +228,7 @@
 		.app-header-wrapper {
 			position: relative;
 			height: 3.3rem;
+			background: var(--page-background-color);
 		}
 
 		.app-header-inner {

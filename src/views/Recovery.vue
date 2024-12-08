@@ -97,11 +97,15 @@
 
 				this.store = useStore()
 
+				let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
+
+				await Preferences.remove({ key: activeSpaceCode + '_settings' })
 				await Preferences.remove({ key: 'activeRealmCode' })
 				await Preferences.remove({ key: 'activeSpaceCode' })
 				await Preferences.remove({ key: 'activeSpaceName' })
 				await Preferences.remove({ key: 'layout' })
 				await Preferences.remove({ key: 'passcode' })
+
 
 				await this.store.clear();
 

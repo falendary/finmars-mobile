@@ -586,7 +586,7 @@ export default {
 		font-size: 0.8rem;
 		font-size: 0.8rem;
 		margin: 0.4rem 0;
-		background: var(--ion-transaction-transparent-bg);
+		background: var(--page-background-color);
 		padding: 0.8rem 0.3rem;
 		border-radius: 1rem;
 	}
