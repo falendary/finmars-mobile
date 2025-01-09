@@ -57,6 +57,7 @@
 					<search-button></search-button>
 				</ion-tab-button>
 			</ion-tab-bar>
+
 		</ion-tabs>
 
 

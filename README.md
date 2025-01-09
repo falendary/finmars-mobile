@@ -12,6 +12,7 @@ ionic cap sync
 npm run build
 VITE_BASE_URL='/m/' VITE_APP_PLATFORM='web' ionic serve
 
+
 ### Build APK
 
 npm install @capacitor/android
