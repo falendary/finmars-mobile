@@ -104,7 +104,7 @@ function createAppVue() {
 
 		// Whether to track the initial page view
 		// Default: true
-		trackInitialView: true,
+		trackInitialView: false,
 
 		// Run Matomo without cookies
 		// Default: false
