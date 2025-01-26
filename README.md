@@ -34,9 +34,23 @@ npx cap build android
 npx cap build android --keystorepath=/Users/szhitenev/projects/finmars/data/keystores/android/finmars-keystore --keystorealias=key0 --keystorealiaspass=[pass] --keystorepass=[pass]
 
 
+
+
+VITE_APP_PLATFORM='android' npm run build
 ionic cap sync android
 npx cap open android
-VITE_APP_PLATFORM='android' ionic capacitor build android
+
+# to debug release build on connected local android device
+# need to create signed release .apk build in android studio
+adb install app-release.apk
+
+
+# see connected android devices 
+adb devices
+
+# disconnect devices
+adb disconnect
+
 
 
 ### Release APP

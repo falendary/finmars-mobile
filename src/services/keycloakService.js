@@ -57,11 +57,15 @@ export async function initKeycloak() {
 
 		const platform = import.meta.env.VITE_APP_PLATFORM;
 
-		// // console.log('import.meta.env', import.meta.env);
 
-		if (platform == 'android') {
+		// console.log('import.meta.env', import.meta.env);
+
+		if (window.Capacitor.platform == 'android') {
 			kcOpts['redirectUri'] = 'https://finmars.com/' + appDestinationPath
 		}
+
+		console.log('platform', platform)
+		console.log('redirectUri', kcOpts['redirectUri'])
 
 	}
 
