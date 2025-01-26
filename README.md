@@ -51,7 +51,7 @@ adb devices
 # disconnect devices
 adb disconnect
 
-
+# its okay that fingerprint from local signature and final signature (assetlinks) are different, google on top of our signature sign with his key, so its impossible to verify keycloak deeplink on localy signed build
 
 ### Release APP
 
@@ -72,7 +72,7 @@ sudo xcode-select --switch /Applications/Xcode.app
 
 Update signing team in xcode
 
-VITE_BASE_URL='/m/'  npm run build
+VITE_BASE_URL='/m/' VITE_APP_PLATFORM='ios'  npm run build
 npx cap add ios
 npx cap open ios
 npx cap build ios
