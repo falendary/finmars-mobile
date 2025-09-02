@@ -13,6 +13,7 @@ export default defineStore('store', {
 			globalProcessing: false,
 			activeSpace: null,
 			activeSpaceStore: null,
+			user: null,
 			error: null
 		}
 	},
@@ -29,6 +30,9 @@ export default defineStore('store', {
 		},
 		getActiveSpaceStore() {
 			return this.activeSpaceStore
+		},
+		getUser() {
+			return this.user
 		},
 		async fetchPortfolios() {
 			let res = await useApi('portfolioLight.get', {
@@ -76,11 +80,79 @@ export default defineStore('store', {
 			}
 
 		},
+		async enableAnalytics() {
+
+
+
+			function getCodesFromUrl() {
+				var urlPath = window.location.pathname; // Get the path part of the URL
+				var pathParts = urlPath.split('/'); // Split by "/"
+
+				// Ensure the path has enough parts to extract realm_code and space_code
+				var realmCode = pathParts[1] || null; // The first segment after "/"
+				var spaceCode = pathParts[2] || null; // The second segment after "/"
+
+				return { realmCode, spaceCode };
+			}
+
+			if (window._paq) {
+
+				var _paq = window._paq = window._paq || [];
+				/* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+
+				(function() {
+					var u="//analytics.finmars.com/";
+					_paq.push(['setTrackerUrl', u+'matomo.php']);
+					// _paq.push(['setSiteId', prefix]);
+					_paq.push(['setSiteId', 1]);
+
+					var codes = getCodesFromUrl();
+
+					// If codes exist, set them as custom dimensions
+					if (codes.realmCode && codes.spaceCode) {
+						_paq.push(['setCustomDimension', 1, codes.realmCode]); // Set realm_code (Dimension ID 1)
+						_paq.push(['setCustomDimension', 2, codes.spaceCode]); // Set space_code (Dimension ID 2)
+					}
+
+					_paq.push(['setUserId', this.user.username]);
+					const hash = window.location.hash.substr(3); // Remove the `#`
+
+					var currentUrl = `${location.origin}${location.pathname}${hash}`; // Build the new clean URL
+
+					// _paq.push(['setReferrerUrl', currentUrl]);
+					// currentUrl = '/' + window.location.hash.substr(1);
+					_paq.push(['setCustomUrl', currentUrl]);
+					_paq.push(['trackPageView']);
+					_paq.push(['enableLinkTracking']);
+
+					var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+					g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+				})();
+
+			}
+		},
 		async fetchUser() {
 			let result = await useApi('user.get')
-			this.username = result.first_name || result.username
 
-			await Preferences.set({ key: 'username', value: this.username })
+			console.log('fetchUser.result', result);
+
+			if (result.error) {
+				this.user = {
+					first_name: "Admin",
+					username: 'admin'
+				}
+				this.username = 'Admin' // improve in future
+			} else {
+				this.user = result
+				this.username = result.first_name || result.username
+
+				await Preferences.set({ key: 'username', value: this.username })
+
+				await this.enableAnalytics() // ask for consent?
+
+			}
+
+
 		},
 		async initSpaceStore() {
 

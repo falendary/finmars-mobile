@@ -10,7 +10,7 @@
 						<settings-button></settings-button>
 
 						<div style="margin-left: 0.3rem">
-							{{ username }}
+							{{ user.username }}
 						</div>
 					</div>
 
@@ -159,28 +159,23 @@
 				store: null,
 				spaceStore: null,
 				currentPath: '/main/dashboard',
-				username: ''
+				user: null
 			}
 		},
 		emits: ['queryChange'],
 		methods: {
-
-			async fetchUser() {
-				let result = await useApi('user.get')
-				this.username = result.first_name || result.username
-			}
 
 		},
 		async created() {
 
 			this.store = useStore()
 			this.spaceStore = computed(() => this.store.getActiveSpaceStore())
+			this.user = computed(() => this.store.getUser())
 
 
 		},
 		mounted() {
 
-			this.fetchUser()
 
 			// console.log('currentPath', this.currentPath)
 

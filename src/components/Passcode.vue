@@ -33,7 +33,7 @@
 
 		<div class="passcode-container">
 
-			<p class="passcode-username">{{ username }}</p>
+			<p class="passcode-title">Passcode</p>
 
 			<div class="passcode-display">
 				<div
@@ -89,7 +89,6 @@
 		data() {
 			return {
 				passcode: '',
-				username: 'Passcode',
 				isWrongPasscode: false,
 				isRightPasscode: false,
 				biometryTypes: [
@@ -242,13 +241,6 @@
 				this.$router.push('/logout')
 			},
 
-			async fetchUser() {
-
-				let { value: username } = await Preferences.get({ key: 'username' })
-
-				this.username = username
-			},
-
 			savePasscode() {
 
 				Preferences.set({
@@ -321,9 +313,6 @@
 			this.savedPasscode = savedPasscode
 
 			this.passcode = ''
-
-			await this.fetchUser()
-
 
 			this.biometryType = BiometryType.none
 			this.biometry = {
@@ -432,7 +421,7 @@
 		background-color: #eee;
 	}
 
-	.passcode-username {
+	.passcode-title {
 		width: 100%;
 		text-align: center;
 	}

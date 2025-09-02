@@ -146,10 +146,6 @@
 				this.transactionType = 'sell'
 				this.updateOrderText()
 			},
-			async fetchUser() {
-				let result = await useApi('user.get')
-				this.username = result.first_name || result.username
-			},
 			async sendOrder() {
 
 				try {
@@ -200,6 +196,7 @@
 
 			this.store = useStore()
 			this.spaceStore = computed(() => this.store.getActiveSpaceStore())
+			this.user = computed(() => this.store.getUser())
 
 		},
 		async mounted() {
@@ -208,8 +205,7 @@
 
 
 			this.updateOrderText()
-			await this.fetchUser()
-			this.subjectText = `Order Request from ${this.username}`
+			this.subjectText = `Order Request from ${this.user.username}`
 		},
 		beforeUnmount() {
 

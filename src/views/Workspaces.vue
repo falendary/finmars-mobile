@@ -62,75 +62,7 @@
 			}
 		},
 		methods: {
-			async fetchUser() {
-				let user = await useApi('user.get')
 
-
-				function getCodesFromUrl() {
-					var urlPath = window.location.pathname; // Get the path part of the URL
-					var pathParts = urlPath.split('/'); // Split by "/"
-
-					// Ensure the path has enough parts to extract realm_code and space_code
-					var realmCode = pathParts[1] || null; // The first segment after "/"
-					var spaceCode = pathParts[2] || null; // The second segment after "/"
-
-					return { realmCode, spaceCode };
-				}
-
-				if (window._paq) {
-
-					var _paq = window._paq = window._paq || [];
-					/* tracker methods like "setCustomDimension" should be called before "trackPageView" */
-
-
-
-					// Consider more unique id across spaces
-
-					let prefix = 'eu-central'
-
-					if (window.location.href.indexOf('0.0.0.0') !== -1) {
-						prefix = 'local'
-					}
-
-					let pieces = window.location.host.split('.')
-
-					if (pieces.length === 3) {
-						prefix = pieces[0]
-					}
-
-					(function() {
-						var u="//analytics.finmars.com/";
-						_paq.push(['setTrackerUrl', u+'matomo.php']);
-						// _paq.push(['setSiteId', prefix]);
-						_paq.push(['setSiteId', 1]);
-
-						var codes = getCodesFromUrl();
-
-						// If codes exist, set them as custom dimensions
-						if (codes.realmCode && codes.spaceCode) {
-							_paq.push(['setCustomDimension', 1, codes.realmCode]); // Set realm_code (Dimension ID 1)
-							_paq.push(['setCustomDimension', 2, codes.spaceCode]); // Set space_code (Dimension ID 2)
-						}
-
-						_paq.push(['setUserId', user.username]);
-						const hash = window.location.hash.substr(3); // Remove the `#`
-
-						var currentUrl = `${location.origin}${location.pathname}${hash}`; // Build the new clean URL
-
-						// _paq.push(['setReferrerUrl', currentUrl]);
-						// currentUrl = '/' + window.location.hash.substr(1);
-						_paq.push(['setCustomUrl', currentUrl]);
-						_paq.push(['trackPageView']);
-						_paq.push(['enableLinkTracking']);
-
-						var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-						g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
-					})();
-
-				}
-
-				return user
-			},
 			async getRegion() {
 				let { value } = await Preferences.get({ key: 'region' })
 
@@ -154,6 +86,7 @@
 					await Preferences.remove({ key: 'activeSpaceName' })
 					await Preferences.remove({ key: 'passcode' })
 
+
 					window.location.href = '/welcome'
 				}
 
@@ -161,8 +94,19 @@
 
 
 				if (!data.results) {
-					this.error = `Can't get Spaces`
-					return false
+
+					this.workspaces = [{
+						id: 1,
+						name: "Local",
+						base_api_url: "space00000",
+						realm_code: "realm00000",
+						space_code: "space00000"
+					}]
+
+					this.workspace = this.workspaces[0].id
+
+					// this.error = `Can't get Spaces`
+					// return false
 				} else {
 					console.log('data.results', data.results)
 					this.workspaces = data.results
@@ -176,9 +120,6 @@
 
 				// console.log('Workspaces init', this.workspace)
 
-				const user = await this.fetchUser()
-
-				// await initFormbricks(user)
 
 
 				await Preferences.remove({
