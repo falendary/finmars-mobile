@@ -178,7 +178,7 @@
 
 				const user = await this.fetchUser()
 
-				await initFormbricks(user)
+				// await initFormbricks(user)
 
 
 				await Preferences.remove({

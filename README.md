@@ -15,10 +15,6 @@ VITE_BASE_URL='/m/' VITE_APP_PLATFORM='web' ionic serve
 
 ### Build APK
 
-npm install @capacitor/android
-npx cap add android
-npx cap open android
-
 # This two actuially builds app
 VITE_APP_PLATFORM='android' npm run build && npx cap run android
 
@@ -29,16 +25,16 @@ VITE_APP_PLATFORM='android' npm run build && npx cap run android
 go to ```android/app/build.gradle```
 update versionCode
 
-npx cap build android
 -- for signing build
-npx cap build android --keystorepath=/Users/szhitenev/projects/finmars/data/keystores/android/finmars-keystore --keystorealias=key0 --keystorealiaspass=[pass] --keystorepass=[pass]
+
+[//]: # (npx cap build android --keystorepath=/Users/szhitenev/projects/finmars/data/keystores/android/finmars-keystore --keystorealias=key0 --keystorealiaspass=[pass] --keystorepass=[pass])
 
 
 
 
 VITE_APP_PLATFORM='android' npm run build
 ionic cap sync android
-npx cap open android
+ionic cap open android
 
 # to debug release build on connected local android device
 # need to create signed release .apk build in android studio
@@ -78,8 +74,9 @@ npx cap open ios
 npx cap build ios
 
 # This one is required to force changes to Xcode builder
+VITE_BASE_URL='/m/' VITE_APP_PLATFORM='ios'  npm run build
 ionic cap sync ios
-
+ionic cap open ios
 
 
 ### Deeplinks

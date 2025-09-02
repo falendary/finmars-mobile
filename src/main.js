@@ -66,10 +66,11 @@ function createAppVue() {
 	pinia = createPinia()
 	app = createApp(App)
 
-	Sentry.init({
-		app,
-		dsn: 'https://9ac2652235044ecb84403bb1511a6e2b@sentry.finmars.com/7'
-	})
+	// uncomment in better future
+	// Sentry.init({
+	// 	app,
+	// 	dsn: 'https://9ac2652235044ecb84403bb1511a6e2b@sentry.finmars.com/7'
+	// })
 
 	app.use(router).use(IonicVue).use(NumberFormat).use(RoundToTwo).use(CopyToClipboard).use(pinia).use(Particles)
 
