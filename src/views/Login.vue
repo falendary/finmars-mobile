@@ -19,7 +19,7 @@
 
 <script>
 
-	import { initKeycloak } from '@/services/keycloakService.js'
+	import { initKeycloak, keycloakTokenHealthcheck } from '@/services/keycloakService.js'
 	import { Preferences } from '@capacitor/preferences'
 	import { IonButton } from '@ionic/vue'
 
@@ -39,6 +39,8 @@
 
 			try {
 
+				await Preferences.remove({ key: 'kcTokens' })
+
 				await initKeycloak()
 
 				// console.log('keycloak inited, redirect to /workspaces')
@@ -46,12 +48,27 @@
 				this.$router.replace('/workspaces')
 
 			} catch (e) {
+				console.error('login.keycloak.error', e);
 
-				await Preferences.remove({ key: 'kcTokens' })
+				const tokensRaw = (await Preferences.get({ key: 'kcTokens' })).value;
+				const regionRaw = (await Preferences.get({ key: 'region' })).value;
 
-				console.error('login.keycloak.error', e)
+				if (tokensRaw && regionRaw) {
+					try {
+						const tokens = JSON.parse(tokensRaw);
+						const region = JSON.parse(regionRaw);
 
-				this.$router.replace('/welcome')
+						const ok = await keycloakTokenHealthcheck(region, tokens);
+						if (ok) {
+							await this.$router.replace('/workspaces');
+							return;
+						}
+					} catch (_) {
+						// ignore parse errors
+					}
+				}
+
+				await this.$router.replace('/welcome');
 			}
 
 		}

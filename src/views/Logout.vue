@@ -10,28 +10,31 @@
 	</ion-page>
 </template>
 
-<script setup>
+<script>
 
-	import { useRouter } from 'vue-router'
+	import { logoutKeycloak } from '@/services/keycloakService.js'
 
-	const router = useRouter()
+	export default {
+		components: {},
 
-	// console.log("Logout Page Init")
+		data() {
+			return {}
+		},
+		methods: {},
+		async created() {
 
-	import {  logoutKeycloak } from '@/services/keycloakService.js'
-	import { Preferences } from '@capacitor/preferences'
+			console.log('Logout init. wait for logoutKeycloak')
 
-	await Preferences.remove({ key: 'region' })
-	await Preferences.remove({ key: 'activeRealmCode' })
-	await Preferences.remove({ key: 'activeSpaceCode' })
-	await Preferences.remove({ key: 'activeSpaceName' })
-	await Preferences.remove({ key: 'passcode' })
+			logoutKeycloak()
 
-	await logoutKeycloak()
+			console.log('logoutKeycloak done')
+			console.log('redirect to welcome')
 
+			this.$router.replace('/welcome')
 
+		}
 
-	window.location.href = '/welcome'
+	}
 
 </script>
 

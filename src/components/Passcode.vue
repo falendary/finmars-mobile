@@ -61,7 +61,6 @@
 
 <script>
 	import { alertController, IonButton, IonContent, IonIcon, IonPage, } from '@ionic/vue'
-	import '../keycloak.js'
 
 	import { fingerPrintOutline } from 'ionicons/icons'
 

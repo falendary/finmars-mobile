@@ -32,7 +32,7 @@
 <script>
 	import { IonApp, IonButton, IonButtons, IonRouterOutlet, toastController } from '@ionic/vue'
 	import { Preferences } from '@capacitor/preferences'
-	import { initKeycloak, logoutKeycloak } from '@/services/keycloakService.js'
+	import { initKeycloak } from '@/services/keycloakService.js'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
 	import { Suspense } from 'vue'
 	import { Network } from '@capacitor/network'
@@ -177,67 +177,91 @@
 				}
 			},
 			async checkAuth() {
+				const tokensRaw = (await Preferences.get({ key: 'kcTokens' })).value;
+				const tokens = tokensRaw ? JSON.parse(tokensRaw) : null;
+				const kcParams = getKCParams();
 
-				let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
-				let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
-				let { value: activeRealmCode } = await Preferences.get({ key: 'activeRealmCode' })
+				function getKCParams() {
+					const url = new URL(window.location.href);
 
-				if (tokens) {
+					let search = new URLSearchParams(url.search);
+					let hashString = url.hash.startsWith('#') ? url.hash.substring(1) : url.hash;
+					let hash = new URLSearchParams(hashString);
 
-					// console.log('APP_INIT: Has tokens in Storage, trying to reinit Keycloak')
-
-					try {
-						await initKeycloak()
-
-						this.store.globalProcessing = false
-
-						if (activeSpaceCode) {
-							// console.log('APP_INIT: has activeSpaceCode. redirect to dashboard')
-							this.$router.replace('/main/dashboard')
-						} else {
-							// console.log('APP_INIT: has activeSpaceCode. redirect to workspaces')
-							this.$router.replace('/workspaces')
-						}
-
-					} catch (e) {
-
-						// console.log('APP_INIT: keycloak.error', e)
-						await Preferences.remove({ key: 'kcTokens' })
-						this.$router.replace('/welcome')
-
+					function hasParam(name) {
+						return search.has(name) || hash.has(name);
 					}
 
-
-				} else {
-
-					// console.log('APP_INIT: no tokens in Storage, trying to parse query parameters')
-
-					if (window.location.href.indexOf('state=') !== -1) {
-
-						this.isBlurred = false
-
-						// console.log('APP_INIT: Probably got redirect from keycloak, trying to parse query parameters')
-
-						this.store.globalProcessing = true
-						await initKeycloak()
-						this.store.globalProcessing = false
-						if (activeSpaceCode) {
-							this.$router.replace('/main/dashboard')
-						} else {
-							this.$router.replace('/workspaces')
+					function getParam(name) {
+						if (search.has(name)) {
+							return search.get(name);
 						}
-
-					} else {
-
-						// console.log('APP_INIT: Nothing, its first open, wait until user select region. Keycloak IS NOT INITED')
-
-						if (this.$route.path !== '/welcome') {
-							this.$router.replace('/welcome')
+						if (hash.has(name)) {
+							return hash.get(name);
 						}
-
+						return null;
 					}
+
+					let hasAny =
+						hasParam('state') ||
+						hasParam('code') ||
+						hasParam('session_state') ||
+						hasParam('iss');
+
+					return {
+						hasAny: hasAny,
+						get: getParam,
+					};
 				}
 
+				const routeBySpace = async () => {
+					const { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' });
+					if (activeSpaceCode) {
+						await this.$router.replace('/main/dashboard');
+					} else {
+						await this.$router.replace('/workspaces');
+					}
+				};
+
+				console.log('tokens', tokens);
+				console.log('window.location.href', window.location.href);
+
+				// If we have tokens, try to re-init KC
+				if (tokens) {
+					this.store.globalProcessing = true;
+					try {
+						await initKeycloak();
+						await routeBySpace();              // re-read AFTER init
+					} catch (e) {
+						console.log('APP_INIT: keycloak.error', e);
+						await Preferences.remove({ key: 'kcTokens' });
+						await this.$router.replace('/welcome');
+					} finally {
+						this.store.globalProcessing = false;
+					}
+					return;
+				}
+
+				// No tokens. Maybe we came from KC redirect?
+				if (kcParams.hasAny) {
+					this.isBlurred = false;
+					this.store.globalProcessing = true;
+					try {
+						await initKeycloak();
+						await routeBySpace();
+					} catch (e) {
+						await this.$router.replace('/welcome');
+					} finally {
+						this.store.globalProcessing = false;
+						history.replaceState(null, '', window.location.pathname); // clear hash/query
+					}
+					return;
+				}
+
+				// First open
+				if (this.$route.path !== '/welcome') {
+					await this.$router.replace('/welcome');
+				}
 			},
 			async getRegion() {
 				let { value } = await Preferences.get({ key: 'region' })

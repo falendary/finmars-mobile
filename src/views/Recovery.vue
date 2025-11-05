@@ -76,7 +76,6 @@
 
 <script>
 	import { IonButton, IonContent, IonPage } from '@ionic/vue'
-	import '../keycloak.js'
 
 	import { loadStarsPreset } from 'tsparticles-preset-stars'
 	import { Preferences } from '@capacitor/preferences'

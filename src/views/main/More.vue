@@ -191,7 +191,7 @@
 			},
 
 			async logout() {
-				this.$router.replace('/logout')
+				await this.$router.replace('/logout')
 			},
 			async setupPasscode() {
 				this.$router.push('/setup-passcode')
