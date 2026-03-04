@@ -38,3 +38,6 @@ ios
 
 # Sentry Auth Token
 .env.sentry-build-plugin
+.env
+.env.production
+android
