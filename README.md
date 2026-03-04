@@ -1,133 +1,296 @@
-## Mobile App
+<p align="center">
+  <a href="https://finmars.io" target="_blank">
+    <img src="https://github.com/finmars-platform/finmars-core/blob/main/finmars-misc/logo_white_bg.png" alt="Finmars" height="84"/>
+  </a>
+</p>
 
-### Prerequisites
+# Finmars Mobile App
+
+The **Finmars Mobile App** is the mobile client for the Finmars financial management platform.
+It is built with **Ionic + Capacitor**, allowing the same application to run as a **web app, Android app, and iOS app**.
+
+The mobile application connects to the Finmars backend and provides access to dashboards, reports, and portfolio data from a mobile device.
+
+---
+
+# Prerequisites
+
+Before running the project locally you need:
+
+* Node.js (recommended ≥ 18)
+* npm
+* Ionic CLI
+* Android Studio (for Android builds)
+* Xcode (for iOS builds, macOS only)
+
+Install Ionic CLI globally:
+
+```bash
+npm install -g @ionic/cli
+```
+
+---
+
+# Installation
+
+Clone the repository and install dependencies.
+
+```bash
+git clone https://github.com/finmars-platform/finmars-mobile.git
+cd finmars-mobile
 
 npm install
-sudo npm i -g @ionic/cli
-npm install ionic-plugin-deeplinks // this one is extremely important
+```
+
+Install required plugin:
+
+```bash
+npm install ionic-plugin-deeplinks
+```
+
+Sync Capacitor platforms:
+
+```bash
 ionic cap sync
+```
 
-### Build and run Server
+---
 
+# Running the App in Browser (Development)
+
+Build the web version and start the development server.
+
+```bash
 npm run build
 VITE_BASE_URL='/m/' VITE_APP_PLATFORM='web' ionic serve
+```
 
+The application will start in your browser.
 
-### Build APK
+---
 
-# This two actuially builds app
-VITE_APP_PLATFORM='android' npm run build && npx cap run android
+# Android Development
 
-# Change in android/app/src/main/res/values/strings.xml
-<string name="custom_url_scheme">finmars</string>
+## Requirements
 
-# How to push new version to google play
-go to ```android/app/build.gradle```
-update versionCode
+* Android Studio installed
+* Android SDK configured
+* An emulator or a physical Android device
 
--- for signing build
+## Build and Run
 
-[//]: # (npx cap build android --keystorepath=/Users/szhitenev/projects/finmars/data/keystores/android/finmars-keystore --keystorealias=key0 --keystorealiaspass=[pass] --keystorepass=[pass])
-
-
-
-
+```bash
 VITE_APP_PLATFORM='android' npm run build
 ionic cap sync android
+npx cap run android
+```
+
+This builds the application and runs it on the connected Android device or emulator.
+
+To open the project manually in Android Studio:
+
+```bash
 ionic cap open android
+```
 
-# to debug release build on connected local android device
-# need to create signed release .apk build in android studio
+---
+
+## Android Version Update
+
+Before publishing to Google Play, update the version number in:
+
+```
+android/app/build.gradle
+```
+
+Increase:
+
+```
+versionCode
+```
+
+---
+
+## Install APK on a Device
+
+If you built a release APK in Android Studio:
+
+```bash
 adb install app-release.apk
+```
 
+Check connected devices:
 
-# see connected android devices 
+```bash
 adb devices
+```
 
-# disconnect devices
+Disconnect devices:
+
+```bash
 adb disconnect
+```
 
-# its okay that fingerprint from local signature and final signature (assetlinks) are different, google on top of our signature sign with his key, so its impossible to verify keycloak deeplink on localy signed build
+---
 
-### Release APP
+# Android Release Build
 
-You need to have a keystore and configured android studio
-1) Build -> Generate Signed Bundle / APK
-2) Pick generate release
-3) Check your local ./android/app/release folder
-4) Upload app-release.apk to google play console
+To generate a signed build:
 
+1. Open the project in Android Studio
+2. Navigate to **Build → Generate Signed Bundle / APK**
+3. Select **APK**
+4. Provide your keystore information
+5. The release build will appear in:
 
-## BUILD IOS
+```
+android/app/release
+```
 
-https://capacitorjs.com/docs/ios
+Upload the resulting `app-release.apk` to **Google Play Console**.
 
+---
+
+# iOS Development
+
+Documentation:
+[https://capacitorjs.com/docs/ios](https://capacitorjs.com/docs/ios)
+
+## Install iOS platform
+
+```bash
 npm install @capacitor/ios
+```
 
+Ensure Xcode is selected:
+
+```bash
 sudo xcode-select --switch /Applications/Xcode.app
+```
 
-Update signing team in xcode
+Build the project:
 
-VITE_BASE_URL='/m/' VITE_APP_PLATFORM='ios'  npm run build
+```bash
+VITE_BASE_URL='/m/' VITE_APP_PLATFORM='ios' npm run build
 npx cap add ios
 npx cap open ios
-npx cap build ios
-
-# This one is required to force changes to Xcode builder
-VITE_BASE_URL='/m/' VITE_APP_PLATFORM='ios'  npm run build
-ionic cap sync ios
-ionic cap open ios
-
-
-### Deeplinks
-
-cordova plugin add ionic-plugin-deeplinks --variable URL_SCHEME=finmars --variable DEEPLINK_SCHEME=https --variable DEEPLINK_HOST=finmars.com  --variable ANDROID_PATH_PREFIX=/
-
-in android/app/src/main/AndroidManifest.xml add 
-
-https://devdactic.com/setup-deep-links-capacitor - good article
-
-Update nginx to be able serve
-https://developers.google.com/digital-asset-links/tools/generator [generator]
-https://stackoverflow.com/questions/69384022/how-to-not-need-a-dotted-file-path-in-nginx-configuration [nginx]
-
-https://finmars.com/.well-known/assetlinks.json
-Example content:
 ```
+
+To sync project changes:
+
+```bash
+ionic cap sync ios
+```
+
+Run the app using Xcode simulator or connected iPhone.
+
+---
+
+# Deep Links
+
+The app supports deep linking using:
+
+```
+ionic-plugin-deeplinks
+```
+
+Example installation:
+
+```bash
+cordova plugin add ionic-plugin-deeplinks \
+  --variable URL_SCHEME=finmars \
+  --variable DEEPLINK_SCHEME=https \
+  --variable DEEPLINK_HOST=finmars.com \
+  --variable ANDROID_PATH_PREFIX=/
+```
+
+Android configuration may require updating:
+
+```
+android/app/src/main/AndroidManifest.xml
+```
+
+Helpful resources:
+
+* [https://devdactic.com/setup-deep-links-capacitor](https://devdactic.com/setup-deep-links-capacitor)
+* [https://developers.google.com/digital-asset-links/tools/generator](https://developers.google.com/digital-asset-links/tools/generator)
+
+Example Digital Asset Links configuration:
+
+```
+https://finmars.com/.well-known/assetlinks.json
+```
+
+Example content:
+
+```json
 [{
   "relation": ["delegate_permission/common.handle_all_urls"],
-  "target" : { "namespace": "android_app", "package_name": "com.finmars.mobile",
-    "sha256_cert_fingerprints": ["1A:6C:25:F9:8E:5D:4F:FF:54:82:07:18:B9:CB:95:28:14:CD:3F:92:FF:80:35:EC:B1:48:AE:EE:8E:FE:72:30"] }
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.finmars.mobile",
+    "sha256_cert_fingerprints": [
+      "1A:6C:25:F9:8E:5D:4F:FF:54:82:07:18:B9:CB:95:28:14:CD:3F:92:FF:80:35:EC:B1:48:AE:EE:8E:FE:72:30"
+    ]
+  }
 }]
 ```
 
+---
 
+# Environment Variables
 
-### Notes
+Environment variables are defined using `.env` files.
 
-npm install @capacitor/configure
+Example `.env.example`:
 
+```
+VITE_BASE_URL=/m/
+VITE_APP_PLATFORM=web
+VITE_KEYCLOAK_URL=
+```
 
-BASE_URL is deprecated
+Do not commit real `.env` files to the repository.
 
+---
 
-On macOS:
+# macOS Android SDK Setup
 
-Open Terminal.
-Open the bash profile with the command open -e ~/.bash_profile. If that file doesn't exist, you can create it with the command touch ~/.bash_profile.
-Add these lines to the file, then save and close it:
-bash
-Copy code
-export ANDROID_HOME=/Users/[username]/Library/Android/sdk
+If Android SDK is not detected, add it to your shell profile.
+
+Edit:
+
+```
+~/.bash_profile
+```
+
+Add:
+
+```bash
+export ANDROID_HOME=$HOME/Library/Android/sdk
 export PATH=$PATH:$ANDROID_HOME/emulator
 export PATH=$PATH:$ANDROID_HOME/tools
 export PATH=$PATH:$ANDROID_HOME/tools/bin
 export PATH=$PATH:$ANDROID_HOME/platform-tools
+```
 
+Reload shell:
 
+```bash
+source ~/.bash_profile
+```
 
-cordova plugin add ionic-plugin-deeplinks --variable URL_SCHEME=finmars --variable DEEPLINK_SCHEME=https --variable DEEPLINK_HOST=finmars.com
+---
 
+# License
 
-npm install @capacitor/browser
-npx cap sync
+Please refer to the [LICENSE](LICENSE) file for license details.
+
+---
+
+# Support
+
+For bug reports or feature requests please open an issue in this repository.
+For Finmars platform documentation visit:
+
+[https://docs.finmars.com](https://docs.finmars.com)
