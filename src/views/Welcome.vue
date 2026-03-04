@@ -89,7 +89,7 @@
 					<div v-if="errorMessage" class="text-center text-error text-fs-small">{{ errorMessage }}</div>
 
 
-					<IonButton expand="full" @click="login()">LOGIN</IonButton>
+					<IonButton expand="full" @click="login()" :disabled="!region" >LOGIN</IonButton>
 
 
 				</div>
