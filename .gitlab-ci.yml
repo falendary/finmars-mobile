@@ -5,12 +5,15 @@ stages:
   - push
 
 default:
-  image: docker:20.10.16
+  image: docker:27.5.0
   services:
-    - docker:20.10.16-dind
+    - name: docker:27.5.0-dind
+      alias: docker
+      command: [ "--host=tcp://0.0.0.0:2375", "--host=unix:///var/run/docker.sock", "--tls=false" ]
   before_script:
     - docker info
-    - echo -n $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin registry.finmars.com
+    - echo -n $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin git.finmars.com:5050
+
 
 variables:
   # When using dind service, you must instruct docker to talk with the
