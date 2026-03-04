@@ -37,7 +37,7 @@
     "ionic-plugin-deeplinks": "^1.0.24",
     "ionicons": "^7.0.0",
     "js-sha256": "^0.10.1",
-    "keycloak-js": "^26.2.1",
+    "keycloak-js": "^26.2.3",
     "pinia": "^2.0.36",
     "swiper": "^9.2.0",
     "tsparticles-preset-stars": "^2.12.0",
