@@ -17,7 +17,7 @@ The mobile application connects to the Finmars backend and provides access to da
 
 Before running the project locally you need:
 
-* Node.js (recommended ≥ 18)
+* Node.js (recommended ≥ 20)
 * npm
 * Ionic CLI
 * Android Studio (for Android builds)
