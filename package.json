@@ -20,7 +20,7 @@
     "@capacitor/configure": "^2.0.10",
     "@capacitor/core": "^7.0.0",
     "@capacitor/haptics": "^7.0.0",
-    "@capacitor/ios": "^7.0.0",
+    "@capacitor/ios": "7.5.0",
     "@capacitor/keyboard": "^7.0.0",
     "@capacitor/network": "^7.0.0",
     "@capacitor/preferences": "^7.0.0",

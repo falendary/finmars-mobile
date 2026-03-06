@@ -32,15 +32,12 @@
 <script>
 	import { IonApp, IonButton, IonButtons, IonRouterOutlet, toastController } from '@ionic/vue'
 	import { Preferences } from '@capacitor/preferences'
-	import { initKeycloak } from '@/services/keycloakService.js'
 	import ProgressCircular from '@/components/ProgressCircular.vue'
-	import { Suspense } from 'vue'
-	import { Network } from '@capacitor/network'
-	import useStore from '@/composables/useStore.js'
-	import { App } from '@capacitor/app'
+	import { App as CapacitorApp } from '@capacitor/app'
 	import Passcode from '@/components/Passcode.vue'
 	import GlobalErrorToast from '@/components/GlobalErrorToast.vue'
-	import useApi from '@/composables/useApi.js'
+	import useStore from '@/composables/useStore.js'
+	import { isAuthenticatedLocally } from '@/services/authService.js'
 
 	export default {
 		components: {
@@ -48,33 +45,30 @@
 			IonButtons,
 			ProgressCircular,
 			IonRouterOutlet,
-			Suspense,
 			IonApp,
 			Passcode,
 			GlobalErrorToast
-			// settingsSharp, close, barChartOutline, layersOutline, readerOutline, settingsOutline
 		},
 
 		data() {
 			return {
-				processing: false,
-				showOfflineBar: true,
-				isOffline: false,
 				store: null,
 				isBlurred: false,
 				showPasscode: false,
 				backgroundTimestamp: null,
 				showRecoveryButton: false,
 				recoveryTimeout: null,
-				connectionError: false
+				connectionError: false,
+				appStateListenerHandle: null,
+				onlineHandler: null,
+				offlineHandler: null,
+				globalInterval: null
 			}
 		},
+
 		methods: {
 			async initializeDarkTheme() {
-
-				let { value: darkTheme } = await Preferences.get({ key: 'darkTheme' })
-
-				// console.log('from store darkTheme', darkTheme)
+				const { value: darkTheme } = await Preferences.get({ key: 'darkTheme' })
 
 				let isDark = false
 
@@ -82,22 +76,13 @@
 					isDark = true
 				} else if (darkTheme === 'false') {
 					isDark = false
-				} else {
-
-					if (window.matchMedia) {
-						const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
-
-						if (prefersDark.matches) {
-							isDark = true
-						}
-					}
+				} else if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
+					isDark = true
 				}
 
-				if (isDark) {
-					document.body.classList.toggle('dark', isDark)
-				}
-
+				document.body.classList.toggle('dark', isDark)
 			},
+
 			async handleConnectivityChange(isConnected) {
 				if (!isConnected) {
 					const toast = await toastController.create({
@@ -105,38 +90,37 @@
 						duration: 3000,
 						position: 'top',
 						color: 'danger',
-					});
-					await toast.present();
+					})
+					await toast.present()
 				} else if (this.connectionError) {
 					const toast = await toastController.create({
 						message: 'Internet connection restored.',
 						duration: 1500,
 						position: 'top',
 						color: 'success',
-					});
-					await toast.present();
+					})
+					await toast.present()
 				}
-				this.connectionError = !isConnected;
+
+				this.connectionError = !isConnected
 			},
+
 			async verifyPasscode() {
+				const { value: savedPasscode } = await Preferences.get({ key: 'passcode' })
+				const authenticated = await isAuthenticatedLocally()
 
-				let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
-				let { value: savedPasscode } = await Preferences.get({ key: 'passcode' })
-
-				if (savedPasscode && tokens) { // only if we logged in and passcode is setted up
+				if (savedPasscode && authenticated) {
 					this.showPasscode = true
 				}
 			},
+
 			async handleAppStateChange(state) {
+				const currentTimestamp = Date.now()
 
-				const currentTimestamp = new Date().getTime()
-
-				// state.isActive will be true if the app is in the foreground
 				if (state.isActive) {
-
 					if (this.backgroundTimestamp) {
 						const timeDifference = currentTimestamp - this.backgroundTimestamp
-						if (timeDifference >= 60000) { // 1 minute in milliseconds
+						if (timeDifference >= 60000) {
 							await this.verifyPasscode()
 						}
 					} else {
@@ -144,208 +128,104 @@
 					}
 
 					this.isBlurred = false
-
-					// Trigger your Passcode modal here
 				} else {
-
 					this.backgroundTimestamp = currentTimestamp
 					this.isBlurred = true
-
 				}
 			},
+
 			async goToRecovery() {
 				this.store.globalProcessing = false
-				this.$router.replace('/recovery')
+				await this.$router.replace('/recovery')
 			},
 
 			resetRecoveryButtonTimer() {
-				// Clear any existing timeout
 				if (this.recoveryTimeout) {
 					clearTimeout(this.recoveryTimeout)
 				}
 
-				// console.log('resetRecoveryButtonTimer', this.store.globalProcessing)
-
-				// Set a new timeout if globalProcessing is true
 				if (this.store.globalProcessing) {
 					this.recoveryTimeout = setTimeout(() => {
 						this.showRecoveryButton = true
-					}, 5 * 1000) // 5 seconds delay
+					}, 5000)
 				} else {
-					// If globalProcessing is not true, hide the button immediately
 					this.showRecoveryButton = false
 				}
 			},
-			async checkAuth() {
-				const tokensRaw = (await Preferences.get({ key: 'kcTokens' })).value;
-				const tokens = tokensRaw ? JSON.parse(tokensRaw) : null;
-				const kcParams = getKCParams();
 
-				function getKCParams() {
-					const url = new URL(window.location.href);
+			async runLegacyRegionCleanup() {
+				try {
+					const { value } = await Preferences.get({ key: 'region' })
+					const region = value ? JSON.parse(value) : null
 
-					let search = new URLSearchParams(url.search);
-					let hashString = url.hash.startsWith('#') ? url.hash.substring(1) : url.hash;
-					let hash = new URLSearchParams(hashString);
+					if (region && region.domain === 'https://finmars.com') {
+						await Preferences.remove({ key: 'region' })
+						await Preferences.remove({ key: 'activeRealmCode' })
+						await Preferences.remove({ key: 'activeSpaceCode' })
+						await Preferences.remove({ key: 'activeSpaceName' })
+						await Preferences.remove({ key: 'passcode' })
 
-					function hasParam(name) {
-						return search.has(name) || hash.has(name);
+						window.location.href = '/welcome'
 					}
-
-					function getParam(name) {
-						if (search.has(name)) {
-							return search.get(name);
-						}
-						if (hash.has(name)) {
-							return hash.get(name);
-						}
-						return null;
-					}
-
-					let hasAny =
-						hasParam('state') ||
-						hasParam('code') ||
-						hasParam('session_state') ||
-						hasParam('iss');
-
-					return {
-						hasAny: hasAny,
-						get: getParam,
-					};
-				}
-
-				const routeBySpace = async () => {
-					const { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' });
-					if (activeSpaceCode) {
-						await this.$router.replace('/main/dashboard');
-					} else {
-						await this.$router.replace('/workspaces');
-					}
-				};
-
-				console.log('tokens', tokens);
-				console.log('window.location.href', window.location.href);
-
-				// If we have tokens, try to re-init KC
-				if (tokens) {
-					this.store.globalProcessing = true;
-					try {
-						await initKeycloak();
-						await routeBySpace();              // re-read AFTER init
-					} catch (e) {
-						console.log('APP_INIT: keycloak.error', e);
-						await Preferences.remove({ key: 'kcTokens' });
-						await this.$router.replace('/welcome');
-					} finally {
-						this.store.globalProcessing = false;
-					}
-					return;
-				}
-
-				// No tokens. Maybe we came from KC redirect?
-				if (kcParams.hasAny) {
-					this.isBlurred = false;
-					this.store.globalProcessing = true;
-					try {
-						await initKeycloak();
-						await routeBySpace();
-					} catch (e) {
-						await this.$router.replace('/welcome');
-					} finally {
-						this.store.globalProcessing = false;
-						history.replaceState(null, '', window.location.pathname); // clear hash/query
-					}
-					return;
-				}
-
-				// First open
-				if (this.$route.path !== '/welcome') {
-					await this.$router.replace('/welcome');
+				} catch (error) {
+					console.error('runLegacyRegionCleanup failed', error)
 				}
 			},
-			async getRegion() {
-				let { value } = await Preferences.get({ key: 'region' })
 
-				if (!value) return false
+			installConnectivityListeners() {
+				this.onlineHandler = () => this.handleConnectivityChange(true)
+				this.offlineHandler = () => this.handleConnectivityChange(false)
 
-				return JSON.parse(value)
-			},
+				window.addEventListener('online', this.onlineHandler)
+				window.addEventListener('offline', this.offlineHandler)
+				this.handleConnectivityChange(navigator.onLine)
+			}
 		},
 
 		async created() {
-
-			this.handleConnectivityChange(navigator.onLine); // Check initial state
-			window.addEventListener('online', () => this.handleConnectivityChange(true));
-			window.addEventListener('offline', () => this.handleConnectivityChange(false));
-
 			this.store = useStore()
 
-			const region = await this.getRegion();
-
-			console.log("APP REGION", region);
-
-			// Deprecated thing, remove in 1.7.0
-			if (region && region.domain === 'https://finmars.com') {
-				await Preferences.remove({ key: 'region' })
-				await Preferences.remove({ key: 'activeRealmCode' })
-				await Preferences.remove({ key: 'activeSpaceCode' })
-				await Preferences.remove({ key: 'activeSpaceName' })
-				await Preferences.remove({ key: 'passcode' })
-
-				window.location.href = '/welcome'
-			}
-
+			await this.runLegacyRegionCleanup()
 			await this.initializeDarkTheme()
+			this.installConnectivityListeners()
 
+			this.globalInterval = setInterval(() => {
+				this.isBlurred = false
+				this.resetRecoveryButtonTimer()
+			}, 15000)
+		},
 
-			this.store.globalProcessing = true
-
-			this.resetRecoveryButtonTimer()
-
-			await this.checkAuth()
-
-			this.store.globalProcessing = false
+		async mounted() {
+			this.appStateListenerHandle = await CapacitorApp.addListener(
+				'appStateChange',
+				this.handleAppStateChange
+			)
 
 			await this.verifyPasscode()
-
-			this.globalInternval = setInterval(() => {
-				this.isBlurred = false;
-				this.resetRecoveryButtonTimer()
-			}, 15 * 1000) // do healthcheck every 10 seconds
-
 		},
-		mounted() {
-			// this.updateNetworkStatus()
 
-			// this.showPasscode = true; // for debug purpose
-
-			// Network.addListener('networkStatusChange', (status) => {
-			// 	this.isOffline = !status.connected
-			//
-			// 	if (this.isOffline) {
-			// 		this.showOfflineBar = true
-			// 	}
-			// })
-
-			App.addListener('appStateChange', this.handleAppStateChange)
-
-
-		},
 		beforeUnmount() {
-			window.removeEventListener('online', this.handleConnectivityChange);
-			window.removeEventListener('offline', this.handleConnectivityChange);
-			// Clean up listeners when component is destroyed
-			App.removeAllListeners()
+			if (this.onlineHandler) {
+				window.removeEventListener('online', this.onlineHandler)
+			}
+
+			if (this.offlineHandler) {
+				window.removeEventListener('offline', this.offlineHandler)
+			}
+
+			if (this.appStateListenerHandle) {
+				this.appStateListenerHandle.remove()
+			}
+
 			if (this.recoveryTimeout) {
 				clearTimeout(this.recoveryTimeout)
 			}
 
-			if (this.globalInternval) {
-				clearInterval(this.globalInternval)
+			if (this.globalInterval) {
+				clearInterval(this.globalInterval)
 			}
 		}
 	}
-
 </script>
 
 <style lang="scss">

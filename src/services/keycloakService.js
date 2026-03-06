@@ -1,256 +1,406 @@
-import { Preferences } from '@capacitor/preferences'
-import router from '@/router/index.js'
-import { Capacitor } from '@capacitor/core'
-import Keycloak from 'keycloak-js'
+import { Preferences } from "@capacitor/preferences"
+import router from "@/router/index.js"
+import { Capacitor } from "@capacitor/core"
+import Keycloak from "keycloak-js"
+
+let keycloakInstance = null
+let initPromise = null
+
+function getPlatformInfo() {
+	return {
+		isNative: Capacitor.isNativePlatform(),
+		platform: Capacitor.getPlatform()
+	}
+}
+
+async function getJsonPreference(key, fallback = null) {
+	try {
+		const { value } = await Preferences.get({ key })
+		if (!value) return fallback
+		return JSON.parse(value)
+	} catch (error) {
+		console.error(`keycloakService.getJsonPreference failed for key="${key}"`, error)
+		return fallback
+	}
+}
+
+async function setJsonPreference(key, value) {
+	try {
+		await Preferences.set({
+			key,
+			value: JSON.stringify(value)
+		})
+	} catch (error) {
+		console.error(`keycloakService.setJsonPreference failed for key="${key}"`, error)
+		throw error
+	}
+}
+
+function getRouterBase() {
+	return router?.options?.history?.base || ""
+}
+
+function normalizePath(path) {
+	return String(path || "").replace(/^\/+/, "")
+}
+
+function buildRedirectUri(path = "welcome") {
+	const cleanPath = normalizePath(path)
+	const base = getRouterBase().replace(/\/+$/, "")
+	const { isNative, platform } = getPlatformInfo()
+
+	if (!isNative) {
+		return `${window.location.origin}${base}/${cleanPath}`
+	}
+
+	if (platform === "android") {
+		return `https://finmars.com/${cleanPath}`
+	}
+
+	return `capacitor://${cleanPath}`
+}
+
+function buildLogoutRedirectUri() {
+	return buildRedirectUri("welcome")
+}
+
+function validateRegion(region) {
+	return Boolean(
+		region &&
+		region.keycloakOpts &&
+		region.keycloakOpts.url &&
+		region.keycloakOpts.realm &&
+		region.keycloakOpts.clientId
+	)
+}
 
 async function getRegion() {
-	let { value } = await Preferences.get({ key: 'region' })
+	return getJsonPreference("region", null)
+}
 
-	if (!value) return false
+async function getStoredTokens() {
+	return getJsonPreference("kcTokens", null)
+}
 
-	return JSON.parse(value)
+async function saveTokens() {
+	if (!keycloakInstance) return
+
+	try {
+		await setJsonPreference("kcTokens", {
+			token: keycloakInstance.token || null,
+			refreshToken: keycloakInstance.refreshToken || null,
+			idToken: keycloakInstance.idToken || null
+		})
+	} catch (error) {
+		console.error("keycloakService.saveTokens failed", error)
+	}
+}
+
+async function saveUsername() {
+	try {
+		const username = keycloakInstance?.idTokenParsed?.preferred_username
+		if (!username) return
+
+		await Preferences.set({
+			key: "username",
+			value: username
+		})
+	} catch (error) {
+		console.error("keycloakService.saveUsername failed", error)
+	}
+}
+
+function attachKeycloakHandlers() {
+	if (!keycloakInstance) return
+
+	keycloakInstance.onAuthSuccess = async () => {
+		console.log("keycloak.onAuthSuccess")
+		await saveTokens()
+		await saveUsername()
+	}
+
+	keycloakInstance.onAuthRefreshSuccess = async () => {
+		console.log("keycloak.onAuthRefreshSuccess")
+		await saveTokens()
+	}
+
+	keycloakInstance.onAuthLogout = async () => {
+		console.log("keycloak.onAuthLogout")
+		await clearTokens()
+	}
+
+	keycloakInstance.onAuthError = (errorData) => {
+		console.error("keycloak.onAuthError", errorData)
+	}
+
+	keycloakInstance.onAuthRefreshError = (errorData) => {
+		console.error("keycloak.onAuthRefreshError", errorData)
+	}
+
+	keycloakInstance.onTokenExpired = async () => {
+		console.log("keycloak.onTokenExpired")
+
+		try {
+			await keycloakInstance.updateToken(30)
+			await saveTokens()
+		} catch (error) {
+			console.error("keycloak.onTokenExpired refresh failed", error)
+		}
+	}
+}
+
+export function getKeycloak() {
+	return keycloakInstance
 }
 
 export async function initKeycloak() {
+	if (initPromise) return initPromise
 
-	const region = await getRegion()
+	initPromise = (async () => {
+		const region = await getRegion()
 
-	console.log('initKeycloak.region', region);
-
-	let { value: tokens } = await Preferences.get({ key: 'kcTokens' })
-
-	// console.log('region.keycloakOpts', JSON.stringify(region.keycloakOpts, null, 4));
-
-	window.keycloak = new Keycloak(region.keycloakOpts)
-
-	window.keycloak.onAuthSuccess = setTokens
-	window.keycloak.onAuthRefreshSuccess = setTokens
-	// window.keycloak.onTokenExpired = refreshTokens
-
-	let { value: activeSpaceCode } = await Preferences.get({ key: 'activeSpaceCode' })
-	let { value: activeRealmCode } = await Preferences.get({ key: 'activeRealmCode' })
-
-	let appDestinationPath = 'welcome'
-
-	if (activeSpaceCode) {
-		appDestinationPath = 'main/dashboard'
-	}
-
-	// console.log('initKeycloak.activeSpaceCode', activeSpaceCode);
-	// console.log('initKeycloak.appDestinationPath', appDestinationPath);
-
-	const isNative = Capacitor.isNativePlatform?.() === true;
-
-	let kcOpts = {
-		onLoad: 'login-required',
-		checkLoginIframe: !isNative, // important: disable on native
-		checkLoginIframeInterval: 60, // Seconds
-		timeSkew: 0, // fix bag with update token
-		redirectUri: window.location.origin + router.options.history.base + '/' + appDestinationPath
-	}
-
-
-
-	if (window.Cordova) {
-
-		// console.log('window.Cordova', window.Cordova)
-
-		kcOpts['adapter'] = 'capacitor'
-		kcOpts['responseMode'] = 'query'
-		// kcOpts['redirectUri'] = 'finmars://' + appDestinationPath
-		kcOpts['redirectUri'] = 'capacitor://' + appDestinationPath
-
-		const platform = import.meta.env.VITE_APP_PLATFORM;
-
-
-		// console.log('import.meta.env', import.meta.env);
-
-		if (window.Capacitor.platform == 'android') {
-			kcOpts['redirectUri'] = 'https://finmars.com/' + appDestinationPath
+		if (!validateRegion(region)) {
+			throw new Error('Missing or invalid Keycloak region configuration')
 		}
 
-		console.log('platform', platform)
-		console.log('redirectUri', kcOpts['redirectUri'])
+		if (!keycloakInstance || typeof keycloakInstance.init !== 'function') {
+			keycloakInstance = new Keycloak(region.keycloakOpts)
+			attachKeycloakHandlers()
+		}
+		const appDestinationPath = 'login'
 
-	}
+		const storedTokens = await getStoredTokens()
 
-	if (tokens) Object.assign(kcOpts, JSON.parse(tokens))
+		const initOptions = {
+			onLoad: 'check-sso',
+			checkLoginIframe: !Capacitor.isNativePlatform(),
+			checkLoginIframeInterval: 60,
+			timeSkew: 0,
+			redirectUri: buildRedirectUri(appDestinationPath)
+		}
 
-	// console.log('kcOpts', JSON.stringify(kcOpts, null, 4))
-	console.log('before_init');
+		if (storedTokens?.token) initOptions.token = storedTokens.token
+		if (storedTokens?.refreshToken) initOptions.refreshToken = storedTokens.refreshToken
+		if (storedTokens?.idToken) initOptions.idToken = storedTokens.idToken
 
-	const authenticated = await window.keycloak.init(kcOpts);
-
-	console.log("after init?" % authenticated)
-
-	if (window.keycloak.idTokenParsed) {
-		Preferences.set({
-			key: 'username',
-			value: window.keycloak.idTokenParsed.preferred_username
+		console.log('keycloak.init.start', {
+			redirectUri: initOptions.redirectUri,
+			hasStoredTokens: Boolean(storedTokens?.token && storedTokens?.refreshToken)
 		})
+
+		const authenticated = await keycloakInstance.init(initOptions)
+
+		console.log('keycloak.init.done', { authenticated })
+
+		if (authenticated) {
+			await saveTokens()
+			await saveUsername()
+		}
+
+		return authenticated
+	})()
+
+	try {
+		return await initPromise
+	} catch (error) {
+		keycloakInstance = null
+		initPromise = null
+		throw error
+	}
+}
+
+export async function loginKeycloak(path = null) {
+	const region = await getRegion()
+
+	if (!validateRegion(region)) {
+		throw new Error("Cannot login without region configuration")
 	}
 
+	// Always initialize through the same path
+	try {
+		await initKeycloak()
+	} catch (error) {
+		console.warn("loginKeycloak.initKeycloak failed, will try direct login init", error)
+	}
 
-	// debugger;
+	// Absolute guard
+	if (!keycloakInstance) {
+		keycloakInstance = new Keycloak(region.keycloakOpts)
+		attachKeycloakHandlers()
+	}
 
+	if (!keycloakInstance || typeof keycloakInstance.login !== "function") {
+		throw new Error("Keycloak instance is not available for login")
+	}
+
+	const appDestinationPath = path || 'login'
+
+	console.log("keycloak.login.start", {
+		redirectUri: buildRedirectUri(appDestinationPath),
+		hasInstance: Boolean(keycloakInstance),
+		hasLoginMethod: typeof keycloakInstance?.login === "function"
+	})
+
+	const redirectUri = buildRedirectUri(appDestinationPath)
+
+	console.log('loginKeycloak called', {
+		isNative: Capacitor.isNativePlatform(),
+		platform: Capacitor.getPlatform(),
+		redirectUri,
+		keycloakUrl: region.keycloakOpts.url,
+		realm: region.keycloakOpts.realm,
+		clientId: region.keycloakOpts.clientId
+	})
+
+	return keycloakInstance.login({
+		redirectUri: redirectUri
+	})
 }
 
 export async function logoutKeycloak() {
-
-	var logoutOptions = { redirectUri: window.location.origin + router.options.history.base + '/welcome' }
-
-	if (window.Cordova) {
-
-		// console.log('window.Cordova', window.Cordova)
-		logoutOptions['redirectUri'] = 'finmars://welcome'
-
-		const platform = import.meta.env.VITE_APP_PLATFORM;
-
-		if (platform == 'android') {
-			logoutOptions['redirectUri'] = 'https://finmars.com/welcome'
-		}
-
+	if (!keycloakInstance) {
+		await clearTokens()
+		return
 	}
 
-	window.keycloak.logout(logoutOptions);
-
-}
-
-function setTokens() {
-
-	// // console.log('initKeycloak.setTokens', window.keycloak.token)
-
-	// alert('setTokens: ' + keycloak.token)
-
-	Preferences.set({
-		key: 'kcTokens',
-		value: JSON.stringify({
-			token: window.keycloak.token,
-			refreshToken: window.keycloak.refreshToken,
-			idToken: window.keycloak.idToken
+	try {
+		await keycloakInstance.logout({
+			redirectUri: buildLogoutRedirectUri()
 		})
-	})
+	} catch (error) {
+		console.error("keycloakService.logoutKeycloak failed", error)
+		throw error
+	} finally {
+		keycloakInstance = null
+		initPromise = null
+	}
 }
 
-export async function refreshToken() {
+export async function refreshToken(minValidity = 30) {
+	if (!keycloakInstance) {
+		throw new Error("Keycloak is not initialized")
+	}
 
-	// alert('setTokens: ' + keycloak.token)
+	try {
+		const refreshed = await keycloakInstance.updateToken(minValidity)
 
-	return window.keycloak.updateToken().then(function() {
+		if (refreshed) {
+			await saveTokens()
+		}
 
-		Preferences.set({
-			key: 'kcTokens',
-			value: JSON.stringify({
-				token: window.keycloak.token,
-				refreshToken: window.keycloak.refreshToken,
-				idToken: window.keycloak.idToken
-			})
-		})
-
-		return window.keycloak.token
-
-	})
+		return keycloakInstance.token
+	} catch (error) {
+		console.error("keycloakService.refreshToken failed", error)
+		throw error
+	}
 }
 
+export async function getValidToken(minValidity = 30) {
+	if (!keycloakInstance) {
+		const authenticated = await initKeycloak()
+		if (!authenticated) {
+			throw new Error("User is not authenticated")
+		}
+	}
+
+	return refreshToken(minValidity)
+}
 
 export async function clearTokens() {
-
-	// alert('setTokens: ' + keycloak.token)
-
-	await Preferences.remove({
-		key: 'kcTokens'
-	})
-	await Preferences.remove({ key: 'region' })
-	await Preferences.remove({ key: 'activeSpaceCode' })
-	await Preferences.remove({ key: 'activeSpaceName' })
-
+	await Preferences.remove({ key: "kcTokens" })
+	await Preferences.remove({ key: "username" })
+	await Preferences.remove({ key: "activeSpaceCode" })
+	await Preferences.remove({ key: "activeSpaceName" })
+	// keep region on purpose, so user stays in the selected region
 }
-
 
 function buildRealmBase(region) {
-	const base = region.keycloakOpts.url.replace(/\/+$/, '');
-	const realm = region.keycloakOpts.realm;
-	return base + '/realms/' + realm;
+	const base = region.keycloakOpts.url.replace(/\/+$/, "")
+	const realm = region.keycloakOpts.realm
+	return `${base}/realms/${realm}`
 }
 
-async function fetchWithTimeout(url, options, timeoutMs) {
-	const ctrl = new AbortController();
-	const t = setTimeout(() => ctrl.abort(), timeoutMs);
+async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+	const controller = new AbortController()
+	const timer = setTimeout(() => controller.abort(), timeoutMs)
+
 	try {
-		const res = await fetch(url, { ...options, signal: ctrl.signal });
-		return res;
+		return await fetch(url, {
+			...options,
+			signal: controller.signal
+		})
 	} finally {
-		clearTimeout(t);
+		clearTimeout(timer)
 	}
 }
 
 export async function keycloakTokenHealthcheck(region, tokens, timeoutMs = 8000) {
-	if (!region || !region.keycloakOpts) return false;
-	if (!tokens) return false;
+	if (!validateRegion(region)) return false
+	if (!tokens?.token) return false
 
-	const base = buildRealmBase(region);
-	const userinfoUrl = base + '/protocol/openid-connect/userinfo';
-	const tokenUrl = base + '/protocol/openid-connect/token';
-	const clientId = region.keycloakOpts.clientId;
+	const base = buildRealmBase(region)
+	const userinfoUrl = `${base}/protocol/openid-connect/userinfo`
+	const tokenUrl = `${base}/protocol/openid-connect/token`
+	const clientId = region.keycloakOpts.clientId
 
-	// 1) Try userinfo with current access token
 	try {
-		const res = await fetchWithTimeout(userinfoUrl, {
-			method: 'GET',
-			headers: { Authorization: 'Bearer ' + tokens.token }
-		}, timeoutMs);
+		const userInfoRes = await fetchWithTimeout(
+			userinfoUrl,
+			{
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${tokens.token}`
+				}
+			},
+			timeoutMs
+		)
 
-		if (res.ok) {
-			return true; // token is valid online
+		if (userInfoRes.ok) {
+			return true
 		}
-		// if unauthorized, fall through to refresh
-	} catch (_) {
-		// network fail -> try refresh (maybe token expired)
+	} catch (error) {
+		console.warn("keycloakTokenHealthcheck.userinfo failed", error)
 	}
 
-	// 2) Try refresh token
-	if (!tokens.refreshToken) return false;
+	if (!tokens.refreshToken) return false
 
-	const body = new URLSearchParams();
-	body.set('grant_type', 'refresh_token');
-	body.set('client_id', clientId);
-	body.set('refresh_token', tokens.refreshToken);
+	const body = new URLSearchParams()
+	body.set("grant_type", "refresh_token")
+	body.set("client_id", clientId)
+	body.set("refresh_token", tokens.refreshToken)
 
 	try {
-		const res = await fetchWithTimeout(tokenUrl, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-			body: body.toString()
-		}, timeoutMs);
+		const refreshRes = await fetchWithTimeout(
+			tokenUrl,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/x-www-form-urlencoded"
+				},
+				body: body.toString()
+			},
+			timeoutMs
+		)
 
-		if (!res.ok) return false;
+		if (!refreshRes.ok) {
+			return false
+		}
 
-		const json = await res.json();
-		if (!json.access_token || !json.refresh_token) return false;
+		const json = await refreshRes.json()
 
-		// 3) Save new tokens
-		await Preferences.set({
-			key: 'kcTokens',
-			value: JSON.stringify({
-				token: json.access_token,
-				refreshToken: json.refresh_token,
-				idToken: json.id_token || null
-			})
-		});
+		if (!json.access_token || !json.refresh_token) {
+			return false
+		}
 
-		return true;
-	} catch (_) {
-		return false;
+		await setJsonPreference("kcTokens", {
+			token: json.access_token,
+			refreshToken: json.refresh_token,
+			idToken: json.id_token || null
+		})
+
+		return true
+	} catch (error) {
+		console.warn("keycloakTokenHealthcheck.refresh failed", error)
+		return false
 	}
 }
-
-// async function refreshTokens() {
-//
-// 	// console.log('refreshTokens')
-//
-// 	const isRefreshed = await window.keycloak.updateToken(5)
-//
-// 	if (!isRefreshed) {
-// 		await window.keycloak.login()
-// 	}
-// }

@@ -34,11 +34,19 @@ npm-debug.log*
 *.local
 
 android/app/release/
-ios
+# do not delete ios and android folders
+
+# ios
+ios/App/build
+ios/DerivedData
+
+# android
+android/.gradle
+android/build
+android/app/build
 
 # Sentry Auth Token
 .env.sentry-build-plugin
 .env
 .env.production
-android
 .vscode
