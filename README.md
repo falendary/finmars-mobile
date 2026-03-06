@@ -294,3 +294,15 @@ For bug reports or feature requests please open an issue in this repository.
 For Finmars platform documentation visit:
 
 [https://docs.finmars.com](https://docs.finmars.com)
+
+---
+
+Important
+
+Do not delete, keycloak-js depends on them
+
+```
+"cordova-plugin-inappbrowser": "6.0.0",
+"ionic-plugin-deeplinks": "1.0.24",
+"@ionic-native/deeplinks": "5.36.0"
+```

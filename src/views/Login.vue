@@ -25,56 +25,89 @@
 </template>
 
 <script setup>
-	import { ref } from "vue"
-	import { useRouter } from "vue-router"
-	import { IonButton, IonContent, IonPage, onIonViewWillEnter } from "@ionic/vue"
-	import { bootstrapSession, routeAfterAuth, startLoginFlow } from "@/services/authService.js"
+	import { ref, onMounted, onBeforeUnmount } from 'vue'
+	import { useRouter } from 'vue-router'
+	import { IonButton, IonContent, IonPage, onIonViewWillEnter } from '@ionic/vue'
+	import {
+		bootstrapSession,
+		routeAfterAuth,
+		startLoginFlow
+	} from '@/services/authService.js'
+	import { Capacitor } from "@capacitor/core"
 
 	const router = useRouter()
 
 	const loading = ref(false)
-	const title = ref("Signing in")
-	const subtitle = ref("Checking your session")
+	const title = ref('Signing in')
+	const subtitle = ref('Checking your session')
 
 	async function goToRegionSelect() {
-		await router.replace("/welcome")
+		await router.replace('/welcome')
+	}
+
+	async function handleAuthSuccess() {
+		console.log('login.handleAuthSuccess')
+
+		title.value = 'Signing in'
+		subtitle.value = 'Opening your workspace'
+
+		await routeAfterAuth(router)
 	}
 
 	async function runAuthFlow() {
 		if (loading.value) return
 
 		loading.value = true
-		title.value = "Signing in"
-		subtitle.value = "Checking your session"
+		title.value = 'Signing in'
+		subtitle.value = 'Checking your session'
 
 		try {
 			const result = await bootstrapSession()
 
-			if (result.status === "authenticated") {
-				subtitle.value = "Opening your workspace"
+			if (result.status === 'authenticated') {
+				subtitle.value = 'Opening your workspace'
 				await routeAfterAuth(router)
 				return
 			}
 
-			if (result.status === "needs-login") {
-				subtitle.value = "Redirecting to login"
+			if (result.status === 'needs-login') {
+				subtitle.value = 'Redirecting to login'
 				await startLoginFlow()
 				return
 			}
 
-			console.error("login.runAuthFlow unexpected result", result)
-			title.value = "Login unavailable"
-			subtitle.value = "Please select region again"
-			await router.replace("/welcome")
+			console.error('login.runAuthFlow unexpected result', result)
+			title.value = 'Login unavailable'
+			subtitle.value = 'Please select region again'
+			await router.replace('/welcome')
 		} catch (error) {
-			console.error("login.runAuthFlow failed", error)
-			title.value = "Login unavailable"
-			subtitle.value = "Please select region again"
-			await router.replace("/welcome")
+			console.error('login.runAuthFlow failed', error)
+
+			const message = String(error?.message || error || '')
+			const isNative = Capacitor.isNativePlatform()
+
+			// Native Keycloak handoff can throw transiently before auth success arrives
+			if (isNative && message.includes('Unable to process login')) {
+				title.value = 'Signing in'
+				subtitle.value = 'Finishing login'
+				return
+			}
+
+			title.value = 'Login unavailable'
+			subtitle.value = 'Please select region again'
+			await router.replace('/welcome')
 		} finally {
 			loading.value = false
 		}
 	}
+
+	onMounted(() => {
+		window.addEventListener('auth:success', handleAuthSuccess)
+	})
+
+	onBeforeUnmount(() => {
+		window.removeEventListener('auth:success', handleAuthSuccess)
+	})
 
 	onIonViewWillEnter(() => {
 		runAuthFlow()
