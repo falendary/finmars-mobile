@@ -47,7 +47,6 @@
 	import { Preferences } from '@capacitor/preferences'
 	import useApi from '@/composables/useApi.js'
 	import useStore from '@/composables/useStore.js'
-	import initFormbricks from '@/services/formbricks.js'
 
 	export default {
 		components: { IonButton, IonSelect },

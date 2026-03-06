@@ -1,25 +1,23 @@
 PODS:
   - AparajitaCapacitorBiometricAuth (8.0.2):
     - Capacitor
-  - Capacitor (7.4.4):
+  - Capacitor (7.5.0):
     - CapacitorCordova
-  - CapacitorApp (7.1.0):
+  - CapacitorApp (7.1.2):
     - Capacitor
-  - CapacitorBrowser (7.0.2):
+  - CapacitorBrowser (7.0.4):
     - Capacitor
-  - CapacitorCordova (7.4.4)
-  - CapacitorHaptics (7.0.2):
+  - CapacitorCordova (7.5.0)
+  - CapacitorHaptics (7.0.3):
     - Capacitor
-  - CapacitorKeyboard (7.0.3):
+  - CapacitorKeyboard (7.0.4):
     - Capacitor
-  - CapacitorNetwork (7.0.2):
+  - CapacitorNetwork (7.0.4):
     - Capacitor
-  - CapacitorPreferences (7.0.2):
+  - CapacitorPreferences (7.0.4):
     - Capacitor
-  - CapacitorStatusBar (7.0.3):
+  - CapacitorStatusBar (7.0.5):
     - Capacitor
-  - CordovaPlugins (7.4.4):
-    - CapacitorCordova
 
 DEPENDENCIES:
   - "AparajitaCapacitorBiometricAuth (from `../../node_modules/@aparajita/capacitor-biometric-auth`)"
@@ -32,7 +30,6 @@ DEPENDENCIES:
   - "CapacitorNetwork (from `../../node_modules/@capacitor/network`)"
   - "CapacitorPreferences (from `../../node_modules/@capacitor/preferences`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
-  - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
 
 EXTERNAL SOURCES:
   AparajitaCapacitorBiometricAuth:
@@ -55,22 +52,19 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/preferences"
   CapacitorStatusBar:
     :path: "../../node_modules/@capacitor/status-bar"
-  CordovaPlugins:
-    :path: "../capacitor-cordova-ios-plugins"
 
 SPEC CHECKSUMS:
   AparajitaCapacitorBiometricAuth: 3057403ee3e9e390e57bfb92b576f439157951b8
-  Capacitor: 09d9ff8e9618e8c4b3cab2bbee34a17215dd2fef
-  CapacitorApp: 846d4b4a1dbb19dd1e9029c08ba6f028aa7be862
-  CapacitorBrowser: 45c681e7abc3b4384e54eb52bafeef1347d98fa8
-  CapacitorCordova: bf648a636f3c153f652d312ae145fb508b6ffced
-  CapacitorHaptics: 09d96bcb5a2b74ede8fd039b4cdf58fc43dcacf1
-  CapacitorKeyboard: 3822c3a0c6b58168f96ca562f9534ed095d40860
-  CapacitorNetwork: 9b9eaeb417ec0ffa22e2bc33a4c71df10e1d6f06
-  CapacitorPreferences: b583b5deb74e564c35968189d25d32c0fd41200d
-  CapacitorStatusBar: 7d8fcbd6768db014bd721d75e246590b014928e8
-  CordovaPlugins: 2863b27a1d95503a7538fbac629ce1c11042c2d2
+  Capacitor: 5f723a6113395cfef3bbabf0d2b8e9ca1201c681
+  CapacitorApp: 6b89831465d6bc99bc89779b1b7f5327e33011ce
+  CapacitorBrowser: d0a1ab6a22835100eb6a203a54571d11f82bf7a7
+  CapacitorCordova: ae35646a9b46cfd00d637f195509c86594026aad
+  CapacitorHaptics: d17da7dd984cae34111b3f097ccd3e21f9feec62
+  CapacitorKeyboard: 45cae3956a6f4fb1753f9a4df3e884aeaed8fe82
+  CapacitorNetwork: 3d56050f929a8c86427a5b28558ce605e7cf61b3
+  CapacitorPreferences: d82a7e3b95fcab43a553268b803356522910d153
+  CapacitorStatusBar: b4bdcf487553983ffc68d81dfe1668bacb48252f
 
-PODFILE CHECKSUM: 7588ae0e1c96d8385800f843c5bc0cdb70877a8c
+PODFILE CHECKSUM: 50ab801fe6578e2b422fc13c2d7fe203007887d0
 
 COCOAPODS: 1.15.2
