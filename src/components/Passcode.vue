@@ -1,35 +1,5 @@
 <template>
 	<div class="passcode-component-wrapper">
-		<vue-particles
-			id="tsparticles"
-			:particlesInit="particlesInit"
-			:options="{
-									fpsLimit: 120,
-
-                    particles: {
-                        collisions: {
-                            enable: true
-                        },
-                        number: {
-                            density: {
-                                enable: true,
-                                area: 800
-                            },
-                            value: 80
-                        },
-                        shape: {
-                            type: 'circle'
-                        }
-                    },
-
-										preset: 'stars',
-										detectRetina: true,
-										 emitters: {
-												direction: 'none',
-										}
-									}"
-		/>
-
 
 		<div class="passcode-container">
 
@@ -64,7 +34,6 @@
 
 	import { fingerPrintOutline } from 'ionicons/icons'
 
-	import { loadStarsPreset } from 'tsparticles-preset-stars'
 	import { Preferences } from '@capacitor/preferences'
 
 	import { Haptics, ImpactStyle } from '@capacitor/haptics'
@@ -250,12 +219,6 @@
 				this.$router.push('/main/dashboard')
 
 			},
-
-			async particlesInit(engine) {
-				//await loadFull(engine);
-				await loadStarsPreset(engine)
-			},
-
 			async showAlert(message) {
 				const alert = await alertController.create({
 					header: `${this.biometryName} says:`,

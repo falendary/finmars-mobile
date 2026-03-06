@@ -2,37 +2,6 @@
 	<ion-page>
 		<ion-content class="ion-padding welcome-page">
 
-			<vue-particles
-				id="tsparticles"
-				:particlesInit="particlesInit"
-				:options="{
-									fpsLimit: 120,
-
-                    particles: {
-                        collisions: {
-                            enable: true
-                        },
-                        number: {
-                            density: {
-                                enable: true,
-                                area: 800
-                            },
-                            value: 80
-                        },
-                        shape: {
-                            type: 'circle'
-                        }
-                    },
-
-										preset: 'stars',
-										detectRetina: true,
-										 emitters: {
-												direction: 'none',
-										}
-									}"
-			/>
-
-
 			<div class="black-space-page recovery-page-container center aic" style="height: 100%">
 				<div style="width: 90%">
 					<h1 class="tac">🛠 Recovery</h1>
@@ -77,7 +46,6 @@
 <script>
 	import { IonButton, IonContent, IonPage } from '@ionic/vue'
 
-	import { loadStarsPreset } from 'tsparticles-preset-stars'
 	import { Preferences } from '@capacitor/preferences'
 	import useStore from '@/composables/useStore.js'
 
@@ -116,10 +84,6 @@
 			},
 			async toSpaces() {
 				this.$router.replace('/workspaces')
-			},
-			async particlesInit(engine) {
-				//await loadFull(engine);
-				await loadStarsPreset(engine)
 			}
 
 		},

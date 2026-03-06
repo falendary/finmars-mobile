@@ -2,40 +2,9 @@
 	<ion-page>
 		<ion-content class="ion-padding welcome-page">
 
-			<vue-particles
-				id="tsparticles"
-				:particlesInit="particlesInit"
-				:options="{
-									fpsLimit: 120,
-
-                    particles: {
-                        collisions: {
-                            enable: true
-                        },
-                        number: {
-                            density: {
-                                enable: true,
-                                area: 800
-                            },
-                            value: 80
-                        },
-                        shape: {
-                            type: 'circle'
-                        }
-                    },
-
-										preset: 'stars',
-										detectRetina: true,
-										 emitters: {
-												direction: 'none',
-										}
-									}"
-			/>
-
-
 			<div class="welcome-page-container center aic" style="height: 100%">
 				<div style="width: 90%">
-					<h1 class="tac">Welcome to Finmars</h1>
+					<h1 class="tac">Welcome</h1>
 
 					<ion-select
 						v-model="region"
@@ -109,8 +78,6 @@
 	import { IonButton, IonContent, IonPage, IonSelect, IonSelectOption } from '@ionic/vue'
 	import { Preferences } from '@capacitor/preferences'
 	import { useRouter } from 'vue-router'
-
-	import { loadStarsPreset } from 'tsparticles-preset-stars'
 
 	export default {
 		components: {
@@ -214,11 +181,6 @@
 					this.errorMessage = 'Login Error. ' + e.toString()
 				}
 
-			},
-
-			async particlesInit(engine) {
-				//await loadFull(engine);
-				await loadStarsPreset(engine)
 			}
 
 		},

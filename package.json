@@ -41,8 +41,6 @@
     "keycloak-js": "^26.2.3",
     "pinia": "^2.0.36",
     "swiper": "^9.2.0",
-    "tsparticles-preset-stars": "^2.12.0",
-    "tsparticles-slim": "^2.12.0",
     "vue": "^3.2.45",
     "vue-chartjs": "^5.2.0",
     "vue-matomo": "^4.2.0",
