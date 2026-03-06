@@ -78,6 +78,7 @@
 	import { IonButton, IonContent, IonPage, IonSelect, IonSelectOption } from '@ionic/vue'
 	import { Preferences } from '@capacitor/preferences'
 	import { useRouter } from 'vue-router'
+	import { bootstrapSession, routeAfterAuth } from '@/services/authService.js'
 
 	export default {
 		components: {
@@ -130,24 +131,47 @@
 			}
 		},
 		methods: {
+			async tryAutoLogin() {
+				try {
+					const { value: regionRaw } = await Preferences.get({ key: 'region' })
+
+
+					console.log('tryAutoLogin.regionRaw', regionRaw)
+
+					if (!regionRaw) {
+						return
+					}
+
+					const savedRegion = JSON.parse(regionRaw)
+
+					if (savedRegion?.id) {
+						this.region = savedRegion.id
+					}
+
+					const result = await bootstrapSession()
+
+					// console.log('result', result);
+
+					if (result.status === 'authenticated') {
+						await routeAfterAuth(this.router)
+					} else {
+						console.log("tryAutoLogin.needs-login", result)
+					}
+				} catch (e) {
+					console.error('welcome.tryAutoLogin failed', e)
+				}
+			},
 
 			async login() {
-
 				try {
-
 					this.errorMessage = ''
-
 
 					let regionObj
 
 					if (this.region !== 'custom') {
-
 						regionObj = this.regions.find((o) => o.id === this.region)
-
 					} else {
-
 						regionObj = Object.assign({}, this.customRegion)
-
 						regionObj.id = regionObj.name + '_' + new Date().toISOString()
 
 						let custom_regions = this.regions.filter((item) => {
@@ -157,47 +181,25 @@
 						custom_regions.push(regionObj)
 
 						await Preferences.set({ key: 'custom_regions', value: JSON.stringify(custom_regions) })
-
 					}
-
-					// console.log('welcome.login.region.value', this.region)
-					// console.log('welcome.login.customRegion', this.customRegion)
-					// console.log('welcome.login.regionObj', regionObj)
-
 
 					if (regionObj) {
-
 						await Preferences.set({ key: 'region', value: JSON.stringify(regionObj) })
-
 						await this.router.replace('/login')
-
 					} else {
-
 						this.errorMessage = 'Region is not set. Check your settings or please, contact Support'
-
 					}
-
 				} catch (e) {
 					this.errorMessage = 'Login Error. ' + e.toString()
 				}
-
 			}
-
 		},
 		async created() {
-
 			if (window.location.href.indexOf('error_message=') !== -1) {
-
 				this.errorMessage = window.location.href.split('error_message=')[1]
-
 			}
 
-			// console.log('Welcome.errorMessage', this.errorMessage)
-
-
 			let custom_regions = await Preferences.get({ key: 'custom_regions' })
-
-			// console.log('custom_regions', custom_regions)
 
 			if (custom_regions && custom_regions.value) {
 				var custom_regions_objects = JSON.parse(custom_regions.value)
@@ -212,10 +214,9 @@
 				active: true
 			})
 
+			await this.tryAutoLogin()
 		}
-
 	}
-
 </script>
 
 <style lang="scss">
